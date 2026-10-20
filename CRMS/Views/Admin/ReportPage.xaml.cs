@@ -1,10 +1,10 @@
 ﻿using System.Windows.Controls;
 
-namespace CRMS.Views
+namespace CRMS.Views.Admin
 {
-    public partial class BookingPage : Page
+    public partial class ReportPage : Page
     {
-        public BookingPage()
+        public ReportPage()
         {
             InitializeComponent();
         }

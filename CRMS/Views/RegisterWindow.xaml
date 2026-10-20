@@ -1,0 +1,111 @@
+﻿<Window x:Class="CRMS.Views.RegisterWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="CRMS - Register"
+        Height="640"
+        Width="470"
+        MinHeight="540"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner"
+        Background="#F1F5F9">
+
+    <Border Margin="20"
+            Background="White"
+            CornerRadius="12"
+            Padding="30">
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+
+                <!-- Title -->
+                <TextBlock Text="CRMS"
+                           FontSize="30"
+                           FontWeight="Bold"
+                           Foreground="#2563EB"
+                           HorizontalAlignment="Center"/>
+
+                <TextBlock Text="Create your account"
+                           FontSize="14"
+                           Foreground="#64748B"
+                           HorizontalAlignment="Center"
+                           Margin="0,5,0,25"/>
+
+                <!-- Full name -->
+                <TextBlock Text="Full Name"
+                           FontWeight="SemiBold"
+                           Margin="0,0,0,6"/>
+
+                <TextBox Height="36"
+                         Padding="10,6"
+                         Text="{Binding FullName,
+                             UpdateSourceTrigger=PropertyChanged}"/>
+
+                <!-- Email -->
+                <TextBlock Text="Email"
+                           FontWeight="SemiBold"
+                           Margin="0,15,0,6"/>
+
+                <TextBox Height="36"
+                         Padding="10,6"
+                         Text="{Binding Email,
+                             UpdateSourceTrigger=PropertyChanged}"/>
+
+                <!-- Phone -->
+                <TextBlock Text="Phone Number"
+                           FontWeight="SemiBold"
+                           Margin="0,15,0,6"/>
+
+                <TextBox Height="36"
+                         Padding="10,6"
+                         Text="{Binding Phone,
+                             UpdateSourceTrigger=PropertyChanged}"/>
+
+                <!-- Password -->
+                <TextBlock Text="Password"
+                           FontWeight="SemiBold"
+                           Margin="0,15,0,6"/>
+
+                <PasswordBox x:Name="PasswordInput"
+                             Height="36"
+                             Padding="10,6"/>
+
+                <!-- Confirm password -->
+                <TextBlock Text="Confirm Password"
+                           FontWeight="SemiBold"
+                           Margin="0,15,0,6"/>
+
+                <PasswordBox x:Name="ConfirmPasswordInput"
+                             Height="36"
+                             Padding="10,6"/>
+
+                <!-- Error message -->
+                <TextBlock Text="{Binding ErrorMessage}"
+                           Foreground="#DC2626"
+                           TextWrapping="Wrap"
+                           Margin="0,10,0,10"
+                           MinHeight="25"/>
+
+                <!-- Register button -->
+                <Button Content="Register"
+                        Height="42"
+                        Click="Register_Click"
+                        IsEnabled="{Binding IsNotLoading}"
+                        Background="#2563EB"
+                        Foreground="White"
+                        FontWeight="Bold"
+                        Cursor="Hand"/>
+
+                <!-- Back to Login -->
+                <Button Content="Back to Login"
+                        Height="35"
+                        Margin="0,10,0,0"
+                        Click="BackToLogin_Click"
+                        Background="Transparent"
+                        Foreground="#2563EB"
+                        BorderThickness="0"
+                        Cursor="Hand"/>
+
+            </StackPanel>
+        </ScrollViewer>
+    </Border>
+</Window>
