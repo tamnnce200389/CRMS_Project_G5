@@ -1,0 +1,112 @@
+<Page x:Class="CRMS.Views.DriverPage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:vm="clr-namespace:CRMS.ViewModels" Title="Tài xế">
+    <Page.DataContext>
+        <vm:DriverViewModel />
+    </Page.DataContext>
+    <Grid Margin="32,28">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <DockPanel Margin="0,0,0,24">
+            <Button DockPanel.Dock="Right" Content="↻  Làm mới" Command="{Binding RefreshCommand}" VerticalAlignment="Center" />
+            <StackPanel>
+                <TextBlock Text="Danh sách tài xế" Style="{StaticResource PageTitle}" />
+                <TextBlock Text="Tra cứu thông tin và trạng thái hoạt động của tài xế." Style="{StaticResource Subtitle}" />
+            </StackPanel>
+        </DockPanel>
+        <Grid Grid.Row="1" Margin="0,0,0,24">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <Border Style="{StaticResource Card}" Margin="0,0,16,0">
+                <StackPanel>
+                    <TextBlock Text="TỔNG SỐ TÀI XẾ" Foreground="{StaticResource Muted}" FontSize="10" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding TotalDrivers}" FontSize="30" FontWeight="SemiBold" Margin="0,7,0,2" />
+                    <TextBlock Text="Đã đăng ký trong hệ thống" Style="{StaticResource Subtitle}" FontSize="12" />
+                </StackPanel>
+            </Border>
+            <Border Grid.Column="1" Style="{StaticResource Card}">
+                <StackPanel>
+                    <TextBlock Text="ĐANG HOẠT ĐỘNG" Foreground="{StaticResource Muted}" FontSize="10" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding ActiveDrivers}" FontSize="30" FontWeight="SemiBold" Foreground="#098568" Margin="0,7,0,2" />
+                    <TextBlock Text="Tài xế có trạng thái hoạt động" Style="{StaticResource Subtitle}" FontSize="12" />
+                </StackPanel>
+            </Border>
+        </Grid>
+        <Border Grid.Row="2" Style="{StaticResource Card}" Padding="0">
+            <Grid Margin="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <DockPanel Margin="18,18">
+                    <TextBlock Text="Tất cả tài xế" FontSize="15" FontWeight="SemiBold" />
+                    <TextBlock Text="Thông tin liên hệ và giấy phép" Foreground="{StaticResource Muted}" FontSize="11" HorizontalAlignment="Right" />
+                </DockPanel>
+                <DataGrid Grid.Row="1" ItemsSource="{Binding Drivers}" AutomationProperties.Name="Danh sách tài xế">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="MÃ" Binding="{Binding DriverId}" Width="70" />
+                        <DataGridTextColumn Header="HỌ VÀ TÊN" Binding="{Binding FullName}" Width="*" MinWidth="170" />
+                        <DataGridTextColumn Header="SỐ ĐIỆN THOẠI" Binding="{Binding Phone}" Width="160" />
+                        <DataGridTextColumn Header="SỐ GIẤY PHÉP" Binding="{Binding LicenseNumber}" Width="190" />
+                        <DataGridTemplateColumn Header="TRẠNG THÁI" SortMemberPath="IsActive" Width="160">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border CornerRadius="5" Padding="10,5" HorizontalAlignment="Left">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Background" Value="#F1F3F7" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsActive}" Value="True">
+                                                        <Setter Property="Background" Value="#E7F6F0" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <TextBlock FontSize="11" FontWeight="SemiBold">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Text" Value="Ngừng hoạt động" />
+                                                    <Setter Property="Foreground" Value="#728096" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsActive}" Value="True">
+                                                            <Setter Property="Text" Value="Hoạt động" />
+                                                            <Setter Property="Foreground" Value="#098568" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </Border>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+                <StackPanel Grid.Row="1" Margin="0,44,0,0" VerticalAlignment="Center" HorizontalAlignment="Center" IsHitTestVisible="False">
+                    <StackPanel.Style>
+                        <Style TargetType="StackPanel">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding TotalDrivers}" Value="0">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding IsLoading}" Value="True">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </StackPanel.Style>
+                    <TextBlock Text="Chưa có tài xế để hiển thị" FontSize="16" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                    <TextBlock Text="Nhấn Làm mới để tải danh sách tài xế." Style="{StaticResource Subtitle}" Margin="0,8,0,0" />
+                </StackPanel>
+                <ProgressBar Grid.Row="2" Height="3" IsIndeterminate="True" Visibility="{Binding IsLoading, Converter={StaticResource BoolVisibility}}" Foreground="{StaticResource Accent}" BorderThickness="0" />
+            </Grid>
+        </Border>
+        <TextBlock Grid.Row="3" Text="{Binding StatusMessage}" Style="{StaticResource Subtitle}" FontSize="11" Margin="2,12,0,0" />
+    </Grid>
+</Page>
