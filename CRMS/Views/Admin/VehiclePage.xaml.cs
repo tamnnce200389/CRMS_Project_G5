@@ -2,7 +2,7 @@
 using CRMS.ViewModels;
 using System.Windows.Controls;
 
-namespace CRMS.Views
+namespace CRMS.Views.Admin
 {
     public partial class VehiclePage : Page
     {

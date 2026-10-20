@@ -1,87 +1,316 @@
-<Window x:Class="CRMS.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:vm="clr-namespace:CRMS.ViewModels" Title="CRMS • Quản lý cho thuê xe" Width="1360" Height="860" MinWidth="1040" MinHeight="680" WindowStartupLocation="CenterScreen">
+<Window x:Class="CRMS.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:CRMS.ViewModels"
+        Title="CRMS • Quản lý cho thuê xe"
+        Width="1360"
+        Height="860"
+        MinWidth="1040"
+        MinHeight="680"
+        WindowStartupLocation="CenterScreen">
+
+    <!-- Converter de an/hien theo Role -->
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
+    </Window.Resources>
+
+    <!-- Ket noi MainViewModel -->
     <Window.DataContext>
-        <vm:MainViewModel />
+        <vm:MainViewModel/>
     </Window.DataContext>
+
     <Grid>
+
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="224" />
-            <ColumnDefinition Width="*" />
+
+            <!-- Sidebar: chi chiem 224px khi la Staff/Admin -->
+            <ColumnDefinition>
+                <ColumnDefinition.Style>
+                    <Style TargetType="ColumnDefinition">
+                        <Setter Property="Width" Value="0"/>
+
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsManagement}"
+                                 Value="True">
+                                <Setter Property="Width" Value="224"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </ColumnDefinition.Style>
+            </ColumnDefinition>
+
+            <!-- Main Content -->
+            <ColumnDefinition Width="*"/>
+
         </Grid.ColumnDefinitions>
-        <Border Background="#122035">
+
+
+        <!-- SIDEBAR -->
+        <Border Grid.Column="0"
+        Background="#122035"
+        Visibility="{Binding IsManagement,
+                     Converter={StaticResource BoolToVisibility}}">
             <Grid>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                <StackPanel Margin="26,32,24,30">
+
+                <!-- LOGO -->
+                <StackPanel Grid.Row="0"
+                            Margin="26,32,24,30">
+
                     <StackPanel Orientation="Horizontal">
-                        <Border Background="#2563EB" CornerRadius="10" Width="38" Height="38">
-                            <TextBlock Text="" FontFamily="Segoe MDL2 Assets" Foreground="White" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <Border Background="#2563EB"
+                                CornerRadius="10"
+                                Width="38"
+                                Height="38">
+
+                            <TextBlock Text="&#xE804;"
+                                       FontFamily="Segoe MDL2 Assets"
+                                       Foreground="White"
+                                       FontSize="20"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"/>
                         </Border>
-                        <TextBlock Text="CRMS" Foreground="White" FontSize="25" FontWeight="Bold" Margin="12,0,0,0" VerticalAlignment="Center" />
+
+                        <TextBlock Text="CRMS"
+                                   Foreground="White"
+                                   FontSize="25"
+                                   FontWeight="Bold"
+                                   Margin="12,0,0,0"
+                                   VerticalAlignment="Center"/>
                     </StackPanel>
-                    <TextBlock Text="QUẢN LÝ CHO THUÊ XE" Foreground="#71839F" FontSize="10" Margin="0,16,0,0" />
+
+                    <TextBlock Text="QUẢN LÝ CHO THUÊ XE"
+                               Foreground="#71839F"
+                               FontSize="10"
+                               Margin="0,16,0,0"/>
                 </StackPanel>
+
+                <!-- NAVIGATION -->
                 <StackPanel Grid.Row="1">
-                    <TextBlock Text="Hệ thống" Foreground="#71839F" FontSize="10" FontWeight="SemiBold" Margin="28,8,0,13" />
-                    <RadioButton Style="{StaticResource NavItem}" GroupName="Navigation" IsChecked="{Binding IsDashboard, Mode=OneWay}" Command="{Binding NavigateCommand}" CommandParameter="Dashboard">
+
+                    <TextBlock Text="Hệ thống"
+                               Foreground="#71839F"
+                               FontSize="10"
+                               FontWeight="SemiBold"
+                               Margin="28,8,0,13"/>
+
+                    <!-- Dashboard: Admin -->
+                    <RadioButton Style="{StaticResource NavItem}"
+                                 GroupName="Navigation"
+                                 IsChecked="{Binding IsDashboard, Mode=OneWay}"
+                                 Command="{Binding NavigateCommand}"
+                                 CommandParameter="Dashboard"
+                                 Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVisibility}}">
+
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="" FontFamily="Segoe MDL2 Assets" Width="30" VerticalAlignment="Center" />
-                            <TextBlock Text="Tổng quan" />
+                            <TextBlock Text="&#xE80F;"
+                                       FontFamily="Segoe MDL2 Assets"
+                                       Width="30"
+                                       VerticalAlignment="Center"/>
+                            <TextBlock Text="Tổng quan"/>
                         </StackPanel>
                     </RadioButton>
-                    <RadioButton Style="{StaticResource NavItem}" GroupName="Navigation" IsChecked="{Binding IsVehicles, Mode=OneWay}" Command="{Binding NavigateCommand}" CommandParameter="Vehicles">
+
+
+                    <!-- Home: Guest va Customer -->
+                    <RadioButton Style="{StaticResource NavItem}"
+                                 GroupName="Navigation"
+                                 IsChecked="{Binding IsHome, Mode=OneWay}"
+                                 Command="{Binding NavigateCommand}"
+                                 CommandParameter="Home"
+                                 Visibility="{Binding CanViewHome, Converter={StaticResource BoolToVisibility}}">
+
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="" FontFamily="Segoe MDL2 Assets" Width="30" VerticalAlignment="Center" />
-                            <TextBlock Text="Đội xe" />
+                            <TextBlock Text="&#xE80F;"
+                   FontFamily="Segoe MDL2 Assets"
+                   Width="30"
+                   VerticalAlignment="Center"/>
+
+                            <TextBlock Text="Trang chủ"/>
                         </StackPanel>
                     </RadioButton>
-                    <RadioButton Style="{StaticResource NavItem}" GroupName="Navigation" IsChecked="{Binding IsBookings, Mode=OneWay}" Command="{Binding NavigateCommand}" CommandParameter="Bookings">
+
+                    <!-- Vehicle Management: Admin -->
+                    <RadioButton Style="{StaticResource NavItem}"
+             GroupName="Navigation"
+             IsChecked="{Binding IsVehicles, Mode=OneWay}"
+             Command="{Binding NavigateCommand}"
+             CommandParameter="Vehicles"
+             Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVisibility}}">
+
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="" FontFamily="Segoe MDL2 Assets" Width="30" VerticalAlignment="Center" />
-                            <TextBlock Text="Đơn thuê" />
+                            <TextBlock Text="&#xE804;"
+                   FontFamily="Segoe MDL2 Assets"
+                   Width="30"
+                   VerticalAlignment="Center"/>
+
+                            <TextBlock Text="Quản lý xe"/>
                         </StackPanel>
                     </RadioButton>
-                    <RadioButton Style="{StaticResource NavItem}" GroupName="Navigation" IsChecked="{Binding IsDrivers, Mode=OneWay}" Command="{Binding NavigateCommand}" CommandParameter="Drivers">
+
+
+                    <!-- Bookings: Customer, Staff, Admin -->
+                    <RadioButton Style="{StaticResource NavItem}"
+                                 GroupName="Navigation"
+                                 IsChecked="{Binding IsBookings, Mode=OneWay}"
+                                 Command="{Binding NavigateCommand}"
+                                 CommandParameter="Bookings"
+                                 Visibility="{Binding CanViewBookings, Converter={StaticResource BoolToVisibility}}">
+
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="" FontFamily="Segoe MDL2 Assets" Width="30" VerticalAlignment="Center" />
-                            <TextBlock Text="Tài xế" />
+                            <TextBlock Text="&#xE787;"
+                                       FontFamily="Segoe MDL2 Assets"
+                                       Width="30"
+                                       VerticalAlignment="Center"/>
+                            <TextBlock Text="Đơn thuê"/>
                         </StackPanel>
                     </RadioButton>
-                    <RadioButton Style="{StaticResource NavItem}" GroupName="Navigation" IsChecked="{Binding IsReports, Mode=OneWay}" Command="{Binding NavigateCommand}" CommandParameter="Reports">
+
+                    <!-- Drivers: Staff, Admin -->
+                    <RadioButton Style="{StaticResource NavItem}"
+                                 GroupName="Navigation"
+                                 IsChecked="{Binding IsDrivers, Mode=OneWay}"
+                                 Command="{Binding NavigateCommand}"
+                                 CommandParameter="Drivers"
+                                 Visibility="{Binding CanViewDrivers, Converter={StaticResource BoolToVisibility}}">
+
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="" FontFamily="Segoe MDL2 Assets" Width="30" VerticalAlignment="Center" />
-                            <TextBlock Text="Báo cáo" />
+                            <TextBlock Text="&#xE716;"
+                                       FontFamily="Segoe MDL2 Assets"
+                                       Width="30"
+                                       VerticalAlignment="Center"/>
+                            <TextBlock Text="Tài xế"/>
+                        </StackPanel>
+                    </RadioButton>
+
+                    <!-- Reports: Admin -->
+                    <RadioButton Style="{StaticResource NavItem}"
+                                 GroupName="Navigation"
+                                 IsChecked="{Binding IsReports, Mode=OneWay}"
+                                 Command="{Binding NavigateCommand}"
+                                 CommandParameter="Reports"
+                                 Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVisibility}}">
+
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE9D9;"
+                                       FontFamily="Segoe MDL2 Assets"
+                                       Width="30"
+                                       VerticalAlignment="Center"/>
+                            <TextBlock Text="Báo cáo"/>
                         </StackPanel>
                     </RadioButton>
                 </StackPanel>
-                <Border Grid.Row="2" BorderBrush="#29394F" BorderThickness="0,1,0,0" Padding="24,22">
+
+
+
+                <!-- USER INFORMATION -->
+                <Border Grid.Row="2"
+        BorderBrush="#29394F"
+        BorderThickness="0,1,0,0"
+        Padding="24,22"
+        Visibility="{Binding IsLoggedIn, Converter={StaticResource BoolToVisibility}}">
+
                     <StackPanel>
-                        <TextBlock Text="Quản lý thuê xe" Foreground="#CFD9E8" FontWeight="SemiBold" />
-                        <TextBlock Text="Tập trung. Kết nối. Chủ động." FontSize="10" Foreground="#71839F" Margin="0,7,0,0" />
+
+                        <TextBlock Text="{Binding UserName}"
+                   Foreground="White"
+                   FontSize="15"
+                   FontWeight="SemiBold"/>
+
+                        <TextBlock Text="{Binding CurrentRole}"
+                   Foreground="#94A3B8"
+                   FontSize="12"
+                   Margin="0,5,0,15"/>
+
+                        <Button Content="Đăng xuất"
+                Height="38"
+                Click="Logout_Click"
+                Background="#DC2626"
+                Foreground="White"
+                FontWeight="SemiBold"
+                Cursor="Hand"/>
+
                     </StackPanel>
+
                 </Border>
+
+
             </Grid>
         </Border>
+
+
+        <!-- MAIN CONTENT -->
         <Grid Grid.Column="1">
+
+            <Grid.Style>
+                <Style TargetType="Grid">
+                    <Setter Property="Grid.Column" Value="1"/>
+                    <Setter Property="Grid.ColumnSpan" Value="1"/>
+
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsManagement}"
+                             Value="False">
+                            <Setter Property="Grid.Column" Value="0"/>
+                            <Setter Property="Grid.ColumnSpan" Value="2"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Grid.Style>
+
             <Grid.RowDefinitions>
-                <RowDefinition Height="76" />
-                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
-            <Border Background="White" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1" Padding="32,0">
+
+            <!-- HEADER -->
+            <Border Grid.Row="0"
+                    Background="White"
+                    BorderBrush="{StaticResource Line}"
+                    BorderThickness="0,0,0,1"
+                    Padding="32,0"
+                    Height="76"
+                    Visibility="{Binding IsManagement,
+                    Converter={StaticResource BoolToVisibility}}">
+
                 <DockPanel LastChildFill="True">
-                    <Border DockPanel.Dock="Right" Background="#F1F5FB" CornerRadius="6" Padding="12,7" VerticalAlignment="Center">
-                        <TextBlock Text="HỆ THỐNG QUẢN LÝ THUÊ XE" Foreground="#60718D" FontSize="10" FontWeight="SemiBold" />
+
+                    <Border DockPanel.Dock="Right"
+                            Background="#F1F5FB"
+                            CornerRadius="6"
+                            Padding="12,7"
+                            VerticalAlignment="Center">
+
+                        <TextBlock Text="HỆ THỐNG QUẢN LÝ THUÊ XE"
+                                   Foreground="#60718D"
+                                   FontSize="10"
+                                   FontWeight="SemiBold"/>
                     </Border>
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock Text="Hệ thống" Foreground="{StaticResource Muted}" />
-                        <TextBlock Text="/" Foreground="#C1CAD7" Margin="14,0" />
-                        <TextBlock Text="{Binding CurrentPage.Title}" FontWeight="SemiBold" />
+
+                    <StackPanel Orientation="Horizontal"
+                                VerticalAlignment="Center">
+
+                        <TextBlock Text="Hệ thống"
+                                   Foreground="{StaticResource Muted}"/>
+
+                        <TextBlock Text="/"
+                                   Foreground="#C1CAD7"
+                                   Margin="14,0"/>
+
+                        <TextBlock Text="{Binding CurrentPage.Title}"
+                                   FontWeight="SemiBold"/>
                     </StackPanel>
                 </DockPanel>
             </Border>
-            <Frame Grid.Row="1" Content="{Binding CurrentPage}" NavigationUIVisibility="Hidden" JournalOwnership="OwnsJournal" />
+
+            <!-- PAGE NAVIGATION -->
+            <Frame Grid.Row="1"
+                   Content="{Binding CurrentPage}"
+                   NavigationUIVisibility="Hidden"
+                   JournalOwnership="OwnsJournal"/>
         </Grid>
     </Grid>
 </Window>
