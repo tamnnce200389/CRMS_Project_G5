@@ -4,7 +4,7 @@ using System;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace CRMS.Views
+namespace CRMS.Views.Admin
 {
     public partial class DriverPage : Page
     {

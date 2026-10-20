@@ -1,4 +1,4 @@
-<Page x:Class="CRMS.Views.DriverPage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:vm="clr-namespace:CRMS.ViewModels" Title="Tài xế">
+<Page x:Class="CRMS.Views.Admin.DriverPage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:vm="clr-namespace:CRMS.ViewModels" Title="Tài xế">
     <Page.DataContext>
         <vm:DriverViewModel />
     </Page.DataContext>
