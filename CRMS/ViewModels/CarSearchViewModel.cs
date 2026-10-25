@@ -3,8 +3,10 @@ using CRMS.Helpers;
 using CRMS.Models;
 using CRMS.Services;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
@@ -12,20 +14,54 @@ namespace CRMS.ViewModels
 {
     public class CarSearchViewModel : BaseViewModel
     {
-        // Service truy van SQL Server
+        // =====================================
+        // SERVICES
+        // =====================================
         private readonly SearchService _searchService = new();
 
-        // Danh sach xe tim duoc
+        private readonly LongTermRateService
+            _longTermRateService = new();
+
+        // =====================================
+        // DANH SACH XE VA LOAI XE
+        // =====================================
         public ObservableCollection<CarSearchItem> Cars { get; }
             = new();
 
-        // Danh sach loai xe
         public ObservableCollection<VehicleCategory> Categories { get; }
             = new();
 
-        // ====================================
-        // 1. TIM KIEM THEO TEN XE
-        // ====================================
+        // =====================================
+        // LOAI DICH VU
+        // =====================================
+        private string _rentalMode = "SelfDrive";
+
+        public string RentalMode
+        {
+            get => _rentalMode;
+            set
+            {
+                if (_rentalMode == value)
+                    return;
+
+                _rentalMode = value;
+
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsShortTerm));
+                OnPropertyChanged(nameof(IsLongTerm));
+            }
+        }
+
+        public bool IsShortTerm =>
+            RentalMode == "SelfDrive" ||
+            RentalMode == "WithDriver";
+
+        public bool IsLongTerm =>
+            RentalMode == "LongTerm";
+
+        // =====================================
+        // TIM KIEM THEO TEN XE
+        // =====================================
         private string _searchText = "";
 
         public string SearchText
@@ -38,9 +74,9 @@ namespace CRMS.ViewModels
             }
         }
 
-        // ====================================
-        // 2. LOC THEO LOAI XE
-        // ====================================
+        // =====================================
+        // LOC THEO LOAI XE
+        // =====================================
         private VehicleCategory? _selectedCategory;
 
         public VehicleCategory? SelectedCategory
@@ -53,9 +89,9 @@ namespace CRMS.ViewModels
             }
         }
 
-        // ====================================
-        // 3. GIA THUE THAP NHAT
-        // ====================================
+        // =====================================
+        // LOC GIA
+        // =====================================
         private string _minPrice = "";
 
         public string MinPrice
@@ -68,9 +104,6 @@ namespace CRMS.ViewModels
             }
         }
 
-        // ====================================
-        // 4. GIA THUE CAO NHAT
-        // ====================================
         private string _maxPrice = "";
 
         public string MaxPrice
@@ -83,9 +116,54 @@ namespace CRMS.ViewModels
             }
         }
 
-        // ====================================
-        // 5. TRANG THAI TAI DU LIEU
-        // ====================================
+        // =====================================
+        // SAP XEP
+        // =====================================
+        public List<string> SortOptions { get; } = new()
+        {
+            "Mặc định",
+            "Giá tăng dần",
+            "Giá giảm dần",
+            "Tên A-Z"
+        };
+
+        private string _selectedSort = "Mặc định";
+
+        public string SelectedSort
+        {
+            get => _selectedSort;
+            set
+            {
+                _selectedSort = value;
+                OnPropertyChanged();
+            }
+        }
+
+        // =====================================
+        // TRUYEN DONG
+        // =====================================
+        public List<string> TransmissionOptions { get; } = new()
+        {
+            "Tất cả hộp số",
+            "Số tự động",
+            "Số sàn"
+        };
+
+        private string _selectedTransmission = "Tất cả hộp số";
+
+        public string SelectedTransmission
+        {
+            get => _selectedTransmission;
+            set
+            {
+                _selectedTransmission = value;
+                OnPropertyChanged();
+            }
+        }
+
+        // =====================================
+        // TRANG THAI
+        // =====================================
         private bool _isLoading;
 
         public bool IsLoading
@@ -99,9 +177,6 @@ namespace CRMS.ViewModels
             }
         }
 
-        // ====================================
-        // 6. THONG BAO KET QUA
-        // ====================================
         private string _statusMessage = "";
 
         public string StatusMessage
@@ -116,9 +191,9 @@ namespace CRMS.ViewModels
 
         public int ResultCount => Cars.Count;
 
-        // ====================================
-        // 7. COMMANDS
-        // ====================================
+        // =====================================
+        // COMMANDS
+        // =====================================
         public ICommand SearchCommand { get; }
 
         public ICommand ClearFilterCommand { get; }
@@ -134,9 +209,9 @@ namespace CRMS.ViewModels
                 _ => !IsLoading);
         }
 
-        // ====================================
-        // 8. LOAD LOAI XE TU SQL SERVER
-        // ====================================
+        // =====================================
+        // LOAD DANH SACH LOAI XE
+        // =====================================
         public async Task LoadCategoriesAsync()
         {
             var categories =
@@ -144,7 +219,6 @@ namespace CRMS.ViewModels
 
             Categories.Clear();
 
-            // Tat ca loai xe
             Categories.Add(new VehicleCategory
             {
                 CategoryId = 0,
@@ -160,10 +234,10 @@ namespace CRMS.ViewModels
             SelectedCategory = Categories[0];
         }
 
-        // ====================================
-        // 9. CHUYEN GIA TU STRING SANG DECIMAL
-        // ====================================
-        private bool TryParsePrice(
+        // =====================================
+        // KIEM TRA GIA NHAP VAO
+        // =====================================
+        private static bool TryParsePrice(
             string text,
             out decimal? price)
         {
@@ -176,19 +250,47 @@ namespace CRMS.ViewModels
                 text.Trim(),
                 NumberStyles.Number,
                 CultureInfo.GetCultureInfo("vi-VN"),
-                out decimal value);
+                out decimal result);
 
-            if (!success || value < 0)
+            if (!success || result < 0)
                 return false;
 
-            price = value;
+            price = result;
+            return true;
+        }
+
+        // =====================================
+        // LOC HOP SO
+        // =====================================
+        private bool MatchesTransmission(string transmission)
+        {
+            if (SelectedTransmission == "Tất cả hộp số")
+                return true;
+
+            string value = transmission.Trim().ToLowerInvariant();
+
+            bool isAutomatic =
+                value.Contains("automatic") ||
+                value.Contains("tự động") ||
+                value == "at";
+
+            bool isManual =
+                value.Contains("manual") ||
+                value.Contains("số sàn") ||
+                value == "mt";
+
+            if (SelectedTransmission == "Số tự động")
+                return isAutomatic;
+
+            if (SelectedTransmission == "Số sàn")
+                return isManual;
 
             return true;
         }
 
-        // ====================================
-        // 10. TIM KIEM XE
-        // ====================================
+        // =====================================
+        // TIM KIEM XE
+        // =====================================
         public async Task SearchAsync()
         {
             if (IsLoading)
@@ -218,10 +320,8 @@ namespace CRMS.ViewModels
             try
             {
                 IsLoading = true;
-
                 StatusMessage = "Đang tìm kiếm xe...";
 
-                // Lay CategoryId dang chon
                 int? categoryId = null;
 
                 if (SelectedCategory != null &&
@@ -230,17 +330,103 @@ namespace CRMS.ViewModels
                     categoryId = SelectedCategory.CategoryId;
                 }
 
-                // Goi SearchService de truy van SQL
-                var result = await _searchService.SearchCarsAsync(
-                    keyword: SearchText,
-                    categoryId: categoryId,
-                    minPrice: min,
-                    maxPrice: max);
+                // Lay danh sach xe tu SQL
+                var results =
+                    await _searchService.SearchCarsAsync(
+                        keyword: SearchText,
+                        categoryId: categoryId,
+                        minPrice: IsLongTerm ? null : min,
+                        maxPrice: IsLongTerm ? null : max);
 
-                // Cap nhat danh sach hien thi
+                // =====================================
+                // GIA UU DAI 3 THANG TREN DANH SACH
+                // =====================================
+                Dictionary<long, VehicleLongTermRate> rates = new();
+
+                if (IsLongTerm)
+                {
+                    rates =
+                        await _longTermRateService
+                            .GetRatesByDurationAsync(
+                                results.Select(x => x.VehicleId),
+                                3);
+                }
+
+                List<CarSearchItem> matchedCars = new();
+
+                foreach (var car in results)
+                {
+                    if (!MatchesTransmission(car.Transmission))
+                        continue;
+
+                    if (IsLongTerm)
+                    {
+                        // Chi hien xe co gia goi 3 thang
+                        if (!rates.TryGetValue(
+                            car.VehicleId, out var rate))
+                        {
+                            continue;
+                        }
+
+                        // Gia goc moi thang
+                        car.LongTermBaseMonthlyRate =
+                            rate.BaseMonthlyRate;
+
+                        // Gia uu dai cua goi 3 thang
+                        car.LongTermMonthlyRate =
+                            rate.MonthlyRate;
+
+                        car.LongTermDiscountPercent =
+                            rate.DiscountPercent;
+
+                        // Tong gia cho 3 thang
+                        car.LongTermTotalPrice =
+                            rate.MonthlyRate * 3;
+
+                        // Loc gia/thang
+                        if (min.HasValue &&
+                            car.LongTermMonthlyRate < min.Value)
+                            continue;
+
+                        if (max.HasValue &&
+                            car.LongTermMonthlyRate > max.Value)
+                            continue;
+                    }
+
+                    matchedCars.Add(car);
+                }
+
+                // =====================================
+                // SAP XEP XE
+                // =====================================
+                IEnumerable<CarSearchItem> sorted = matchedCars;
+
+                switch (SelectedSort)
+                {
+                    case "Giá tăng dần":
+                        sorted = matchedCars.OrderBy(x =>
+                            IsLongTerm
+                                ? x.LongTermMonthlyRate
+                                : x.DailyRate);
+                        break;
+
+                    case "Giá giảm dần":
+                        sorted = matchedCars.OrderByDescending(x =>
+                            IsLongTerm
+                                ? x.LongTermMonthlyRate
+                                : x.DailyRate);
+                        break;
+
+                    case "Tên A-Z":
+                        sorted = matchedCars
+                            .OrderBy(x => x.Brand)
+                            .ThenBy(x => x.Model);
+                        break;
+                }
+
                 Cars.Clear();
 
-                foreach (var car in result)
+                foreach (var car in sorted)
                 {
                     Cars.Add(car);
                 }
@@ -253,7 +439,7 @@ namespace CRMS.ViewModels
             catch (Exception ex)
             {
                 StatusMessage =
-                    "Có lỗi khi tìm kiếm xe.";
+                    "Lỗi tìm kiếm xe: " + ex.Message;
 
                 System.Diagnostics.Debug.WriteLine(ex);
             }
@@ -263,48 +449,22 @@ namespace CRMS.ViewModels
             }
         }
 
-        // ====================================
-        // 11. XOA BO LOC
-        // ====================================
+        // =====================================
+        // XOA BO LOC
+        // =====================================
         private async Task ClearFiltersAsync()
         {
             SearchText = "";
             MinPrice = "";
             MaxPrice = "";
 
+            SelectedSort = "Mặc định";
+            SelectedTransmission = "Tất cả hộp số";
+
             if (Categories.Count > 0)
-            {
                 SelectedCategory = Categories[0];
-            }
 
             await SearchAsync();
         }
-
-        private string _rentalMode = "SelfDrive";
-
-        public string RentalMode
-        {
-            get => _rentalMode;
-            set
-            {
-                if (_rentalMode == value)
-                    return;
-
-                _rentalMode = value;
-                OnPropertyChanged();
-
-                OnPropertyChanged(nameof(IsShortTerm));
-                OnPropertyChanged(nameof(IsLongTerm));
-            }
-        }
-
-        // Xe tu lai hoac xe co tai xe
-        public bool IsShortTerm =>
-            RentalMode == "SelfDrive" ||
-            RentalMode == "WithDriver";
-
-        // Thue xe dai han
-        public bool IsLongTerm =>
-            RentalMode == "LongTerm";
     }
 }

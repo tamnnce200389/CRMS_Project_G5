@@ -27,6 +27,19 @@ namespace CRMS.Services
         public decimal DailyRate { get; set; }
 
         public string? ImageUrl { get; set; }
+
+        // Gia thang goc truoc khi giam
+        public decimal LongTermBaseMonthlyRate { get; set; }
+
+        // Gia thue dai han theo SQL
+        public decimal LongTermMonthlyRate { get; set; }
+
+        // Phan tram giam theo goi thue
+        public decimal LongTermDiscountPercent { get; set; }
+
+        // Tong tien toan bo goi
+        public decimal LongTermTotalPrice { get; set; }
+
     }
 
     public class SearchService

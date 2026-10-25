@@ -2,32 +2,27 @@
 using System;
 using System.Windows;
 using System.Windows.Controls;
+using CRMS.Services;
 using CRMS.ViewModels;
+
 namespace CRMS.Views.Guest
 {
     public partial class CarSearchPage : Page
     {
-        // ViewModel xu ly tim kiem xe
         private readonly CarSearchViewModel _viewModel = new();
 
-        // Kiem tra trang da tai du lieu chua
         private bool _isLoaded = false;
 
-        // =====================================
-        // 1. CONSTRUCTOR MAC DINH
-        // =====================================
+        // Mac dinh la xe tu lai
         public CarSearchPage() : this("SelfDrive")
         {
         }
 
-        // =====================================
-        // 2. CONSTRUCTOR NHAN LOAI DICH VU
-        // =====================================
+        // Nhan loai dich vu tu HomePage
         public CarSearchPage(string rentalMode)
         {
             InitializeComponent();
 
-            // Kiem tra loai dich vu hop le
             if (rentalMode != "SelfDrive" &&
                 rentalMode != "WithDriver" &&
                 rentalMode != "LongTerm")
@@ -35,23 +30,20 @@ namespace CRMS.Views.Guest
                 rentalMode = "SelfDrive";
             }
 
-            // Luu loai dich vu vao ViewModel
             _viewModel.RentalMode = rentalMode;
 
-            // Ket noi View voi ViewModel
             DataContext = _viewModel;
 
-            // Tai du lieu khi trang duoc mo
             Loaded += CarSearchPage_Loaded;
         }
 
         // =====================================
-        // 3. LOAD DU LIEU TU SQL SERVER
+        // LOAD DANH SACH XE
         // =====================================
         private async void CarSearchPage_Loaded(
-            object sender, RoutedEventArgs e)
+            object sender,
+            RoutedEventArgs e)
         {
-            // Chi tai du lieu lan dau
             if (_isLoaded)
                 return;
 
@@ -59,15 +51,12 @@ namespace CRMS.Views.Guest
 
             try
             {
-                // Lay danh sach loai xe
                 await _viewModel.LoadCategoriesAsync();
 
-                // Tim kiem va lay danh sach xe
                 await _viewModel.SearchAsync();
             }
             catch (Exception ex)
             {
-                // Cho phep thu tai lai neu bi loi
                 _isLoaded = false;
 
                 MessageBox.Show(
@@ -78,8 +67,50 @@ namespace CRMS.Views.Guest
             }
         }
 
+        // =====================================
+        // MO / DONG BO LOC GIA
+        // =====================================
+        private void ToggleLongTermFilter_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            LongTermPriceFilter.Visibility =
+                LongTermPriceFilter.Visibility == Visibility.Visible
+                    ? Visibility.Collapsed
+                    : Visibility.Visible;
+        }
+
+        // =====================================
+        // MO CHI TIET XE DAI HAN
+        // =====================================
+        private void LongTermChoose_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            if (sender is not Button button ||
+                button.DataContext is not CarSearchItem car)
+            {
+                return;
+            }
+
+            var detailWindow = new LongTermDetailWindow(car);
+
+            Window? mainWindow = Window.GetWindow(this);
+
+            if (mainWindow != null)
+            {
+                detailWindow.Owner = mainWindow;
+            }
+
+            detailWindow.ShowDialog();
+        }
+
+        // =====================================
+        // QUAY LAI TRANG CHU
+        // =====================================
         private void BackToHome_Click(
-    object sender, RoutedEventArgs e)
+            object sender,
+            RoutedEventArgs e)
         {
             Window? mainWindow = Window.GetWindow(this);
 
