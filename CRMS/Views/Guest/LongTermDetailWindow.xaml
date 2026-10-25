@@ -1,0 +1,409 @@
+﻿<Window x:Class="CRMS.Views.Guest.LongTermDetailWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Chi tiết thuê xe dài hạn"
+        Width="1250"
+        Height="780"
+        MinWidth="1050"
+        MinHeight="680"
+        WindowStartupLocation="CenterOwner"
+        Background="White"
+        FontFamily="Segoe UI">
+
+    <Window.Resources>
+
+        <!-- NUT CHON GOI THUE -->
+        <Style x:Key="MonthButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#111827"/>
+            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="5,12"/>
+            <Setter Property="Margin" Value="3"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+    </Window.Resources>
+
+    <Grid>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="58"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- HEADER -->
+        <Border Grid.Row="0"
+                BorderBrush="#E5E7EB"
+                BorderThickness="0,0,0,1"
+                Padding="22,0">
+
+            <DockPanel LastChildFill="True">
+
+                <Button DockPanel.Dock="Right"
+                        Content="✕"
+                        Width="36"
+                        Height="36"
+                        Background="White"
+                        BorderBrush="#CBD5E1"
+                        Cursor="Hand"
+                        Click="Close_Click"/>
+
+                <TextBlock Text="CRMS | Chi tiết thuê xe dài hạn"
+                           FontSize="17"
+                           FontWeight="SemiBold"
+                           Foreground="#111827"
+                           VerticalAlignment="Center"/>
+
+            </DockPanel>
+        </Border>
+
+        <!-- MAIN BODY -->
+        <ScrollViewer Grid.Row="1"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+
+            <Grid Margin="28">
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="540"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- ================================= -->
+                <!-- BEN TRAI: THONG TIN VA ANH XE      -->
+                <!-- ================================= -->
+                <StackPanel Grid.Column="0"
+                            Margin="0,0,22,0">
+
+                    <!-- CAR NAME -->
+                    <StackPanel Orientation="Horizontal"
+                                Margin="0,15,0,22">
+
+                        <TextBlock Text="{Binding Brand}"
+                                   FontSize="35"
+                                   FontWeight="Bold"
+                                   Foreground="#111827"/>
+
+                        <TextBlock Text="{Binding Model}"
+                                   FontSize="35"
+                                   FontWeight="Bold"
+                                   Foreground="#111827"
+                                   Margin="12,0,0,0"/>
+
+                    </StackPanel>
+
+                    <!-- CAR IMAGE -->
+                    <Border Height="445"
+                            Background="#F1F5F9"
+                            CornerRadius="16"
+                            ClipToBounds="True">
+
+                        <Grid>
+
+                            <TextBlock Text="&#xE804;"
+                                       FontFamily="Segoe MDL2 Assets"
+                                       FontSize="110"
+                                       Foreground="#CBD5E1"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"/>
+
+                            <Image Source="{Binding ImageUrl}"
+                                   Stretch="Uniform"/>
+
+                        </Grid>
+                    </Border>
+
+                    <!-- CAR INFORMATION -->
+                    <Border Background="#F8FAFC"
+                            CornerRadius="12"
+                            Padding="20"
+                            Margin="0,22,0,0">
+
+                        <StackPanel>
+
+                            <TextBlock Text="Thông tin xe"
+                                       FontSize="20"
+                                       FontWeight="Bold"
+                                       Foreground="#111827"
+                                       Margin="0,0,0,14"/>
+
+                            <TextBlock Text="{Binding CategoryName}"
+                                       FontSize="15"
+                                       Foreground="#16A34A"
+                                       Margin="0,0,0,10"/>
+
+                            <StackPanel Orientation="Horizontal"
+                                        Margin="0,0,0,10">
+
+                                <TextBlock Text="Hộp số: "
+                                           Foreground="#64748B"/>
+
+                                <TextBlock Text="{Binding Transmission}"
+                                           FontWeight="SemiBold"/>
+
+                            </StackPanel>
+
+                            <StackPanel Orientation="Horizontal"
+                                        Margin="0,0,0,10">
+
+                                <TextBlock Text="Nhiên liệu: "
+                                           Foreground="#64748B"/>
+
+                                <TextBlock Text="{Binding FuelType}"
+                                           FontWeight="SemiBold"/>
+
+                            </StackPanel>
+
+                            <TextBlock Text="{Binding SeatCount,
+                                StringFormat={}{0} chỗ}"
+                                       FontWeight="SemiBold"/>
+
+                        </StackPanel>
+                    </Border>
+
+                </StackPanel>
+
+                <!-- ================================= -->
+                <!-- BEN PHAI: CAC GOI THUE            -->
+                <!-- ================================= -->
+                <Border Grid.Column="1"
+                        Background="#F7FAFC"
+                        BorderBrush="#DCE4E9"
+                        BorderThickness="1"
+                        CornerRadius="18"
+                        Padding="20">
+
+                    <StackPanel>
+
+                        <TextBlock Text="Gói thuê"
+                                   FontSize="21"
+                                   FontWeight="Bold"
+                                   Foreground="#111827"
+                                   Margin="0,0,0,20"/>
+
+                        <!-- FIVE RENTAL PLANS -->
+                        <UniformGrid Columns="5"
+                                     Margin="0,0,0,20">
+
+                            <Button x:Name="Month1Button"
+                                    Tag="1"
+                                    Click="Plan_Click"
+                                    Style="{StaticResource MonthButtonStyle}">
+
+                                <StackPanel HorizontalAlignment="Center">
+
+                                    <TextBlock Text="1 tháng"
+                                               FontWeight="Bold"
+                                               HorizontalAlignment="Center"/>
+
+                                    <TextBlock Text="Giá gốc"
+                                               FontSize="11"
+                                               Foreground="#64748B"
+                                               HorizontalAlignment="Center"
+                                               Margin="0,7,0,0"/>
+
+                                </StackPanel>
+                            </Button>
+
+                            <Button x:Name="Month3Button"
+                                    Tag="3"
+                                    Click="Plan_Click"
+                                    Style="{StaticResource MonthButtonStyle}">
+
+                                <StackPanel HorizontalAlignment="Center">
+
+                                    <TextBlock Text="3 tháng"
+                                               FontWeight="Bold"
+                                               HorizontalAlignment="Center"/>
+
+                                    <TextBlock Text="-2%"
+                                               Foreground="#F97316"
+                                               FontWeight="Bold"
+                                               HorizontalAlignment="Center"
+                                               Margin="0,7,0,0"/>
+
+                                </StackPanel>
+                            </Button>
+
+                            <Button x:Name="Month6Button"
+                                    Tag="6"
+                                    Click="Plan_Click"
+                                    Style="{StaticResource MonthButtonStyle}">
+
+                                <StackPanel HorizontalAlignment="Center">
+
+                                    <TextBlock Text="6 tháng"
+                                               FontWeight="Bold"
+                                               HorizontalAlignment="Center"/>
+
+                                    <TextBlock Text="-3%"
+                                               Foreground="#F97316"
+                                               FontWeight="Bold"
+                                               HorizontalAlignment="Center"
+                                               Margin="0,7,0,0"/>
+
+                                </StackPanel>
+                            </Button>
+
+                            <Button x:Name="Month9Button"
+                                    Tag="9"
+                                    Click="Plan_Click"
+                                    Style="{StaticResource MonthButtonStyle}">
+
+                                <StackPanel HorizontalAlignment="Center">
+
+                                    <TextBlock Text="9 tháng"
+                                               FontWeight="Bold"
+                                               HorizontalAlignment="Center"/>
+
+                                    <TextBlock Text="-4%"
+                                               Foreground="#F97316"
+                                               FontWeight="Bold"
+                                               HorizontalAlignment="Center"
+                                               Margin="0,7,0,0"/>
+
+                                </StackPanel>
+                            </Button>
+
+                            <Button x:Name="Month12Button"
+                                    Tag="12"
+                                    Click="Plan_Click"
+                                    Style="{StaticResource MonthButtonStyle}">
+
+                                <StackPanel HorizontalAlignment="Center">
+
+                                    <TextBlock Text="12 tháng"
+                                               FontWeight="Bold"
+                                               HorizontalAlignment="Center"/>
+
+                                    <TextBlock Text="-5%"
+                                               Foreground="#F97316"
+                                               FontWeight="Bold"
+                                               HorizontalAlignment="Center"
+                                               Margin="0,7,0,0"/>
+
+                                </StackPanel>
+                            </Button>
+
+                        </UniformGrid>
+
+                        <Separator Margin="0,0,0,20"/>
+
+                        <!-- MANUFACTURE YEAR -->
+                        <TextBlock Text="Năm sản xuất"
+                                   FontSize="18"
+                                   FontWeight="Bold"
+                                   Foreground="#111827"
+                                   Margin="0,0,0,12"/>
+
+                        <Border Background="#DCFCE7"
+                                BorderBrush="#86EFAC"
+                                BorderThickness="1"
+                                CornerRadius="10"
+                                Padding="16"
+                                Margin="0,0,0,20">
+
+                            <TextBlock x:Name="YearText"
+                                       Text="Đang tải..."
+                                       FontSize="18"
+                                       FontWeight="Bold"
+                                       Foreground="#15803D"
+                                       HorizontalAlignment="Center"/>
+
+                        </Border>
+
+                        <!-- PICKUP DATE -->
+                        <TextBlock Text="Thời gian nhận xe"
+                                   FontSize="18"
+                                   FontWeight="Bold"
+                                   Foreground="#111827"
+                                   Margin="0,0,0,12"/>
+
+                        <DatePicker x:Name="PickupDatePicker"
+                                    Height="40"
+                                    FontSize="15"
+                                    SelectedDateChanged="PickupDateChanged"
+                                    Margin="0,0,0,12"/>
+
+                        <TextBlock Text="Ngày trả dự kiến"
+                                   Foreground="#64748B"
+                                   FontSize="12"/>
+
+                        <TextBlock x:Name="ReturnDateText"
+                                   FontWeight="SemiBold"
+                                   FontSize="15"
+                                   Margin="0,5,0,20"/>
+
+                        <Separator Margin="0,0,0,20"/>
+
+                        <!-- ORIGINAL PRICE -->
+                        <TextBlock Text="Giá gốc mỗi tháng"
+                                   Foreground="#64748B"
+                                   FontSize="13"/>
+
+                        <TextBlock x:Name="BaseMonthlyText"
+                                   FontSize="15"
+                                   Foreground="#64748B"
+                                   TextDecorations="Strikethrough"
+                                   Margin="0,6,0,15"/>
+
+                        <!-- DISCOUNTED PRICE -->
+                        <TextBlock Text="Giá thuê sau ưu đãi"
+                                   Foreground="#64748B"
+                                   FontSize="13"/>
+
+                        <TextBlock x:Name="MonthlyPriceText"
+                                   FontSize="30"
+                                   FontWeight="Bold"
+                                   Foreground="#57C985"
+                                   Margin="0,6,0,10"/>
+
+                        <TextBlock x:Name="DiscountText"
+                                   Foreground="#16A34A"
+                                   FontSize="13"
+                                   Margin="0,0,0,15"/>
+
+                        <!-- TOTAL -->
+                        <TextBlock Text="Tổng tiền thuê theo gói"
+                                   Foreground="#64748B"
+                                   FontSize="13"/>
+
+                        <TextBlock x:Name="TotalPriceText"
+                                   FontSize="21"
+                                   FontWeight="Bold"
+                                   Foreground="#111827"
+                                   Margin="0,7,0,18"/>
+
+                        <TextBlock x:Name="StatusText"
+                                   Foreground="#64748B"
+                                   FontSize="12"
+                                   TextWrapping="Wrap"
+                                   Margin="0,0,0,12"/>
+
+                        <Button x:Name="ChoosePlanButton"
+                                Content="CHỌN THUÊ"
+                                Height="50"
+                                Background="#57C985"
+                                Foreground="White"
+                                FontSize="17"
+                                FontWeight="Bold"
+                                BorderThickness="0"
+                                Cursor="Hand"
+                                IsEnabled="False"
+                                Click="ChooseRental_Click"/>
+
+                        <TextBlock Text="Giá hiển thị dựa trên bảng giá CRMS. Các khoản phí phát sinh và điều kiện đặt xe sẽ được xác định khi tạo đơn."
+                                   Foreground="#64748B"
+                                   FontSize="12"
+                                   TextWrapping="Wrap"
+                                   Margin="0,14,0,0"/>
+
+                    </StackPanel>
+                </Border>
+
+            </Grid>
+        </ScrollViewer>
+
+    </Grid>
+</Window>

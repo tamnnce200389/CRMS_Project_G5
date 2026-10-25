@@ -32,6 +32,8 @@ public partial class CrmsContext : DbContext
 
     public virtual DbSet<Vehicle> Vehicles { get; set; }
 
+    public virtual DbSet<VehicleLongTermRate> VehicleLongTermRates { get; set; }
+
     public virtual DbSet<VehicleCategory> VehicleCategories { get; set; }
 
     public virtual DbSet<VehicleHandover> VehicleHandovers { get; set; }
@@ -415,6 +417,64 @@ public partial class CrmsContext : DbContext
             entity.Property(e => e.StartsAt).HasPrecision(0);
             entity.Property(e => e.VoucherCode).HasMaxLength(40);
         });
+
+
+        // =====================================
+        // BANG GIA THUE XE DAI HAN
+        // =====================================
+
+        modelBuilder.Entity<VehicleLongTermRate>(entity =>
+        {
+            // Ten bang
+            entity.ToTable("VehicleLongTermRates", "dbo");
+
+            // Khoa chinh gom 2 cot
+            entity.HasKey(e => new
+            {
+                e.VehicleId,
+                e.DurationMonths
+            });
+
+            // VehicleId: SQL BIGINT
+            entity.Property(e => e.VehicleId)
+                .HasColumnType("bigint");
+
+            // DurationMonths: SQL INT
+            entity.Property(e => e.DurationMonths)
+                .HasColumnType("int");
+
+            // Gia thang goc
+            entity.Property(e => e.BaseMonthlyRate)
+                .HasColumnType("decimal(18, 2)");
+
+            // Phan tram giam
+            entity.Property(e => e.DiscountPercent)
+                .HasColumnType("decimal(5, 2)");
+
+            // Gia sau giam duoc SQL tu tinh
+            entity.Property(e => e.MonthlyRate)
+                .HasColumnType("decimal(18, 2)")
+                .ValueGeneratedOnAddOrUpdate();
+
+            // Trang thai
+            entity.Property(e => e.IsActive)
+                .HasDefaultValue(true);
+
+            // Ngay cap nhat
+            entity.Property(e => e.UpdatedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("SYSUTCDATETIME()");
+
+            // Khong map TotalPrice vao SQL
+            entity.Ignore(e => e.TotalPrice);
+
+            // Quan he voi Vehicles
+            entity.HasOne(e => e.Vehicle)
+                .WithMany()
+                .HasForeignKey(e => e.VehicleId)
+                .OnDelete(DeleteBehavior.NoAction);
+        });
+
 
         OnModelCreatingPartial(modelBuilder);
     }

@@ -1,12 +1,17 @@
-﻿<Page x:Class="CRMS.Views.HomePage"
+﻿<Page x:Class="CRMS.Views.Guest.HomePage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:vm="clr-namespace:CRMS.ViewModels"
       xmlns:services="clr-namespace:CRMS.Services"
       Title="Trang chủ"
       Background="#F5F7FB">
 
+    <!-- RESOURCES -->
     <Page.Resources>
+
         <BooleanToVisibilityConverter x:Key="GuestVisibility"/>
+
+        <!-- Header menu -->
         <Style x:Key="TopMenuButton" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
@@ -17,10 +22,11 @@
             <Setter Property="Cursor" Value="Hand"/>
         </Style>
 
+        <!-- Login / Logout -->
         <Style x:Key="OutlineButton" TargetType="Button">
             <Setter Property="Background" Value="White"/>
             <Setter Property="BorderBrush" Value="#111827"/>
-            <Setter Property="BorderThickness" Value="1.5"/>
+            <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Foreground" Value="#111827"/>
             <Setter Property="Padding" Value="18,10"/>
             <Setter Property="FontSize" Value="15"/>
@@ -28,58 +34,113 @@
             <Setter Property="Cursor" Value="Hand"/>
         </Style>
 
+        <!-- Primary search button -->
         <Style x:Key="PrimaryButton" TargetType="Button">
             <Setter Property="Background" Value="#22C55E"/>
             <Setter Property="BorderBrush" Value="#22C55E"/>
-            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Foreground" Value="White"/>
-            <Setter Property="Padding" Value="18,10"/>
-            <Setter Property="FontSize" Value="15"/>
             <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="15"/>
             <Setter Property="Cursor" Value="Hand"/>
         </Style>
 
+        <!-- Base style for rental tabs -->
         <Style x:Key="ServiceTabButton" TargetType="Button">
             <Setter Property="Background" Value="#F3F4F6"/>
-            <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Foreground" Value="#6B7280"/>
-            <Setter Property="Padding" Value="22,16"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="20,15"/>
+            <Setter Property="MinWidth" Value="175"/>
             <Setter Property="FontSize" Value="15"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="MinWidth" Value="180"/>
         </Style>
 
-        <Style x:Key="ActiveServiceTabButton" TargetType="Button" BasedOn="{StaticResource ServiceTabButton}">
-            <Setter Property="Background" Value="#5AD07A"/>
-            <Setter Property="Foreground" Value="White"/>
+        <!-- Active tab: Self Drive -->
+        <Style x:Key="SelfDriveTabStyle"
+               TargetType="Button"
+               BasedOn="{StaticResource ServiceTabButton}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsSelfDrive}" Value="True">
+                    <Setter Property="Background" Value="#5AD07A"/>
+                    <Setter Property="Foreground" Value="White"/>
+                </DataTrigger>
+            </Style.Triggers>
         </Style>
 
+        <!-- Active tab: With Driver -->
+        <Style x:Key="WithDriverTabStyle"
+               TargetType="Button"
+               BasedOn="{StaticResource ServiceTabButton}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsWithDriver}" Value="True">
+                    <Setter Property="Background" Value="#5AD07A"/>
+                    <Setter Property="Foreground" Value="White"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Active tab: Long Term -->
+        <Style x:Key="LongTermTabStyle"
+               TargetType="Button"
+               BasedOn="{StaticResource ServiceTabButton}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsLongTerm}" Value="True">
+                    <Setter Property="Background" Value="#5AD07A"/>
+                    <Setter Property="Foreground" Value="White"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Labels -->
         <Style x:Key="SearchLabel" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="#6B7280"/>
+            <Setter Property="Foreground" Value="#64748B"/>
             <Setter Property="FontSize" Value="14"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
         </Style>
 
+        <!-- Input buttons -->
+        <Style x:Key="InputButton" TargetType="Button">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#1F2937"/>
+            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Height" Value="48"/>
+            <Setter Property="Padding" Value="14,0"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <!-- Service information -->
         <Style x:Key="InfoCard" TargetType="Border">
             <Setter Property="Background" Value="White"/>
             <Setter Property="CornerRadius" Value="16"/>
             <Setter Property="Padding" Value="22"/>
-            <Setter Property="Margin" Value="0,0,18,0"/>
             <Setter Property="BorderBrush" Value="#E5E7EB"/>
             <Setter Property="BorderThickness" Value="1"/>
         </Style>
+
     </Page.Resources>
 
+    <!-- VIEWMODEL -->
+    <Page.DataContext>
+        <vm:HomeViewModel/>
+    </Page.DataContext>
+
+    <!-- MAIN CONTENT -->
     <ScrollViewer VerticalScrollBarVisibility="Auto"
                   HorizontalScrollBarVisibility="Disabled">
-        <StackPanel Margin="28,18,28,30">
+
+        <StackPanel Margin="28,20,28,35">
 
             <!-- HEADER -->
             <Border Background="White"
                     CornerRadius="18"
                     Padding="22,16"
-                    Margin="0,0,0,20">
+                    Margin="0,0,0,22">
+
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -88,320 +149,494 @@
                     </Grid.ColumnDefinitions>
 
                     <!-- Logo -->
-                    <StackPanel Orientation="Horizontal"
+                    <StackPanel Grid.Column="0"
+                                Orientation="Horizontal"
                                 VerticalAlignment="Center">
-                        <Border Width="42"
-                                Height="42"
+
+                        <Border Width="44"
+                                Height="44"
                                 CornerRadius="10"
                                 Background="#D1FAE5">
+
                             <TextBlock Text="&#xE804;"
                                        FontFamily="Segoe MDL2 Assets"
                                        Foreground="#22C55E"
-                                       FontSize="22"
+                                       FontSize="23"
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center"/>
                         </Border>
 
                         <StackPanel Margin="12,0,0,0"
                                     VerticalAlignment="Center">
+
                             <TextBlock Text="CRMS"
-                                       FontSize="28"
+                                       FontSize="27"
                                        FontWeight="Bold"
                                        Foreground="#111827"/>
+
                             <TextBlock Text="Car Rental Management System"
                                        FontSize="11"
-                                       Foreground="#6B7280"/>
+                                       Foreground="#64748B"/>
                         </StackPanel>
                     </StackPanel>
 
-                    <!-- Menu -->
-                    <StackPanel Grid.Column="1"
-                                Orientation="Horizontal"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center">
-                        <Button Content="Về chúng tôi"
-                                Style="{StaticResource TopMenuButton}"/>
-                        
-                    </StackPanel>
+                    <!-- About -->
+                    <Button Grid.Column="1"
+                            Content="Về chúng tôi"
+                            Style="{StaticResource TopMenuButton}"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Click="About_Click"/>
 
-
-
-                    <!-- LOGIN / REGISTER / LOGOUT -->
+                    <!-- Authentication -->
                     <StackPanel Grid.Column="2"
-            Orientation="Horizontal"
-            VerticalAlignment="Center">
+                                Orientation="Horizontal"
+                                VerticalAlignment="Center">
 
-                        <!-- Register: Guest -->
                         <Button Content="Đăng ký"
-            Style="{StaticResource TopMenuButton}"
-            Margin="0,0,8,0"
-            Click="Register_Click"
-            Visibility="{Binding IsGuest,
-                Source={x:Static services:CurrentUserService.Instance},
-                Converter={StaticResource GuestVisibility}}"/>
+                                Style="{StaticResource TopMenuButton}"
+                                Margin="0,0,8,0"
+                                Click="Register_Click"
+                                Visibility="{Binding IsGuest,
+                                    Source={x:Static services:CurrentUserService.Instance},
+                                    Converter={StaticResource GuestVisibility}}"/>
 
-                        <!-- Login: Guest -->
                         <Button Content="Đăng nhập"
-            Style="{StaticResource OutlineButton}"
-            Click="Login_Click"
-            Visibility="{Binding IsGuest,
-                Source={x:Static services:CurrentUserService.Instance},
-                Converter={StaticResource GuestVisibility}}"/>
+                                Style="{StaticResource OutlineButton}"
+                                Click="Login_Click"
+                                Visibility="{Binding IsGuest,
+                                    Source={x:Static services:CurrentUserService.Instance},
+                                    Converter={StaticResource GuestVisibility}}"/>
 
-                        <!-- Logout: Customer -->
                         <Button Content="Đăng xuất"
-            Style="{StaticResource OutlineButton}"
-            Margin="8,0,0,0"
-            Click="Logout_Click"
-            Visibility="{Binding IsLoggedIn,
-                Source={x:Static services:CurrentUserService.Instance},
-                Converter={StaticResource GuestVisibility}}"/>
+                                Style="{StaticResource OutlineButton}"
+                                Click="Logout_Click"
+                                Visibility="{Binding IsLoggedIn,
+                                    Source={x:Static services:CurrentUserService.Instance},
+                                    Converter={StaticResource GuestVisibility}}"/>
 
                     </StackPanel>
-
-
                 </Grid>
             </Border>
 
-            <!-- HERO -->
-            <Grid Margin="0,0,0,110">
-                <Border Height="520"
-                        CornerRadius="28"
-                        ClipToBounds="True">
+            <!-- HERO BANNER -->
+            <Border Height="390"
+                    CornerRadius="22"
+                    Margin="0,0,0,18"
+                    ClipToBounds="True">
 
+                <Grid>
+                    <Grid.Background>
+                        <LinearGradientBrush StartPoint="0,0"
+                                             EndPoint="1,1">
+                            <GradientStop Color="#334155" Offset="0"/>
+                            <GradientStop Color="#0F172A" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Grid.Background>
+
+                    <!-- Decorative icons -->
+                    <TextBlock Text="&#xE804;"
+                               FontFamily="Segoe MDL2 Assets"
+                               FontSize="190"
+                               Foreground="White"
+                               Opacity="0.09"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Center"
+                               Margin="50,0,0,0"/>
+
+                    <TextBlock Text="&#xE804;"
+                               FontFamily="Segoe MDL2 Assets"
+                               FontSize="170"
+                               Foreground="White"
+                               Opacity="0.07"
+                               HorizontalAlignment="Right"
+                               VerticalAlignment="Center"
+                               Margin="0,0,45,0"/>
+
+                    <!-- Slogan -->
+                    <StackPanel VerticalAlignment="Center"
+                                HorizontalAlignment="Center">
+
+                        <TextBlock Text="CRMS - Đồng hành cùng bạn"
+                                   Foreground="White"
+                                   FontSize="32"
+                                   FontWeight="Bold"
+                                   HorizontalAlignment="Center"/>
+
+                        <TextBlock Text="trên mọi hành trình"
+                                   Foreground="White"
+                                   FontSize="32"
+                                   FontWeight="Bold"
+                                   HorizontalAlignment="Center"
+                                   Margin="0,5,0,0"/>
+
+                        <Border Height="2"
+                                Width="260"
+                                Background="#CBD5E1"
+                                HorizontalAlignment="Center"
+                                Margin="0,22,0,20"/>
+
+                        <TextBlock Text="Dễ dàng thuê xe tự lái, xe có tài xế hoặc thuê dài hạn với nhiều lựa chọn phù hợp."
+                                   Foreground="#E2E8F0"
+                                   FontSize="16"
+                                   TextWrapping="Wrap"
+                                   TextAlignment="Center"
+                                   MaxWidth="750"
+                                   HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- SEARCH AREA -->
+            <Border Background="White"
+                    BorderBrush="#E5E7EB"
+                    BorderThickness="1"
+                    CornerRadius="18"
+                    Padding="25"
+                    Margin="0,0,0,35">
+
+                <StackPanel>
+
+                    <!-- RENTAL TABS -->
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Center"
+                                Margin="0,0,0,28">
+
+                        <Button Content="Xe tự lái"
+                                Style="{StaticResource SelfDriveTabStyle}"
+                                Command="{Binding SelectModeCommand}"
+                                CommandParameter="SelfDrive"/>
+
+                        <Button Content="Xe có tài xế"
+                                Style="{StaticResource WithDriverTabStyle}"
+                                Command="{Binding SelectModeCommand}"
+                                CommandParameter="WithDriver"
+                                Margin="8,0,0,0"/>
+
+                        <Button Content="Thuê xe dài hạn"
+                                Style="{StaticResource LongTermTabStyle}"
+                                Command="{Binding SelectModeCommand}"
+                                CommandParameter="LongTerm"
+                                Margin="8,0,0,0"/>
+
+                    </StackPanel>
+
+                    <!-- FORMS BY RENTAL MODE -->
                     <Grid>
-                        <!-- nền hero -->
-                        <Grid.Background>
-                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                <GradientStop Color="#334155" Offset="0"/>
-                                <GradientStop Color="#0F172A" Offset="1"/>
-                            </LinearGradientBrush>
-                        </Grid.Background>
 
-                        <!-- ảnh giả lập -->
-                        <TextBlock Text="&#xE804;"
-                                   FontFamily="Segoe MDL2 Assets"
-                                   FontSize="220"
-                                   Foreground="#FFFFFF"
-                                   Opacity="0.08"
-                                   HorizontalAlignment="Left"
-                                   Margin="60,90,0,0"
-                                   VerticalAlignment="Top"/>
+                        <!-- =================================== -->
+                        <!-- XE TU LAI                          -->
+                        <!-- =================================== -->
+                        <Grid Visibility="{Binding IsSelfDrive,
+                              Converter={StaticResource GuestVisibility}}">
 
-                        <TextBlock Text="&#xE804;"
-                                   FontFamily="Segoe MDL2 Assets"
-                                   FontSize="180"
-                                   Foreground="#FFFFFF"
-                                   Opacity="0.06"
-                                   HorizontalAlignment="Right"
-                                   Margin="0,120,80,0"
-                                   VerticalAlignment="Top"/>
-
-                        <StackPanel VerticalAlignment="Center"
-                                    HorizontalAlignment="Center">
-                            <TextBlock Text="CRMS - Đồng hành cùng bạn"
-                                       Foreground="White"
-                                       FontSize="32"
-                                       FontWeight="Bold"
-                                       HorizontalAlignment="Center"/>
-                            <TextBlock Text="trên mọi hành trình"
-                                       Foreground="White"
-                                       FontSize="32"
-                                       FontWeight="Bold"
-                                       HorizontalAlignment="Center"
-                                       Margin="0,4,0,0"/>
-
-                            <Border Width="260"
-                                    Height="2"
-                                    Background="White"
-                                    Opacity="0.8"
-                                    Margin="0,22,0,18"
-                                    HorizontalAlignment="Center"/>
-
-                            <TextBlock Text="Dễ dàng thuê xe tự lái, xe có tài xế hoặc thuê dài hạn với nhiều lựa chọn phù hợp."
-                                       Foreground="#E5E7EB"
-                                       FontSize="18"
-                                       TextAlignment="Center"
-                                       TextWrapping="Wrap"
-                                       Width="780"
-                                       HorizontalAlignment="Center"/>
-                        </StackPanel>
-                    </Grid>
-                </Border>
-
-                <!-- SEARCH BOX -->
-                <Border Background="White"
-                        CornerRadius="24"
-                        Width="1100"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Bottom"
-                        Margin="0,0,0,-85"
-                        Padding="0"
-                        BorderBrush="#E5E7EB"
-                        BorderThickness="1">
-
-                    <StackPanel>
-
-                        <!-- Tabs -->
-                        <Border Background="Transparent"
-                                Padding="18,18,18,0">
-                            <StackPanel Orientation="Horizontal"
-                                        HorizontalAlignment="Center">
-                                <Button Content="Xe tự lái"
-                                        Style="{StaticResource ActiveServiceTabButton}"/>
-
-                                <Button Content="Xe có tài xế"
-                                        Style="{StaticResource ServiceTabButton}"
-                                        Margin="8,0,0,0"/>
-
-                                <Button Content="Thuê xe dài hạn"
-                                        Style="{StaticResource ServiceTabButton}"
-                                        Margin="8,0,0,0"/>
-                            </StackPanel>
-                        </Border>
-
-                        <!-- Search fields -->
-                        <Grid Margin="28,20,28,28">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="1.2*"/>
-                                <ColumnDefinition Width="1.4*"/>
+                                <ColumnDefinition Width="1*"/>
+                                <ColumnDefinition Width="1.5*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
 
                             <!-- Location -->
-                            <Border Grid.Column="0"
-                                    BorderBrush="#E5E7EB"
-                                    BorderThickness="0,0,1,0"
-                                    Padding="18,8,18,8">
-                                <StackPanel>
-                                    <TextBlock Text="Địa điểm"
-                                               Style="{StaticResource SearchLabel}"/>
-                                    <ComboBox Height="42"
-                                              Margin="0,8,0,0"
-                                              FontSize="15"
-                                              SelectedIndex="0">
-                                        <ComboBoxItem Content="Cần Thơ"/>
-                                        <ComboBoxItem Content="TP. Hồ Chí Minh"/>
-                                        <ComboBoxItem Content="Hà Nội"/>
-                                        <ComboBoxItem Content="Đà Nẵng"/>
-                                    </ComboBox>
-                                </StackPanel>
-                            </Border>
+                            <StackPanel Grid.Column="0"
+                                        Margin="0,0,20,0">
+
+                                <TextBlock Text="Địa điểm"
+                                           Style="{StaticResource SearchLabel}"
+                                           Margin="0,0,0,10"/>
+
+                                <Button x:Name="SelfDriveLocationButton"
+                                        Content="Cần Thơ"
+                                        Style="{StaticResource InputButton}"
+                                        Click="SelfDriveLocation_Click"/>
+
+                            </StackPanel>
+
+                            <!-- Rental Time -->
+                            <StackPanel Grid.Column="1"
+                                        Margin="0,0,20,0">
+
+                                <TextBlock Text="Thời gian thuê"
+                                           Style="{StaticResource SearchLabel}"
+                                           Margin="0,0,0,10"/>
+
+                                <Button x:Name="SelfDriveTimeButton"
+                                        Content="Chọn thời gian thuê"
+                                        Style="{StaticResource InputButton}"
+                                        Click="SelfDriveTime_Click"/>
+
+                            </StackPanel>
+
+                            <!-- Search -->
+                            <Button Grid.Column="2"
+                                    Content="Tìm xe"
+                                    Width="130"
+                                    Height="48"
+                                    VerticalAlignment="Bottom"
+                                    Style="{StaticResource PrimaryButton}"
+                                    Click="SearchCars_Click"/>
+                        </Grid>
+
+                        <!-- =================================== -->
+                        <!-- XE CO TAI XE                       -->
+                        <!-- =================================== -->
+                        <StackPanel Visibility="{Binding IsWithDriver,
+                                    Converter={StaticResource GuestVisibility}}">
+
+                            <!-- Route title -->
+                            <TextBlock Text="Lộ trình"
+                                       FontSize="20"
+                                       FontWeight="Bold"
+                                       Foreground="#111827"
+                                       Margin="0,0,0,15"/>
+
+                            <!-- Route options -->
+                            <StackPanel Orientation="Horizontal"
+                                        Margin="0,0,0,15">
+
+                                <RadioButton x:Name="InnerCityRadio"
+                                             Content="Nội thành"
+                                             GroupName="DriverRoute"
+                                             IsChecked="True"
+                                             FontSize="15"
+                                             FontWeight="SemiBold"
+                                             Margin="0,0,30,0"/>
+
+                                <RadioButton x:Name="InterCityRadio"
+                                             Content="Liên tỉnh"
+                                             GroupName="DriverRoute"
+                                             FontSize="15"
+                                             FontWeight="SemiBold"
+                                             Margin="0,0,30,0"/>
+
+                                <RadioButton x:Name="OneWayRadio"
+                                             Content="Liên tỉnh (1 chiều)"
+                                             GroupName="DriverRoute"
+                                             FontSize="15"
+                                             FontWeight="SemiBold"/>
+
+                            </StackPanel>
+
+                            <!-- Pickup location -->
+                            <TextBlock Text="Điểm đón"
+                                       Style="{StaticResource SearchLabel}"
+                                       Margin="0,0,0,8"/>
+
+                            <ComboBox x:Name="DriverPickupCombo"
+                                      Height="45"
+                                      FontSize="15"
+                                      SelectedIndex="0"
+                                      Margin="0,0,0,20">
+
+                                <ComboBoxItem Content="Cần Thơ"/>
+                                <ComboBoxItem Content="TP. Hồ Chí Minh"/>
+                                <ComboBoxItem Content="Hà Nội"/>
+                                <ComboBoxItem Content="Đà Nẵng"/>
+                            </ComboBox>
+
+                            <!-- Destination -->
+                            <StackPanel Margin="0,0,0,20">
+
+                                <StackPanel.Style>
+                                    <Style TargetType="StackPanel">
+                                        <Setter Property="Visibility"
+                                                Value="Visible"/>
+
+                                        <Style.Triggers>
+                                            <!-- Inner city hides destination -->
+                                            <DataTrigger Binding="{Binding IsChecked,
+                                                  ElementName=InnerCityRadio}"
+                                                         Value="True">
+                                                <Setter Property="Visibility"
+                                                        Value="Collapsed"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </StackPanel.Style>
+
+                                <TextBlock Text="Điểm đến"
+                                           Style="{StaticResource SearchLabel}"
+                                           Margin="0,0,0,8"/>
+
+                                <ComboBox x:Name="DriverDestinationCombo"
+                                          Height="45"
+                                          FontSize="15"
+                                          SelectedIndex="0">
+
+                                    <ComboBoxItem Content="Chọn địa điểm đến"
+                                                  IsEnabled="False"/>
+                                    <ComboBoxItem Content="Cần Thơ"/>
+                                    <ComboBoxItem Content="TP. Hồ Chí Minh"/>
+                                    <ComboBoxItem Content="Hà Nội"/>
+                                    <ComboBoxItem Content="Đà Nẵng"/>
+                                </ComboBox>
+
+                            </StackPanel>
 
                             <!-- Time -->
-                            <Border Grid.Column="1"
-                                    BorderBrush="#E5E7EB"
-                                    BorderThickness="0,0,1,0"
-                                    Padding="18,8,18,8">
-                                <StackPanel>
-                                    <TextBlock Text="Thời gian thuê"
-                                               Style="{StaticResource SearchLabel}"/>
+                            <TextBlock Text="Thời gian"
+                                       FontSize="20"
+                                       FontWeight="Bold"
+                                       Foreground="#111827"
+                                       Margin="0,0,0,15"/>
 
-                                    <Grid Margin="0,8,0,0">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="14"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
 
-                                        <DatePicker Grid.Column="0"
-                                                    Height="42"
-                                                    FontSize="15"/>
+                                <!-- Open time popup -->
+                                <Button x:Name="DriverTimeButton"
+                                        Grid.Column="0"
+                                        Content="Chọn ngày, giờ đón và thời gian thuê"
+                                        Height="50"
+                                        Margin="0,0,18,0"
+                                        Style="{StaticResource InputButton}"
+                                        Click="DriverTime_Click"/>
 
-                                        <TextBlock Grid.Column="1"
-                                                   Text="–"
-                                                   VerticalAlignment="Center"
-                                                   HorizontalAlignment="Center"
-                                                   Foreground="#6B7280"/>
+                                <!-- Search -->
+                                <Button Grid.Column="1"
+                                        Content="Tìm xe"
+                                        Width="130"
+                                        Height="50"
+                                        Style="{StaticResource PrimaryButton}"
+                                        Click="SearchCars_Click"/>
+                            </Grid>
 
-                                        <DatePicker Grid.Column="2"
-                                                    Height="42"
-                                                    FontSize="15"/>
-                                    </Grid>
-                                </StackPanel>
-                            </Border>
+                        </StackPanel>
 
-                            <!-- Button -->
-                            <StackPanel Grid.Column="2"
-                                        VerticalAlignment="Bottom"
-                                        Margin="20,0,0,0">
-                                <Button Content="Tìm xe"
-                                        Width="140"
-                                        Height="48"
-                                        Style="{StaticResource PrimaryButton}"/>
+                        <!-- =================================== -->
+                        <!-- THUE XE DAI HAN                    -->
+                        <!-- =================================== -->
+                        <Grid Visibility="{Binding IsLongTerm,
+                              Converter={StaticResource GuestVisibility}}">
+
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+
+                                <TextBlock Text="Địa điểm áp dụng hiện tại"
+                                           Style="{StaticResource SearchLabel}"
+                                           Margin="0,0,0,12"/>
+
+                                <TextBlock Text="Cần Thơ"
+                                           FontSize="22"
+                                           FontWeight="SemiBold"
+                                           Foreground="#111827"/>
+
                             </StackPanel>
-                        </Grid>
-                    </StackPanel>
-                </Border>
-            </Grid>
 
-            <!-- ABOUT -->
-            <StackPanel Margin="0,0,0,18">
+                            <Button Grid.Column="1"
+                                    Content="Tìm xe"
+                                    Tag="LongTerm"
+                                    Width="135"
+                                    Height="52"
+                                    VerticalAlignment="Center"
+                                    Style="{StaticResource PrimaryButton}"
+                                    Click="SearchCars_Click"/>
+
+                        </Grid>
+
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- ABOUT US -->
+            <StackPanel x:Name="AboutSection"
+                        Margin="0,0,0,20">
+
                 <TextBlock Text="VỀ CHÚNG TÔI"
                            Foreground="#22C55E"
                            FontSize="12"
                            FontWeight="Bold"/>
+
                 <TextBlock Text="Giải pháp thuê xe linh hoạt và hiện đại"
+                           Foreground="#111827"
                            FontSize="28"
                            FontWeight="Bold"
-                           Foreground="#111827"
                            Margin="0,8,0,10"/>
-                <TextBlock Text="CRMS mang đến trải nghiệm thuê xe thuận tiện, nhanh chóng và phù hợp với nhiều nhu cầu: đi lại cá nhân, công tác, gia đình hoặc thuê dài hạn."
+
+                <TextBlock Text="CRMS mang đến trải nghiệm thuê xe thuận tiện và nhanh chóng, phù hợp cho cá nhân, gia đình và công tác. Khách hàng có thể lựa chọn dịch vụ tự lái, có tài xế hoặc thuê dài hạn theo nhu cầu."
+                           Foreground="#64748B"
                            FontSize="15"
-                           Foreground="#6B7280"
-                           TextWrapping="Wrap"
-                           MaxWidth="980"/>
+                           TextWrapping="Wrap"/>
+
             </StackPanel>
 
-            <!-- INFO CARDS -->
+            <!-- SERVICE INFORMATION -->
             <Grid Margin="0,10,0,0">
+
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <Border Grid.Column="0" Style="{StaticResource InfoCard}">
+                <!-- Self drive -->
+                <Border Grid.Column="0"
+                        Style="{StaticResource InfoCard}"
+                        Margin="0,0,16,0">
+
                     <StackPanel>
+
                         <TextBlock Text="Xe tự lái"
                                    FontSize="20"
                                    FontWeight="Bold"
                                    Foreground="#111827"/>
-                        <TextBlock Text="Phù hợp cho cá nhân và gia đình muốn chủ động lịch trình."
-                                   Foreground="#6B7280"
+
+                        <TextBlock Text="Chủ động lựa chọn hành trình và thời gian di chuyển cùng gia đình, bạn bè."
+                                   Foreground="#64748B"
                                    FontSize="14"
                                    TextWrapping="Wrap"
                                    Margin="0,10,0,0"/>
+
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Column="1" Style="{StaticResource InfoCard}">
+                <!-- With driver -->
+                <Border Grid.Column="1"
+                        Style="{StaticResource InfoCard}"
+                        Margin="0,0,16,0">
+
                     <StackPanel>
+
                         <TextBlock Text="Xe có tài xế"
                                    FontSize="20"
                                    FontWeight="Bold"
                                    Foreground="#111827"/>
-                        <TextBlock Text="Thoải mái di chuyển khi cần tài xế chuyên nghiệp và an toàn."
-                                   Foreground="#6B7280"
+
+                        <TextBlock Text="Thuận tiện di chuyển nội thành hoặc liên tỉnh với dịch vụ tài xế."
+                                   Foreground="#64748B"
                                    FontSize="14"
                                    TextWrapping="Wrap"
                                    Margin="0,10,0,0"/>
+
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Column="2" Style="{StaticResource InfoCard}" Margin="0">
+                <!-- Long term -->
+                <Border Grid.Column="2"
+                        Style="{StaticResource InfoCard}">
+
                     <StackPanel>
+
                         <TextBlock Text="Thuê xe dài hạn"
                                    FontSize="20"
                                    FontWeight="Bold"
                                    Foreground="#111827"/>
-                        <TextBlock Text="Giải pháp tiết kiệm cho doanh nghiệp hoặc khách hàng thuê theo tháng."
-                                   Foreground="#6B7280"
+
+                        <TextBlock Text="Lựa chọn phương án thuê dài hạn phù hợp cho nhu cầu sử dụng thường xuyên."
+                                   Foreground="#64748B"
                                    FontSize="14"
                                    TextWrapping="Wrap"
                                    Margin="0,10,0,0"/>
+
                     </StackPanel>
                 </Border>
+
             </Grid>
 
         </StackPanel>
