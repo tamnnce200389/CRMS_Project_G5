@@ -6,7 +6,7 @@
   sp_getapplock procedures. No modules or columns have been added.
 
   Non-destructive setup:
-  * Creates database CRMS_PRN212 ONLY if missing.
+  * Creates database CRMS ONLY if missing.
   * Creates missing tables and indexes; existing data is untouched.
   * Updates procedure definitions with CREATE OR ALTER.
   * INSERTs missing demo records ONLY; no deletes/resets.

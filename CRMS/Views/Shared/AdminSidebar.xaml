@@ -1,0 +1,314 @@
+<UserControl x:Class="CRMS.Views.Shared.AdminSidebar"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Width="250"
+             Background="#11233D"
+             FontFamily="Segoe UI">
+
+    <UserControl.Resources>
+
+        <!-- MENU BUTTON -->
+        <Style x:Key="NavButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#DCE7F8"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Margin" Value="8,2"/>
+            <Setter Property="Padding" Value="14,10"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="8"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#284D77"/>
+                    <Setter Property="Foreground" Value="White"/>
+                </Trigger>
+
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Foreground" Value="#7D93B2"/>
+                    <Setter Property="Cursor" Value="Arrow"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- COLLAPSIBLE GROUP -->
+        <Style x:Key="MenuGroup" TargetType="Expander">
+            <Setter Property="Margin" Value="10,4,10,0"/>
+            <Setter Property="Foreground" Value="#A9C5E8"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Expander">
+                        <StackPanel>
+
+                            <ToggleButton
+                                Content="{TemplateBinding Header}"
+                                IsChecked="{Binding IsExpanded,
+                                    RelativeSource={RelativeSource TemplatedParent},
+                                    Mode=TwoWay}"
+                                Foreground="#A9C5E8"
+                                Cursor="Hand">
+
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border x:Name="HeaderBackground"
+                                                Background="Transparent"
+                                                CornerRadius="8"
+                                                Padding="13,12">
+
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="20"/>
+                                                </Grid.ColumnDefinitions>
+
+                                                <ContentPresenter
+                                                    Grid.Column="0"
+                                                    VerticalAlignment="Center"/>
+
+                                                <TextBlock Grid.Column="1"
+                                                           Text="⌄"
+                                                           FontSize="16"
+                                                           Foreground="#A9C5E8"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </Border>
+
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver"
+                                                     Value="True">
+                                                <Setter TargetName="HeaderBackground"
+                                                        Property="Background"
+                                                        Value="#203B5B"/>
+                                            </Trigger>
+
+                                            <Trigger Property="IsChecked"
+                                                     Value="True">
+                                                <Setter TargetName="HeaderBackground"
+                                                        Property="Background"
+                                                        Value="#254A78"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+
+                            <ContentPresenter x:Name="ExpandContent"
+                                              ContentSource="Content"
+                                              Visibility="Collapsed"
+                                              Margin="0,3,0,5"/>
+                        </StackPanel>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsExpanded" Value="True">
+                                <Setter TargetName="ExpandContent"
+                                        Property="Visibility"
+                                        Value="Visible"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+    </UserControl.Resources>
+
+    <Border Background="#11233D">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- HEADER -->
+            <StackPanel Grid.Row="0"
+                        Margin="24,25,20,15">
+
+                <TextBlock Text="CRMS"
+                           FontSize="30"
+                           FontWeight="Bold"
+                           Foreground="White"/>
+
+                <TextBlock Text="ADMIN CONSOLE"
+                           FontSize="12"
+                           FontWeight="SemiBold"
+                           Foreground="#93B8F3"
+                           Margin="0,5,0,0"/>
+
+                <Border Background="#244265"
+                        CornerRadius="8"
+                        Padding="12,10"
+                        Margin="0,18,0,0">
+                    <TextBlock Text="QUẢN TRỊ HỆ THỐNG"
+                               Foreground="White"
+                               FontSize="11"
+                               FontWeight="SemiBold"
+                               HorizontalAlignment="Center"/>
+                </Border>
+            </StackPanel>
+
+            <!-- MENU: AN THANH CUON NHUNG VAN CUON DUOC -->
+            <ScrollViewer Grid.Row="1"
+                          VerticalScrollBarVisibility="Hidden"
+                          HorizontalScrollBarVisibility="Disabled">
+
+                <StackPanel Margin="0,0,0,12">
+
+                    <!-- TONG QUAN -->
+                    <Expander x:Name="OverviewGroup"
+                              Header="TỔNG QUAN"
+                              Style="{StaticResource MenuGroup}"
+                              Expanded="Group_Expanded">
+
+                        <StackPanel>
+                            <Button Content="Dashboard"
+                                    Style="{StaticResource NavButton}"
+                                    Command="{Binding NavigateCommand}"
+                                    CommandParameter="Dashboard"/>
+
+                            <Button Content="Báo cáo doanh thu"
+                                    Style="{StaticResource NavButton}"
+                                    Command="{Binding NavigateCommand}"
+                                    CommandParameter="Reports"/>
+                        </StackPanel>
+                    </Expander>
+
+                    <!-- QUAN LY PHUONG TIEN -->
+                    <Expander x:Name="VehicleGroup"
+                              Header="QUẢN LÝ PHƯƠNG TIỆN"
+                              Style="{StaticResource MenuGroup}"
+                              Expanded="Group_Expanded">
+
+                        <StackPanel>
+                            <Button Content="Quản lý xe"
+                                    Style="{StaticResource NavButton}"
+                                    Command="{Binding NavigateCommand}"
+                                    CommandParameter="Vehicles"/>
+
+                            <Button Content="Quản lý bảo trì"
+                                    Style="{StaticResource NavButton}"
+                                    IsEnabled="False"
+                                    ToolTipService.ShowOnDisabled="True"
+                                    ToolTip="Chưa tích hợp MaintenancePage"/>
+                        </StackPanel>
+                    </Expander>
+
+                    <!-- DON THUE -->
+                    <Expander x:Name="BookingGroup"
+                              Header="QUẢN LÝ ĐƠN THUÊ"
+                              Style="{StaticResource MenuGroup}"
+                              Expanded="Group_Expanded">
+
+                        <StackPanel>
+                            <Button Content="Danh sách đơn thuê"
+                                    Style="{StaticResource NavButton}"
+                                    Command="{Binding NavigateCommand}"
+                                    CommandParameter="Bookings"/>
+
+                            <Button Content="Tổng hợp thanh toán"
+                                    Style="{StaticResource NavButton}"
+                                    IsEnabled="False"
+                                    ToolTipService.ShowOnDisabled="True"
+                                    ToolTip="Chưa tích hợp PaymentSummaryPage"/>
+                        </StackPanel>
+                    </Expander>
+
+                    <!-- TAI XE -->
+                    <Expander x:Name="DriverGroup"
+                              Header="QUẢN LÝ TÀI XẾ"
+                              Style="{StaticResource MenuGroup}"
+                              Expanded="Group_Expanded">
+
+                        <StackPanel>
+                            <Button Content="Danh sách và quản lý tài xế"
+                                    Style="{StaticResource NavButton}"
+                                    Command="{Binding NavigateCommand}"
+                                    CommandParameter="Drivers"/>
+                        </StackPanel>
+                    </Expander>
+
+                    <!-- HE THONG -->
+                    <Expander x:Name="SystemGroup"
+                              Header="QUẢN TRỊ HỆ THỐNG"
+                              Style="{StaticResource MenuGroup}"
+                              Expanded="Group_Expanded">
+
+                        <StackPanel>
+                            <Button Content="Khách hàng và phân quyền"
+                                    Style="{StaticResource NavButton}"
+                                    IsEnabled="False"
+                                    ToolTipService.ShowOnDisabled="True"
+                                    ToolTip="Chưa tích hợp UserManagementPage"/>
+
+                            <Button Content="Quản lý Voucher"
+                                    Style="{StaticResource NavButton}"
+                                    IsEnabled="False"
+                                    ToolTipService.ShowOnDisabled="True"
+                                    ToolTip="Chưa tích hợp VoucherManagementPage"/>
+
+                            <Button Content="Kiểm duyệt đánh giá"
+                                    Style="{StaticResource NavButton}"
+                                    IsEnabled="False"
+                                    ToolTipService.ShowOnDisabled="True"
+                                    ToolTip="Chưa tích hợp ReviewModerationPage"/>
+                        </StackPanel>
+                    </Expander>
+
+                    <!-- TAI KHOAN -->
+                    <Expander x:Name="AccountGroup"
+                              Header="TÀI KHOẢN"
+                              Style="{StaticResource MenuGroup}"
+                              Expanded="Group_Expanded">
+
+                        <StackPanel>
+                            <Button Content="Hồ sơ cá nhân"
+                                    Style="{StaticResource NavButton}"
+                                    IsEnabled="False"
+                                    ToolTipService.ShowOnDisabled="True"
+                                    ToolTip="Chưa tích hợp ProfilePage"/>
+                        </StackPanel>
+                    </Expander>
+
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- FOOTER -->
+            <Border Grid.Row="2"
+                    BorderBrush="#304766"
+                    BorderThickness="0,1,0,0"
+                    Padding="22,15">
+
+                <StackPanel>
+                    <TextBlock Text="ADMINISTRATOR"
+                               Foreground="White"
+                               FontWeight="Bold"
+                               FontSize="13"/>
+
+                    <TextBlock Text="Quản trị toàn hệ thống"
+                               Foreground="#A8BEDD"
+                               FontSize="11"
+                               Margin="0,5,0,0"/>
+                </StackPanel>
+            </Border>
+
+        </Grid>
+    </Border>
+</UserControl>

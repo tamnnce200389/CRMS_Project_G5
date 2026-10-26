@@ -1,0 +1,173 @@
+<Page x:Class="CRMS.Views.Staff.StaffVehiclePage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:vm="clr-namespace:CRMS.ViewModels"
+      Title="Tra cứu xe"
+      Background="#F4F8F6"
+      FontFamily="Segoe UI">
+
+    <Page.DataContext>
+        <vm:VehicleViewModel/>
+    </Page.DataContext>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+
+        <StackPanel Margin="28">
+
+            <!-- HEADER -->
+            <TextBlock Text="Tra cứu phương tiện"
+                       FontSize="28"
+                       FontWeight="Bold"
+                       Foreground="#153D34"/>
+
+            <TextBlock Text="Xem thông tin và tình trạng các xe trong hệ thống."
+                       Foreground="#64748B"
+                       Margin="0,8,0,24"/>
+
+            <!-- SEARCH -->
+            <Border Background="White"
+                    CornerRadius="14"
+                    BorderBrush="#DCEAE5"
+                    BorderThickness="1"
+                    Padding="20"
+                    Margin="0,0,0,20">
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*"/>
+                        <ColumnDefinition Width="1.2*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0"
+                                Margin="0,0,14,0">
+
+                        <TextBlock Text="Tìm theo hãng, mẫu hoặc biển số"
+                                   Foreground="#64748B"
+                                   Margin="0,0,0,8"/>
+
+                        <TextBox Height="42"
+                                 Padding="12,8"
+                                 Text="{Binding SearchText,
+                                     UpdateSourceTrigger=PropertyChanged}"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1"
+                                Margin="0,0,14,0">
+
+                        <TextBlock Text="Trạng thái xe"
+                                   Foreground="#64748B"
+                                   Margin="0,0,0,8"/>
+
+                        <ComboBox Height="42"
+                                  ItemsSource="{Binding StatusOptions}"
+                                  SelectedItem="{Binding SelectedStatus}"/>
+                    </StackPanel>
+
+                    <Button Grid.Column="2"
+                            Content="Làm mới"
+                            Width="110"
+                            Height="42"
+                            VerticalAlignment="Bottom"
+                            Background="#16A085"
+                            Foreground="White"
+                            BorderThickness="0"
+                            FontWeight="SemiBold"
+                            Cursor="Hand"
+                            Command="{Binding RefreshCommand}"/>
+                </Grid>
+            </Border>
+
+            <!-- VEHICLE TABLE -->
+            <Border Background="White"
+                    CornerRadius="14"
+                    BorderBrush="#DCEAE5"
+                    BorderThickness="1"
+                    Padding="18">
+
+                <StackPanel>
+
+                    <Grid Margin="0,0,0,15">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Text="Danh sách phương tiện"
+                                   FontSize="20"
+                                   FontWeight="Bold"
+                                   Foreground="#153D34"/>
+
+                        <TextBlock Grid.Column="1"
+                                   Text="{Binding FilteredCount,
+                                       StringFormat={}{0} xe}"
+                                   Foreground="#047857"
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center"/>
+                    </Grid>
+
+                    <DataGrid ItemsSource="{Binding VehiclesView}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              CanUserAddRows="False"
+                              CanUserDeleteRows="False"
+                              SelectionMode="Single"
+                              RowHeight="42"
+                              ColumnHeaderHeight="42"
+                              MinHeight="350"
+                              Background="White"
+                              BorderThickness="0"
+                              GridLinesVisibility="Horizontal"
+                              HeadersVisibility="Column">
+
+                        <DataGrid.Columns>
+
+                            <DataGridTextColumn Header="MÃ XE"
+                                                Binding="{Binding VehicleId}"
+                                                Width="75"/>
+
+                            <DataGridTextColumn Header="HÃNG"
+                                                Binding="{Binding Brand}"
+                                                Width="*"/>
+
+                            <DataGridTextColumn Header="MẪU XE"
+                                                Binding="{Binding Model}"
+                                                Width="*"/>
+
+                            <DataGridTextColumn Header="BIỂN SỐ"
+                                                Binding="{Binding LicensePlate}"
+                                                Width="*"/>
+
+                            <DataGridTextColumn Header="SỐ GHẾ"
+                                                Binding="{Binding SeatCount}"
+                                                Width="75"/>
+
+                            <DataGridTextColumn Header="GIÁ / NGÀY"
+                                                Binding="{Binding DailyRate,
+                                                    StringFormat={}{0:N0} ₫}"
+                                                Width="*"/>
+
+                            <DataGridTextColumn Header="TRẠNG THÁI"
+                                                Binding="{Binding OperationalStatus}"
+                                                Width="*"/>
+
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <TextBlock Text="{Binding StatusMessage}"
+                               Foreground="#64748B"
+                               FontSize="12"
+                               Margin="0,13,0,0"/>
+
+                    <TextBlock Text="Nhân viên chỉ được tra cứu. Thay đổi giá và thông tin phương tiện thuộc quyền quản trị."
+                               Foreground="#94A3B8"
+                               FontStyle="Italic"
+                               FontSize="12"
+                               TextWrapping="Wrap"
+                               Margin="0,8,0,0"/>
+
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

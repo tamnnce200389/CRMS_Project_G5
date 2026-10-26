@@ -1,0 +1,16 @@
+<Page x:Class="CRMS.Views.Staff.BookingQueuePage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Title="Danh sách đơn thuê"
+      Background="#F4F8F6">
+    <Grid Margin="30">
+        <StackPanel>
+            <TextBlock Text="Danh sách đơn thuê"
+                       FontSize="28"
+                       FontWeight="Bold"/>
+            <TextBlock Text="Trang xử lý đơn thuê đang được tích hợp."
+                       Foreground="#64748B"
+                       Margin="0,15,0,0"/>
+        </StackPanel>
+    </Grid>
+</Page>

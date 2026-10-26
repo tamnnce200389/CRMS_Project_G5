@@ -1,0 +1,16 @@
+<Page x:Class="CRMS.Views.Staff.HandoverPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Title="Bàn giao xe"
+      Background="#F4F8F6">
+    <Grid Margin="30">
+        <StackPanel>
+            <TextBlock Text="Bàn giao xe"
+                       FontSize="28"
+                       FontWeight="Bold"/>
+            <TextBlock Text="Chức năng ghi nhận bàn giao xe đang được tích hợp."
+                       Foreground="#64748B"
+                       Margin="0,15,0,0"/>
+        </StackPanel>
+    </Grid>
+</Page>
