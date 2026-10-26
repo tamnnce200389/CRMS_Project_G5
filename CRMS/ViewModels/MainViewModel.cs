@@ -1,9 +1,9 @@
-﻿using CRMS.Helpers;
+﻿
+using CRMS.Helpers;
 using CRMS.Services;
-using CRMS.Views;
 using CRMS.Views.Admin;
 using CRMS.Views.Guest;
-using System;
+using CRMS.Views.Staff;
 using System.Windows.Controls;
 using System.Windows.Input;
 
@@ -11,145 +11,236 @@ namespace CRMS.ViewModels
 {
     public class MainViewModel : BaseViewModel
     {
-        // Cac trang duoc su dung trong he thong
+        // =====================================
+        // 1. GUEST / CUSTOMER
+        // =====================================
         private readonly HomePage _homePage = new();
-        private readonly DashboardPage _dashboardPage = new();
-        private readonly VehiclePage _vehiclePage = new();
+
+        // =====================================
+        // 2. ADMIN PAGES
+        // =====================================
+        private readonly DashboardPage _adminDashboard = new();
+
+        private readonly VehiclePage _adminVehicles = new();
+
+        private readonly DriverPage _adminDrivers = new();
+
         private readonly BookingPage _bookingPage = new();
-        private readonly DriverPage _driverPage = new();
+
         private readonly ReportPage _reportPage = new();
 
+        // =====================================
+        // 3. STAFF PAGES
+        // =====================================
+        private readonly StaffDashboardPage _staffDashboard = new();
+
+        private readonly StaffVehiclePage _staffVehicles = new();
+
+        private readonly StaffDriverPage _staffDrivers = new();
+
+        // =====================================
+        // 4. CURRENT USER ROLE
+        // =====================================
+        public bool IsGuest =>
+            CurrentUserService.Instance.IsGuest;
+
+        public bool IsCustomer =>
+            CurrentUserService.Instance.IsCustomer;
+
+        public bool IsLoggedIn =>
+            CurrentUserService.Instance.IsLoggedIn;
+
+        public bool IsStaff =>
+            CurrentUserService.Instance.IsStaff;
+
+        public bool IsAdmin =>
+            CurrentUserService.Instance.IsAdmin;
+
+        public bool IsManagement =>
+            IsStaff || IsAdmin;
+
+        // =====================================
+        // 5. CURRENT PAGE
+        // =====================================
         private Page _currentPage;
 
         public Page CurrentPage
         {
             get => _currentPage;
+
             set
             {
                 if (_currentPage == value)
                     return;
 
                 _currentPage = value;
+
                 OnPropertyChanged();
 
-                OnPropertyChanged(nameof(IsHome));
-                OnPropertyChanged(nameof(IsDashboard));
-                OnPropertyChanged(nameof(IsVehicles));
-                OnPropertyChanged(nameof(IsBookings));
-                OnPropertyChanged(nameof(IsDrivers));
-                OnPropertyChanged(nameof(IsReports));
+                RefreshNavigationStates();
             }
         }
 
-        // Thong tin dang nhap
-        private CurrentUserService Session =>
-            CurrentUserService.Instance;
+        // =====================================
+        // 6. NAVIGATION STATES
+        // =====================================
+        public bool IsDashboard =>
+            CurrentPage == _adminDashboard ||
+            CurrentPage == _staffDashboard;
 
-        public string UserName => Session.FullName;
-        public string CurrentRole => Session.Role;
+        public bool IsVehicles =>
+            CurrentPage == _adminVehicles ||
+            CurrentPage == _staffVehicles;
 
-        public bool IsLoggedIn => Session.IsLoggedIn;
-        public bool IsGuest => !IsLoggedIn;
+        public bool IsDrivers =>
+            CurrentPage == _adminDrivers ||
+            CurrentPage == _staffDrivers;
 
-        public bool IsCustomer =>
-            string.Equals(CurrentRole, "Customer",
-                StringComparison.OrdinalIgnoreCase);
+        public bool IsBookings =>
+            CurrentPage == _bookingPage;
 
-        public bool IsStaff =>
-            string.Equals(CurrentRole, "Staff",
-                StringComparison.OrdinalIgnoreCase);
+        public bool IsReports =>
+            CurrentPage == _reportPage;
 
-        public bool IsAdmin =>
-            string.Equals(CurrentRole, "Admin",
-                StringComparison.OrdinalIgnoreCase);
-        // Staff va Admin su dung giao dien quan ly
-        public bool IsManagement => IsAdmin || IsStaff;
-
-        // Quyen truy cap cac trang
-        public bool CanViewHome => IsGuest || IsCustomer;
-
-        public bool CanViewBookings =>
-            IsCustomer || IsStaff || IsAdmin;
-
-        public bool CanViewDrivers =>
-            IsStaff || IsAdmin;
-
-        // Trang dang duoc chon
-        public bool IsHome => CurrentPage == _homePage;
-        public bool IsDashboard => CurrentPage == _dashboardPage;
-        public bool IsVehicles => CurrentPage == _vehiclePage;
-        public bool IsBookings => CurrentPage == _bookingPage;
-        public bool IsDrivers => CurrentPage == _driverPage;
-        public bool IsReports => CurrentPage == _reportPage;
-
+        // =====================================
+        // 7. NAVIGATION COMMAND
+        // =====================================
         public ICommand NavigateCommand { get; }
 
         public MainViewModel()
         {
-            // Khi chua dang nhap, mo HomePage
-            _currentPage = _homePage;
-
-            NavigateCommand = new RelayCommand(parameter =>
-            {
-                switch (parameter?.ToString())
-                {
-                    case "Home" when CanViewHome:
-                        CurrentPage = _homePage;
-                        break;
-
-                    case "Dashboard" when IsAdmin:
-                        CurrentPage = _dashboardPage;
-                        break;
-
-                    case "Vehicles" when IsAdmin:
-                        CurrentPage = _vehiclePage;
-                        break;
-
-                    case "Bookings" when CanViewBookings:
-                        CurrentPage = _bookingPage;
-                        break;
-
-                    case "Drivers" when CanViewDrivers:
-                        CurrentPage = _driverPage;
-                        break;
-
-                    case "Reports" when IsAdmin:
-                        CurrentPage = _reportPage;
-                        break;
-                }
-            });
-        }
-
-        // Cap nhat sau khi Login / Logout
-        public void RefreshSession()
-        {
-            OnPropertyChanged(nameof(UserName));
-            OnPropertyChanged(nameof(CurrentRole));
-            OnPropertyChanged(nameof(IsLoggedIn));
-            OnPropertyChanged(nameof(IsGuest));
-            OnPropertyChanged(nameof(IsCustomer));
-            OnPropertyChanged(nameof(IsStaff));
-            OnPropertyChanged(nameof(IsAdmin));
-            OnPropertyChanged(nameof(CanViewHome));
-            OnPropertyChanged(nameof(CanViewBookings));
-            OnPropertyChanged(nameof(CanViewDrivers));
-            OnPropertyChanged(nameof(IsManagement));
-
+            // Mac dinh theo vai tro dang dang nhap
             if (IsAdmin)
             {
-                CurrentPage = _dashboardPage;
+                _currentPage = _adminDashboard;
             }
             else if (IsStaff)
             {
-                // Tam thoi mo DriverPage
-                // Sau nay thay bang StaffDashboardPage
-                CurrentPage = _driverPage;
+                _currentPage = _staffDashboard;
             }
             else
             {
-                // Guest va Customer
+                _currentPage = _homePage;
+            }
+
+            NavigateCommand = new RelayCommand(
+                parameter => Navigate(parameter?.ToString()));
+        }
+
+        // =====================================
+        // 8. NAVIGATION
+        // =====================================
+        private void Navigate(string? destination)
+        {
+            switch (destination)
+            {
+                // Guest / Customer
+                case "Home":
+                    if (!IsManagement)
+                    {
+                        CurrentPage = _homePage;
+                    }
+                    break;
+
+                // Dashboard cua tung Role
+                case "Dashboard":
+                    if (IsAdmin)
+                    {
+                        CurrentPage = _adminDashboard;
+                    }
+                    else if (IsStaff)
+                    {
+                        CurrentPage = _staffDashboard;
+                    }
+                    break;
+
+                // Admin quan ly - Staff tra cuu
+                case "Vehicles":
+                    if (IsAdmin)
+                    {
+                        CurrentPage = _adminVehicles;
+                    }
+                    else if (IsStaff)
+                    {
+                        CurrentPage = _staffVehicles;
+                    }
+                    break;
+
+                // Admin quan ly - Staff tra cuu
+                case "Drivers":
+                    if (IsAdmin)
+                    {
+                        CurrentPage = _adminDrivers;
+                    }
+                    else if (IsStaff)
+                    {
+                        CurrentPage = _staffDrivers;
+                    }
+                    break;
+
+                // Trang danh sach don thue dung chung
+                case "Bookings":
+                    if (IsManagement)
+                    {
+                        CurrentPage = _bookingPage;
+                    }
+                    break;
+
+                // Bao cao chi Admin duoc mo
+                case "Reports":
+                    if (IsAdmin)
+                    {
+                        CurrentPage = _reportPage;
+                    }
+                    break;
+
+                // Cac chuc nang chua tich hop
+                // khong mo Page khac
+                default:
+                    break;
+            }
+        }
+
+        // =====================================
+        // 9. CAP NHAT TRANG THAI NAVIGATION
+        // =====================================
+        private void RefreshNavigationStates()
+        {
+            OnPropertyChanged(nameof(IsDashboard));
+            OnPropertyChanged(nameof(IsVehicles));
+            OnPropertyChanged(nameof(IsDrivers));
+            OnPropertyChanged(nameof(IsBookings));
+            OnPropertyChanged(nameof(IsReports));
+        }
+
+        // =====================================
+        // 10. REFRESH SAU LOGIN / LOGOUT
+        // =====================================
+        public void RefreshSession()
+        {
+            // Cap nhat Role cho MainWindow
+            OnPropertyChanged(nameof(IsGuest));
+            OnPropertyChanged(nameof(IsCustomer));
+            OnPropertyChanged(nameof(IsLoggedIn));
+            OnPropertyChanged(nameof(IsStaff));
+            OnPropertyChanged(nameof(IsAdmin));
+            OnPropertyChanged(nameof(IsManagement));
+
+            // Dieu huong theo Role
+            if (IsAdmin)
+            {
+                CurrentPage = _adminDashboard;
+            }
+            else if (IsStaff)
+            {
+                CurrentPage = _staffDashboard;
+            }
+            else
+            {
                 CurrentPage = _homePage;
             }
+
+            RefreshNavigationStates();
         }
     }
 }

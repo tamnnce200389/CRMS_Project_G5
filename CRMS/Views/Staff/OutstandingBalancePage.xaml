@@ -1,0 +1,17 @@
+<Page x:Class="CRMS.Views.Staff.OutstandingBalancePage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Title="Thu tiền còn lại"
+      Background="#F4F8F6">
+    <Grid Margin="30">
+        <StackPanel>
+            <TextBlock Text="Thu tiền còn lại"
+                       FontSize="28"
+                       FontWeight="Bold"/>
+            <TextBlock Text="Chức năng xử lý số tiền thuê còn lại đang được tích hợp."
+                       Foreground="#64748B"
+                       TextWrapping="Wrap"
+                       Margin="0,15,0,0"/>
+        </StackPanel>
+    </Grid>
+</Page>

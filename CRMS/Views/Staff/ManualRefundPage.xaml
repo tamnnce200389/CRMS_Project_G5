@@ -1,0 +1,16 @@
+<Page x:Class="CRMS.Views.Staff.ManualRefundPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Title="Hoàn cọc"
+      Background="#F4F8F6">
+    <Grid Margin="30">
+        <StackPanel>
+            <TextBlock Text="Hoàn cọc thủ công"
+                       FontSize="28"
+                       FontWeight="Bold"/>
+            <TextBlock Text="Chức năng hoàn trả tiền cọc đang được tích hợp."
+                       Foreground="#64748B"
+                       Margin="0,15,0,0"/>
+        </StackPanel>
+    </Grid>
+</Page>
