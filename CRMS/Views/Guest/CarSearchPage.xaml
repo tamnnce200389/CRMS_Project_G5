@@ -94,11 +94,17 @@
                                    Foreground="#16A34A"
                                    Margin="0,0,0,12"/>
 
+
                         <Button Content="Chọn xe"
-                                Height="41"
-                                Style="{StaticResource GreenButton}"
-                                IsEnabled="False"
-                                ToolTip="Chức năng đặt xe đang được tích hợp"/>
+                                Height="39"
+                                Background="#57C985"
+                                Foreground="White"
+                                FontWeight="Bold"
+                                BorderThickness="0"
+                                Cursor="Hand"
+                                Tag="{Binding VehicleId}"
+                                Click="SelectCar_Click"/>
+
                     </StackPanel>
                 </StackPanel>
             </Border>
