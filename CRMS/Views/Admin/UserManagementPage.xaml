@@ -3,15 +3,173 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       Title="Quản lý người dùng"
       Background="#F5F7FB">
-    <Grid Margin="30">
-        <StackPanel>
-            <TextBlock Text="Quản lý khách hàng và phân quyền"
+
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- HEADER -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock Text="Quản lý người dùng"
                        FontSize="28"
-                       FontWeight="Bold"/>
-            <TextBlock Text="Chức năng quản lý tài khoản người dùng đang được tích hợp."
-                       Foreground="#64748B"
-                       TextWrapping="Wrap"
-                       Margin="0,15,0,0"/>
+                       FontWeight="Bold"
+                       Foreground="#172033"/>
+
+            <TextBlock Text="Xem tài khoản, khóa/mở khóa và phân quyền."
+                       Margin="0,6,0,0"
+                       Foreground="#64748B"/>
         </StackPanel>
+
+        <!-- SEARCH -->
+        <Grid Grid.Row="1" Margin="0,0,0,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBox x:Name="SearchBox"
+                     Height="38"
+                     Padding="10,7"
+                     FontSize="14"
+                     VerticalContentAlignment="Center"
+                     ToolTip="Tìm theo ID, họ tên, email hoặc số điện thoại"
+                     TextChanged="SearchBox_TextChanged"/>
+
+            <Button Grid.Column="1"
+                    Content="Tải lại"
+                    Width="100"
+                    Height="38"
+                    Margin="10,0,0,0"
+                    Click="Reload_Click"/>
+        </Grid>
+
+        <!-- USER TABLE -->
+        <DataGrid x:Name="UsersGrid"
+                  Grid.Row="2"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  CanUserAddRows="False"
+                  SelectionMode="Single"
+                  SelectionUnit="FullRow"
+                  HeadersVisibility="Column"
+                  GridLinesVisibility="Horizontal"
+                  Background="White"
+                  BorderBrush="#E2E8F0"
+                  RowBackground="White"
+                  AlternatingRowBackground="#F8FAFC"
+                  SelectionChanged="UsersGrid_SelectionChanged">
+
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="ID"
+                                    Binding="{Binding UserId}"
+                                    Width="55"/>
+
+                <DataGridTextColumn Header="Họ tên"
+                                    Binding="{Binding FullName}"
+                                    Width="*"/>
+
+                <DataGridTextColumn Header="Email"
+                                    Binding="{Binding Email}"
+                                    Width="1.5*"/>
+
+                <DataGridTextColumn Header="Điện thoại"
+                                    Binding="{Binding Phone}"
+                                    Width="110"/>
+
+                <DataGridTextColumn Header="Vai trò"
+                                    Binding="{Binding UserRole}"
+                                    Width="100"/>
+
+                <DataGridCheckBoxColumn Header="Hoạt động"
+                                        Binding="{Binding IsActive}"
+                                        Width="90"/>
+
+                <DataGridTextColumn Header="Ngày tạo"
+                                    Binding="{Binding CreatedAt,
+                                        StringFormat={}{0:dd/MM/yyyy}}"
+                                    Width="105"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- ACTIONS -->
+        <Border Grid.Row="3"
+                Margin="0,16,0,0"
+                Padding="16"
+                Background="White"
+                BorderBrush="#E2E8F0"
+                BorderThickness="1"
+                CornerRadius="8">
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0"
+                            VerticalAlignment="Center">
+                    <TextBlock x:Name="SelectedUserText"
+                               Text="Chọn một tài khoản trong danh sách."
+                               FontWeight="SemiBold"
+                               Foreground="#334155"
+                               TextWrapping="Wrap"/>
+
+                    <TextBlock Text="Không thể tự khóa hoặc tự đổi vai trò tài khoản đang đăng nhập."
+                               Margin="0,5,10,0"
+                               FontSize="11"
+                               Foreground="#64748B"
+                               TextWrapping="Wrap"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1"
+                            Orientation="Horizontal"
+                            VerticalAlignment="Center"
+                            Margin="8,0">
+
+                    <TextBlock Text="Vai trò:"
+                               VerticalAlignment="Center"
+                               Margin="0,0,8,0"/>
+
+                    <ComboBox x:Name="RoleComboBox"
+                              Width="120"
+                              Height="34"
+                              VerticalContentAlignment="Center">
+                        <ComboBoxItem Content="Customer"/>
+                        <ComboBoxItem Content="Staff"/>
+                        <ComboBoxItem Content="Admin"/>
+                    </ComboBox>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2"
+                            Orientation="Horizontal"
+                            VerticalAlignment="Center">
+
+                    <Button Content="Đổi vai trò"
+                            Height="36"
+                            Padding="12,5"
+                            Margin="4,0"
+                            Background="#2563EB"
+                            Foreground="White"
+                            BorderThickness="0"
+                            Click="ChangeRole_Click"/>
+
+                    <Button x:Name="ToggleStatusButton"
+                            Content="Khóa / Mở khóa"
+                            Height="36"
+                            Padding="12,5"
+                            Margin="4,0"
+                            Background="#DC2626"
+                            Foreground="White"
+                            BorderThickness="0"
+                            Click="ToggleStatus_Click"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
     </Grid>
 </Page>

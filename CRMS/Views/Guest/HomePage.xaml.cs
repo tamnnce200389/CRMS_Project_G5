@@ -36,7 +36,6 @@ namespace CRMS.Views.Guest
         {
             InitializeComponent();
 
-            // Lay moc gio tiep theo tu dong ho may
             DateTime next = DateTime.Now.AddHours(1);
 
             DateTime defaultStart = new DateTime(
@@ -47,23 +46,18 @@ namespace CRMS.Views.Guest
                 0,
                 0);
 
-            // Xe tu lai mac dinh 1 ngay
             _selfDriveStartAt = defaultStart;
             _selfDriveEndAt = defaultStart.AddDays(1);
 
-            // Xe co tai xe mac dinh 4 gio
             _driverStartAt = defaultStart;
             _driverEndAt = defaultStart.AddHours(4);
 
-            // Hien thi dia diem
             SelfDriveLocationButton.Content = _selectedCity;
 
-            // Hien thi thoi gian xe tu lai
             SelfDriveTimeButton.Content =
                 $"{_selfDriveStartAt:HH:mm dd/MM} - " +
                 $"{_selfDriveEndAt:HH:mm dd/MM}";
 
-            // Hien thi thoi gian xe co tai xe
             DriverTimeButton.Content =
                 $"{_driverStartAt:HH:mm dd/MM} - " +
                 $"{_driverEndAt:HH:mm dd/MM}";
@@ -131,7 +125,39 @@ namespace CRMS.Views.Guest
         }
 
         // =====================================
-        // 4. VE CHUNG TOI
+        // 4. HO SO CA NHAN
+        // =====================================
+        private void Profile_Click(
+            object sender, RoutedEventArgs e)
+        {
+            if (!CurrentUserService.Instance.IsLoggedIn)
+            {
+                MessageBox.Show(
+                    "Vui lòng đăng nhập để xem hồ sơ cá nhân.",
+                    "Thông báo",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                return;
+            }
+
+            Window? mainWindow = Window.GetWindow(this);
+
+            if (mainWindow?.DataContext is MainViewModel vm)
+            {
+                vm.NavigateCommand.Execute("Profile");
+            }
+            else
+            {
+                MessageBox.Show(
+                    "Không thể mở trang hồ sơ lúc này.",
+                    "Thông báo",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            }
+        }
+
+        // =====================================
+        // 5. VE CHUNG TOI
         // =====================================
         private void About_Click(
             object sender, RoutedEventArgs e)
@@ -140,7 +166,7 @@ namespace CRMS.Views.Guest
         }
 
         // =====================================
-        // 5. DIA DIEM XE TU LAI
+        // 6. DIA DIEM XE TU LAI
         // =====================================
         private void SelfDriveLocation_Click(
             object sender, RoutedEventArgs e)
@@ -155,28 +181,24 @@ namespace CRMS.Views.Guest
 
             if (locationWindow.ShowDialog() == true)
             {
-                // Luu dia diem da chon
                 _selectedCity = locationWindow.SelectedCity;
 
-                // Luu cac bo loc
                 _selectedNeeds = locationWindow.SelectedNeeds;
                 _selectedTrends = locationWindow.SelectedTrends;
                 _selectedBudgets = locationWindow.SelectedBudgets;
 
-                // Cap nhat nut dia diem
                 SelfDriveLocationButton.Content = _selectedCity;
             }
         }
 
         // =====================================
-        // 6. THOI GIAN XE TU LAI
+        // 7. THOI GIAN XE TU LAI
         // =====================================
         private void SelfDriveTime_Click(
             object sender, RoutedEventArgs e)
         {
             Window? mainWindow = Window.GetWindow(this);
 
-            // false: Cho phep thue ngay va thue gio
             var rentalWindow = new RentalTimeWindow(false);
 
             if (mainWindow != null)
@@ -184,11 +206,9 @@ namespace CRMS.Views.Guest
 
             if (rentalWindow.ShowDialog() == true)
             {
-                // Luu thoi gian
                 _selfDriveStartAt = rentalWindow.StartAt;
                 _selfDriveEndAt = rentalWindow.EndAt;
 
-                // Cap nhat noi dung nut
                 SelfDriveTimeButton.Content =
                     $"{rentalWindow.StartAt:HH:mm dd/MM} - " +
                     $"{rentalWindow.EndAt:HH:mm dd/MM}";
@@ -196,15 +216,13 @@ namespace CRMS.Views.Guest
         }
 
         // =====================================
-        // 7. THOI GIAN XE CO TAI XE
+        // 8. THOI GIAN XE CO TAI XE
         // =====================================
         private void DriverTime_Click(
             object sender, RoutedEventArgs e)
         {
             Window? mainWindow = Window.GetWindow(this);
 
-            // true: Cho ngay bat dau, gio don,
-            // va thoi luong thue
             var rentalWindow = new RentalTimeWindow(true);
 
             if (mainWindow != null)
@@ -212,32 +230,27 @@ namespace CRMS.Views.Guest
 
             if (rentalWindow.ShowDialog() == true)
             {
-                // Luu thoi gian
                 _driverStartAt = rentalWindow.StartAt;
                 _driverEndAt = rentalWindow.EndAt;
 
-                // Cap nhat noi dung nut
                 DriverTimeButton.Content =
                     $"{rentalWindow.StartAt:HH:mm dd/MM} - " +
                     $"{rentalWindow.EndAt:HH:mm dd/MM}";
             }
         }
 
-
         // =====================================
-        // 8. TIM XE - CHUYEN SANG CAR SEARCH
+        // 9. TIM XE - CHUYEN SANG CAR SEARCH
         // =====================================
         private void SearchCars_Click(
             object sender, RoutedEventArgs e)
         {
-            // Xac dinh dich vu dang tim
             if (sender is not Button button)
                 return;
 
             string rentalMode =
                 button.Tag?.ToString() ?? "SelfDrive";
 
-            // Kiem tra thoi gian xe tu lai
             if (rentalMode == "SelfDrive")
             {
                 if (!_selfDriveStartAt.HasValue ||
@@ -254,7 +267,6 @@ namespace CRMS.Views.Guest
                 }
             }
 
-            // Kiem tra xe co tai xe
             if (rentalMode == "WithDriver")
             {
                 if (!_driverStartAt.HasValue ||
@@ -270,7 +282,6 @@ namespace CRMS.Views.Guest
                     return;
                 }
 
-                // Lien tinh phai co diem den
                 bool needsDestination =
                     InterCityRadio.IsChecked == true ||
                     OneWayRadio.IsChecked == true;
@@ -309,19 +320,15 @@ namespace CRMS.Views.Guest
                 }
             }
 
-            // Lay MainWindow dang chua HomePage
             Window? mainWindow = Window.GetWindow(this);
 
             if (mainWindow?.DataContext is MainViewModel vm)
             {
-                // Tao trang ket qua theo dung loai dich vu
                 CarSearchPage searchPage =
                     new CarSearchPage(rentalMode);
 
-                // Chuyen sang trang tim xe
                 vm.CurrentPage = searchPage;
             }
         }
-
     }
 }

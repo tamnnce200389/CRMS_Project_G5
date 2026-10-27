@@ -207,6 +207,14 @@
                                 Visibility="{Binding IsGuest,
                                     Source={x:Static services:CurrentUserService.Instance},
                                     Converter={StaticResource GuestVisibility}}"/>
+                        <!-- PROFILE -->
+                        <Button Content="Hồ sơ cá nhân"
+                                Style="{StaticResource TopMenuButton}"
+                                Margin="0,0,8,0"
+                                Click="Profile_Click"
+                                Visibility="{Binding IsLoggedIn,
+                                Source={x:Static services:CurrentUserService.Instance},
+                                Converter={StaticResource GuestVisibility}}"/>
 
                         <Button Content="Đăng xuất"
                                 Style="{StaticResource OutlineButton}"
