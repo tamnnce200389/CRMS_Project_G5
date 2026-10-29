@@ -324,10 +324,26 @@ namespace CRMS.Views.Guest
 
             if (mainWindow?.DataContext is MainViewModel vm)
             {
-                CarSearchPage searchPage =
-                    new CarSearchPage(rentalMode);
 
-                vm.CurrentPage = searchPage;
+                // Chuyển sang trang tìm xe và truyền thời gian thuê
+                DateTime? startAt = rentalMode switch
+                {
+                    "SelfDrive" => _selfDriveStartAt,
+                    "WithDriver" => _driverStartAt,
+                    _ => null
+                };
+
+                DateTime? endAt = rentalMode switch
+                {
+                    "SelfDrive" => _selfDriveEndAt,
+                    "WithDriver" => _driverEndAt,
+                    _ => null
+                };
+
+                vm.CurrentPage = new CarSearchPage(
+                    rentalMode,
+                    startAt,
+                    endAt);
             }
         }
     }

@@ -1611,3 +1611,5 @@ GO
 -- deposits, payment statuses, refunds and inventory checks stay coherent.
 PRINT N'CRMS sample data inserted where missing; existing rows were preserved.';
 GO
+
+
