@@ -1,4 +1,4 @@
-﻿
+﻿using CRMS.Views.Customer;
 using CRMS.Helpers;
 using CRMS.Services;
 using CRMS.Views.Admin;
@@ -15,6 +15,7 @@ namespace CRMS.ViewModels
         // 1. GUEST / CUSTOMER
         // =====================================
         private readonly HomePage _homePage = new();
+        private readonly ProfilePage _profilePage = new();
 
         // =====================================
         // 2. ADMIN PAGES
@@ -28,6 +29,7 @@ namespace CRMS.ViewModels
         private readonly BookingPage _bookingPage = new();
 
         private readonly ReportPage _reportPage = new();
+        private readonly UserManagementPage _userManagementPage = new();
 
         // =====================================
         // 3. STAFF PAGES
@@ -101,6 +103,8 @@ namespace CRMS.ViewModels
 
         public bool IsReports =>
             CurrentPage == _reportPage;
+        public bool IsUserManagement =>
+            CurrentPage == _userManagementPage;
 
         // =====================================
         // 7. NAVIGATION COMMAND
@@ -139,6 +143,13 @@ namespace CRMS.ViewModels
                     if (!IsManagement)
                     {
                         CurrentPage = _homePage;
+                    }
+                    break;
+
+                case "Profile":
+                    if (IsLoggedIn)
+                    {
+                        CurrentPage = _profilePage;
                     }
                     break;
 
@@ -193,6 +204,13 @@ namespace CRMS.ViewModels
                         CurrentPage = _reportPage;
                     }
                     break;
+                // User management (Admin only)B
+                case "UserManagement":
+                    if (IsAdmin)
+                    {
+                        CurrentPage = _userManagementPage;
+                    }
+                    break;
 
                 // Cac chuc nang chua tich hop
                 // khong mo Page khac
@@ -211,6 +229,7 @@ namespace CRMS.ViewModels
             OnPropertyChanged(nameof(IsDrivers));
             OnPropertyChanged(nameof(IsBookings));
             OnPropertyChanged(nameof(IsReports));
+            OnPropertyChanged(nameof(IsUserManagement));
         }
 
         // =====================================

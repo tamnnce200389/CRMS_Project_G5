@@ -116,6 +116,20 @@
                                        FontSize="12"
                                        FontWeight="Bold"/>
                         </Border>
+                        
+                        <!-- PROFILE -->
+                        <Button Content="Hồ sơ cá nhân"
+                                Height="36"
+                                Padding="16,6"
+                                Margin="0,0,8,0"
+                                Background="White"
+                                Foreground="#334155"
+                                BorderBrush="#CBD5E1"
+                                Cursor="Hand"
+                                Command="{Binding NavigateCommand}"
+                                CommandParameter="Profile"
+                                Visibility="{Binding IsLoggedIn,
+                                Converter={StaticResource BoolVisible}}"/>
 
                         <!-- LOGOUT -->
                         <Button Content="Đăng xuất"

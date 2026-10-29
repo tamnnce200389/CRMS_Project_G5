@@ -252,11 +252,12 @@
                               Expanded="Group_Expanded">
 
                         <StackPanel>
+
                             <Button Content="Khách hàng và phân quyền"
                                     Style="{StaticResource NavButton}"
-                                    IsEnabled="False"
-                                    ToolTipService.ShowOnDisabled="True"
-                                    ToolTip="Chưa tích hợp UserManagementPage"/>
+                                    Command="{Binding NavigateCommand}"
+                                    CommandParameter="UserManagement"/>
+
 
                             <Button Content="Quản lý Voucher"
                                     Style="{StaticResource NavButton}"
