@@ -61,7 +61,7 @@
 
                 <DataGridTextColumn Header="Cọc cần thu (đ)"
                                     Binding="{Binding DepositAmount,
-                                                      StringFormat=N0}"
+                                                      StringFormat=N2}"
                                     Width="*"/>
 
                 <DataGridTextColumn Header="Hạn cọc"
