@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using CRMS.Models;
 using Microsoft.EntityFrameworkCore;
@@ -205,11 +205,11 @@ public partial class CrmsContext : DbContext
 
             entity.HasIndex(e => new { e.BookingId, e.CreatedAt }, "IX_Payments_Booking").IsDescending(false, true);
 
-            entity.HasIndex(e => e.GatewayTxnRef, "UX_Payments_GatewayRef").IsUnique();
+            entity.HasIndex(e => e.GatewayTxnRef, "UX_Payments_GatewayRef").IsUnique().HasFilter("[GatewayTxnRef] IS NOT NULL");
 
-            entity.HasIndex(e => e.GatewayTransactionNo, "UX_Payments_GatewayTxnNo").IsUnique();
+            entity.HasIndex(e => e.GatewayTransactionNo, "UX_Payments_GatewayTxnNo").IsUnique().HasFilter("[GatewayTransactionNo] IS NOT NULL");
 
-            entity.HasIndex(e => e.IdempotencyKey, "UX_Payments_Idempotency").IsUnique();
+            entity.HasIndex(e => e.IdempotencyKey, "UX_Payments_Idempotency").IsUnique().HasFilter("[IdempotencyKey] IS NOT NULL");
 
             entity.HasIndex(e => e.BookingId, "UX_Payments_OneDepositSuccess")
                 .IsUnique()

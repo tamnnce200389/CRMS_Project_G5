@@ -219,6 +219,18 @@ namespace CRMS.ViewModels
                         CurrentPage = new CashDepositPage();
                     }
                     break;
+                case "PaymentHome":
+                    CurrentPage = IsAdmin ? _adminDashboard : IsStaff ? _staffDashboard : _homePage;
+                    break;
+                case "OutstandingBalance":
+                    if (IsManagement) CurrentPage = new OutstandingBalancePage();
+                    break;
+                case "ManualRefund":
+                    if (IsManagement) CurrentPage = new ManualRefundPage();
+                    break;
+                case "PaymentSummary":
+                    if (IsLoggedIn) CurrentPage = new PaymentSummaryPage();
+                    break;
                 // Cac chuc nang chua tich hop
                 // khong mo Page khac
                 default:

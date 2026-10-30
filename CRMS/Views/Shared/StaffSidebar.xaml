@@ -194,9 +194,7 @@
 
                             <Button Content="Tổng hợp thanh toán"
                                     Style="{StaticResource NavButton}"
-                                    IsEnabled="False"
-                                    ToolTipService.ShowOnDisabled="True"
-                                    ToolTip="Chưa tích hợp PaymentSummaryPage"/>
+                                    Command="{Binding NavigateCommand}" CommandParameter="PaymentSummary"/>
                         </StackPanel>
                     </Expander>
 
@@ -259,15 +257,11 @@
 
                             <Button Content="Thu tiền còn lại"
                                     Style="{StaticResource NavButton}"
-                                    IsEnabled="False"
-                                    ToolTipService.ShowOnDisabled="True"
-                                    ToolTip="Chưa tích hợp OutstandingBalancePage"/>
+                                    Command="{Binding NavigateCommand}" CommandParameter="OutstandingBalance"/>
 
                             <Button Content="Hoàn cọc thủ công"
                                     Style="{StaticResource NavButton}"
-                                    IsEnabled="False"
-                                    ToolTipService.ShowOnDisabled="True"
-                                    ToolTip="Chưa tích hợp ManualRefundPage"/>
+                                    Command="{Binding NavigateCommand}" CommandParameter="ManualRefund"/>
                         </StackPanel>
                     </Expander>
 

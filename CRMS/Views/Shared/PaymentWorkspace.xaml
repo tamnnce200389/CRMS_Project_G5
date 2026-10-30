@@ -1,0 +1,50 @@
+<UserControl x:Class="CRMS.Views.Shared.PaymentWorkspace" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" FontFamily="Segoe UI" Language="vi-VN">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="28">
+            <Button Content="Về trang chính" HorizontalAlignment="Left" Margin="0,0,0,12" Padding="12,6" Command="{Binding DataContext.NavigateCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="PaymentHome"/>
+            <TextBlock Text="{Binding Title}" FontSize="28" FontWeight="SemiBold" Foreground="#17243B"/>
+            <TextBlock Text="{Binding Description}" TextWrapping="Wrap" Foreground="#64748B" Margin="0,10,0,22"/>
+            <Border Background="White" CornerRadius="10" Padding="20" BorderBrush="#E2E8F0" BorderThickness="1">
+                <StackPanel>
+                    <TextBlock Text="Mã đơn thuê" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                    <DockPanel>
+                        <Button DockPanel.Dock="Right" Content="Tra cứu / Tính lại" Command="{Binding CalculateBalanceCommand}" Padding="16,10" Margin="12,0,0,0"/>
+                        <TextBox Text="{Binding BookingLookup, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding CanEdit}" Padding="12,8" ToolTip="Nhập BookingCode, ví dụ mã đơn trên phiếu thuê"/>
+                    </DockPanel>
+                </StackPanel>
+            </Border>
+            <Border Visibility="{Binding SummaryVisibility}" Background="White" CornerRadius="10" Padding="22" Margin="0,18,0,0" BorderBrush="#E2E8F0" BorderThickness="1">
+                <StackPanel>
+                    <DockPanel Margin="0,0,0,20"><TextBlock Text="{Binding StatusText}" DockPanel.Dock="Right" Foreground="#2563EB" FontWeight="SemiBold"/><TextBlock Text="{Binding Summary.BookingCode}" FontSize="20" FontWeight="SemiBold"/></DockPanel>
+                    <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions><RowDefinition Height="36"/><RowDefinition Height="36"/><RowDefinition Height="36"/><RowDefinition Height="36"/><RowDefinition Height="36"/><RowDefinition Height="36"/><RowDefinition Height="36"/><RowDefinition Height="44"/><RowDefinition Height="36"/></Grid.RowDefinitions>
+                        <TextBlock Text="Tiền thuê sau giảm giá"/><TextBlock Grid.Column="1" Text="{Binding Summary.RentalTotal, StringFormat={}{0:N2} đ}"/>
+                        <TextBlock Grid.Row="1" Text="Giảm giá đã áp dụng (không trừ thêm)" Foreground="#64748B"/><TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Summary.Discount, StringFormat={}{0:N2} đ}"/>
+                        <TextBlock Grid.Row="2" Text="Phụ phí theo biên bản trả xe"/><TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Summary.ExtraFees, StringFormat={}{0:N2} đ}"/>
+                        <TextBlock Grid.Row="3" Text="Cọc đã thanh toán"/><TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding Summary.DepositsPaid, StringFormat={}{0:N2} đ}"/>
+                        <TextBlock Grid.Row="4" Text="Tiền đã thu thêm"/><TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding Summary.BalancesPaid, StringFormat={}{0:N2} đ}"/>
+                        <TextBlock Grid.Row="5" Text="Tiền đã hoàn"/><TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding Summary.RefundsPaid, StringFormat={}{0:N2} đ}"/>
+                        <TextBlock Grid.Row="6" Text="Thực nhận còn lại" FontWeight="SemiBold"/><TextBlock Grid.Row="6" Grid.Column="1" Text="{Binding Summary.NetPaid, StringFormat={}{0:N2} đ}" FontWeight="SemiBold"/>
+                        <TextBlock Grid.Row="7" Text="Còn phải thu theo tiền thuê và phụ phí" FontWeight="SemiBold" Foreground="#2563EB"/><TextBlock Grid.Row="7" Grid.Column="1" Text="{Binding Summary.OutstandingBalance, StringFormat={}{0:N2} đ}" FontSize="21" FontWeight="SemiBold" Foreground="#2563EB"/>
+                        <TextBlock Grid.Row="8" Text="Có thể hoàn cho đơn hủy / hết hạn"/><TextBlock Grid.Row="8" Grid.Column="1" Text="{Binding Summary.RefundableAmount, StringFormat={}{0:N2} đ}"/>
+                    </Grid>
+                    <TextBlock Text="Chỉ cộng các giao dịch thành công. Đơn hủy/hết hạn không được thu tiếp số dư." Foreground="#64748B" TextWrapping="Wrap" Margin="0,8,0,0"/>
+                </StackPanel>
+            </Border>
+            <StackPanel Visibility="{Binding BalanceVisibility}" Margin="0,20,0,0">
+                <Button Content="Xác nhận đã thu đủ tiền mặt và hoàn tất đơn" Command="{Binding RecordFinalPaymentCommand}" Padding="18,12" HorizontalAlignment="Right"/>
+                <Button Content="Hoàn tất đơn đã đủ tiền (không thu thêm)" Command="{Binding CompleteBookingCommand}" Padding="18,12" HorizontalAlignment="Right" Margin="0,10,0,0"/>
+            </StackPanel>
+            <Border Visibility="{Binding RefundVisibility}" Background="White" CornerRadius="10" Padding="20" Margin="0,18,0,0">
+                <StackPanel IsEnabled="{Binding CanEdit}">
+                    <TextBlock Text="Số tiền thực hoàn (không nhập dấu phân cách hàng nghìn)" TextWrapping="Wrap"/>
+                    <TextBox Text="{Binding RefundAmount, UpdateSourceTrigger=PropertyChanged}" Padding="10,8" Margin="0,8,0,14"/>
+                    <TextBlock Text="Phương thức hoàn"/><ComboBox ItemsSource="{Binding RefundMethods}" SelectedItem="{Binding RefundMethod}" Padding="10,8" Margin="0,8,0,14"/>
+                    <TextBlock Text="Mã duyệt / chứng từ đối soát (bắt buộc)"/><TextBox Text="{Binding ApprovalReference, UpdateSourceTrigger=PropertyChanged}" MaxLength="400" Padding="10,8" Margin="0,8,0,14"/>
+                    <Button Content="Ghi nhận đã thực hiện hoàn tiền" Command="{Binding RecordManualRefundCommand}" Padding="18,12" HorizontalAlignment="Right"/>
+                </StackPanel>
+            </Border>
+            <TextBlock Text="{Binding Message}" TextWrapping="Wrap" Foreground="#2563EB" Margin="0,18,0,0"/>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

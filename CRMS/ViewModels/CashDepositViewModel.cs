@@ -1,138 +1,102 @@
-﻿using CRMS.Helpers;
+using CRMS.Helpers;
 using CRMS.Services;
-using System;
+using CRMS.Services.Payments;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
 
-namespace CRMS.ViewModels
+namespace CRMS.ViewModels;
+
+public class CashDepositViewModel : BaseViewModel
 {
-    public class CashDepositViewModel : BaseViewModel
+    private readonly CashDepositService _service = new();
+    private readonly PaymentService _payments = new();
+    private readonly ObservableCollection<CashDepositItem> _items = new();
+    private readonly Dictionary<long, Guid> _requestKeys = new();
+    private long? _loadedUser;
+    public ICollectionView Bookings { get; }
+    private string _searchText = "";
+    public string SearchText
     {
-        private readonly CashDepositService _service = new();
-        private readonly ObservableCollection<CashDepositItem> _items = new();
+        get => _searchText;
+        set { _searchText = value; OnPropertyChanged(); Bookings.Refresh(); }
+    }
+    private CashDepositItem? _selectedBooking;
+    public CashDepositItem? SelectedBooking
+    {
+        get => _selectedBooking;
+        set { _selectedBooking = value; OnPropertyChanged(); RefreshCommands(); }
+    }
+    private string _message = "";
+    public string Message { get => _message; private set { _message = value; OnPropertyChanged(); } }
+    private bool _isLoading;
+    public bool IsLoading
+    {
+        get => _isLoading;
+        private set { _isLoading = value; OnPropertyChanged(); RefreshCommands(); }
+    }
+    public bool CanConfirmDeposit => !IsLoading && SelectedBooking is not null &&
+        _loadedUser.HasValue && _loadedUser == CurrentUserService.Instance.UserId;
+    public ICommand LoadCommand { get; }
+    public ICommand ConfirmDepositCommand { get; }
 
-        public ICollectionView Bookings { get; }
-
-        private string _searchText = "";
-        public string SearchText
+    public CashDepositViewModel()
+    {
+        Bookings = CollectionViewSource.GetDefaultView(_items);
+        Bookings.Filter = item => item is CashDepositItem row &&
+            (row.BookingCode.Contains(SearchText.Trim(), StringComparison.OrdinalIgnoreCase) ||
+             row.CustomerName.Contains(SearchText.Trim(), StringComparison.OrdinalIgnoreCase));
+        LoadCommand = new RelayCommand(async _ => await LoadAsync(), _ => !IsLoading);
+        ConfirmDepositCommand = new RelayCommand(async _ => await ConfirmAsync(), _ => CanConfirmDeposit);
+    }
+    private void RefreshCommands()
+    {
+        OnPropertyChanged(nameof(CanConfirmDeposit));
+        CommandManager.InvalidateRequerySuggested();
+    }
+    public async Task LoadAsync()
+    {
+        if (IsLoading) return;
+        IsLoading = true;
+        SelectedBooking = null;
+        _items.Clear();
+        _loadedUser = null;
+        var actor = CurrentUserService.Instance.UserId;
+        Message = "Đang tải danh sách…";
+        try
         {
-            get => _searchText;
-            set
-            {
-                _searchText = value;
-                OnPropertyChanged();
-                Bookings.Refresh();
-            }
+            var items = await _service.GetPendingDepositsAsync();
+            if (actor != CurrentUserService.Instance.UserId)
+                throw new InvalidOperationException("Phiên đăng nhập đã thay đổi. Hãy tải lại.");
+            foreach (var item in items) _items.Add(item);
+            _loadedUser = actor;
+            Message = items.Count == 0 ? "Không có đơn chờ cọc tiền mặt còn hạn." : $"Có {items.Count} đơn chờ cọc tiền mặt.";
         }
-
-        private CashDepositItem? _selectedBooking;
-        public CashDepositItem? SelectedBooking
+        catch (Exception ex) { Message = "Không tải được danh sách: " + ex.GetBaseException().Message; }
+        finally { IsLoading = false; }
+    }
+    private async Task ConfirmAsync()
+    {
+        if (!CanConfirmDeposit || SelectedBooking is not { } row) return;
+        if (MessageBox.Show($"Bạn đã thực nhận {row.DepositAmount:N2} đ tiền mặt cho đơn {row.BookingCode}?",
+            "Xác nhận nhận cọc", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No) != MessageBoxResult.Yes) return;
+        if (!CanConfirmDeposit) return;
+        IsLoading = true;
+        if (!_requestKeys.TryGetValue(row.BookingId, out var key)) _requestKeys[row.BookingId] = key = Guid.NewGuid();
+        string result;
+        try
         {
-            get => _selectedBooking;
-            set
-            {
-                _selectedBooking = value;
-                OnPropertyChanged();
-            }
+            var receipt = await _payments.ConfirmCashDeposit(row.BookingId, row.DepositAmount, key);
+            result = receipt.NeedsManualRefund
+                ? "Cọc đã được ghi nhận nhưng đơn đã hết hạn/hủy. Không giao xe; chuyển đối soát hoàn tiền."
+                : receipt.AlreadyRecorded ? "Giao dịch đã được ghi nhận trước đó; không thu cọc lần nữa."
+                : "Đã ghi nhận cọc và xác nhận đơn thuê.";
         }
-
-        private string _message = "";
-        public string Message
-        {
-            get => _message;
-            private set
-            {
-                _message = value;
-                OnPropertyChanged();
-            }
-        }
-
-        private bool _isLoading;
-        public bool IsLoading
-        {
-            get => _isLoading;
-            private set
-            {
-                _isLoading = value;
-                OnPropertyChanged();
-                CommandManager.InvalidateRequerySuggested();
-            }
-        }
-
-        // Sẽ bật khi hoàn thiện service xác nhận cọc.
-        public bool CanConfirmDeposit => false;
-
-        public ICommand LoadCommand { get; }
-        public ICommand ConfirmDepositCommand { get; }
-
-        public CashDepositViewModel()
-        {
-            Bookings = CollectionViewSource.GetDefaultView(_items);
-
-            Bookings.Filter = item =>
-            {
-                if (item is not CashDepositItem row)
-                    return false;
-
-                string keyword = SearchText.Trim();
-
-                return row.BookingCode.Contains(
-                           keyword, StringComparison.OrdinalIgnoreCase)
-                    || row.CustomerName.Contains(
-                           keyword, StringComparison.OrdinalIgnoreCase);
-            };
-
-            LoadCommand = new RelayCommand(
-                async _ => await LoadAsync(),
-                _ => !IsLoading);
-
-            ConfirmDepositCommand = new RelayCommand(
-                _ => { },
-                _ => CanConfirmDeposit);
-        }
-
-        public async Task LoadAsync()
-        {
-            if (IsLoading)
-                return;
-
-            IsLoading = true;
-            SelectedBooking = null;
-            _items.Clear();
-            Message = "Đang tải danh sách từ database...";
-
-            var userId = CurrentUserService.Instance.UserId;
-
-            try
-            {
-                var items = await _service.GetPendingDepositsAsync();
-
-                // Không hiển thị dữ liệu nếu đã đổi phiên đăng nhập.
-                if (CurrentUserService.Instance.UserId != userId)
-                {
-                    Message = "Phiên đăng nhập đã thay đổi. Hãy tải lại.";
-                    return;
-                }
-
-                foreach (var item in items)
-                    _items.Add(item);
-
-                Message = items.Count == 0
-                    ? "Không có đơn chờ cọc tiền mặt còn hạn."
-                    : $"Đã tải {items.Count} đơn chờ cọc tiền mặt.";
-            }
-            catch (Exception ex)
-            {
-                Message = "Không tải được danh sách: "
-                    + ex.GetBaseException().Message;
-            }
-            finally
-            {
-                IsLoading = false;
-            }
-        }
+        catch (Exception ex) { Message = "Chưa xác nhận: " + ex.GetBaseException().Message; return; }
+        finally { IsLoading = false; }
+        await LoadAsync();
+        Message = result;
     }
 }
