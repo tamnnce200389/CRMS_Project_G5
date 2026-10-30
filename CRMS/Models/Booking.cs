@@ -65,7 +65,8 @@ public partial class Booking
 
     public virtual Driver? Driver { get; set; }
 
-    public virtual Payment? Payment { get; set; }
+    public virtual ICollection<Payment> Payments { get; set; }
+    = new List<Payment>();
 
     public virtual Review? Review { get; set; }
 

@@ -1,4 +1,4 @@
-﻿using CRMS.Views.Customer;
+using CRMS.Views.Customer;
 using CRMS.Helpers;
 using CRMS.Services;
 using CRMS.Views.Admin;
@@ -212,6 +212,13 @@ namespace CRMS.ViewModels
                     }
                     break;
 
+                // Mở trang xác nhận cọc tiền mặt — chỉ Staff/Admin
+                case "CashDeposit":
+                    if (IsManagement)
+                    {
+                        CurrentPage = new CashDepositPage();
+                    }
+                    break;
                 // Cac chuc nang chua tich hop
                 // khong mo Page khac
                 default:
