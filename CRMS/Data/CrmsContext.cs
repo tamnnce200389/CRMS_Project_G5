@@ -211,7 +211,9 @@ public partial class CrmsContext : DbContext
 
             entity.HasIndex(e => e.IdempotencyKey, "UX_Payments_Idempotency").IsUnique();
 
-            entity.HasIndex(e => e.BookingId, "UX_Payments_OneDepositSuccess").IsUnique();
+            entity.HasIndex(e => e.BookingId, "UX_Payments_OneDepositSuccess")
+                .IsUnique()
+                .HasFilter("[PaymentType] = 'Deposit' AND [PaymentStatus] = 'Success'");
 
             entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.CreatedAt).HasPrecision(0);
@@ -239,8 +241,8 @@ public partial class CrmsContext : DbContext
                 .IsRowVersion()
                 .IsConcurrencyToken();
 
-            entity.HasOne(d => d.Booking).WithOne(p => p.Payment)
-                .HasForeignKey<Payment>(d => d.BookingId)
+            entity.HasOne(d => d.Booking).WithMany(p => p.Payments)
+                .HasForeignKey(d => d.BookingId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Payments_Booking");
 

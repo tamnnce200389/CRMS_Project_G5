@@ -1,16 +1,95 @@
 <Page x:Class="CRMS.Views.Staff.CashDepositPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      Title="Xác nhận tiền cọc"
-      Background="#F4F8F6">
-    <Grid Margin="30">
-        <StackPanel>
-            <TextBlock Text="Xác nhận tiền cọc"
-                       FontSize="28"
-                       FontWeight="Bold"/>
-            <TextBlock Text="Chức năng xác nhận tiền cọc đang được tích hợp."
+      Background="#F5F7FB"
+      Title="Xác nhận cọc tiền mặt">
+
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Margin="0,0,0,20">
+            <TextBlock Text="Xác nhận cọc tiền mặt"
+                       FontSize="26"
+                       FontWeight="Bold"
+                       Foreground="#17243B"/>
+
+            <TextBlock Text="Kiểm tra đơn thuê và xác nhận sau khi đã nhận đủ tiền cọc."
+                       Margin="0,8,0,0"
                        Foreground="#64748B"
-                       Margin="0,15,0,0"/>
+                       TextWrapping="Wrap"/>
+        </StackPanel>
+
+        <DockPanel Grid.Row="1" Margin="0,0,0,16">
+            <Button Content="Tải lại"
+                    DockPanel.Dock="Right"
+                    Command="{Binding LoadCommand}"
+                    Padding="18,8"
+                    Margin="12,0,0,0"/>
+
+            <TextBox Text="{Binding SearchText,
+                                    UpdateSourceTrigger=PropertyChanged}"
+                     ToolTip="Tìm theo mã booking hoặc tên khách hàng"
+                     VerticalContentAlignment="Center"
+                     Padding="10,8"/>
+        </DockPanel>
+
+        <DataGrid Grid.Row="2"
+                  ItemsSource="{Binding Bookings}"
+                  SelectedItem="{Binding SelectedBooking}"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  CanUserAddRows="False"
+                  SelectionMode="Single"
+                  SelectionUnit="FullRow"
+                  RowHeight="44"
+                  HeadersVisibility="Column"
+                  GridLinesVisibility="Horizontal"
+                  Background="White">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Mã booking"
+                                    Binding="{Binding BookingCode}"
+                                    Width="*"/>
+
+                <DataGridTextColumn Header="Khách hàng"
+                                    Binding="{Binding CustomerName}"
+                                    Width="1.5*"/>
+
+                <DataGridTextColumn Header="Cọc cần thu (đ)"
+                                    Binding="{Binding DepositAmount,
+                                                      StringFormat=N0}"
+                                    Width="*"/>
+
+                <DataGridTextColumn Header="Hạn cọc"
+                                    Binding="{Binding DepositDeadline,
+                                                      StringFormat=dd/MM/yyyy HH:mm}"
+                                    Width="1.3*"/>
+
+                <DataGridTextColumn Header="Trạng thái"
+                                    Binding="{Binding StatusText}"
+                                    Width="*"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <StackPanel Grid.Row="3" Margin="0,16,0,0">
+            <TextBlock Text="{Binding Message}"
+                       Foreground="#2563EB"
+                       TextWrapping="Wrap"
+                       Margin="0,0,0,12"/>
+
+            <Button Content="Xác nhận đã nhận tiền cọc"
+                    Command="{Binding ConfirmDepositCommand}"
+                    IsEnabled="{Binding CanConfirmDeposit,
+                                        FallbackValue=False}"
+                    HorizontalAlignment="Right"
+                    Padding="20,12"
+                    Background="#2563EB"
+                    Foreground="White"
+                    FontWeight="SemiBold"/>
         </StackPanel>
     </Grid>
 </Page>

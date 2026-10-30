@@ -25,7 +25,6 @@
                         <Border Background="{TemplateBinding Background}"
                                 CornerRadius="8"
                                 Padding="{TemplateBinding Padding}">
-
                             <ContentPresenter
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center"/>
@@ -57,7 +56,6 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="Expander">
                         <StackPanel>
-
                             <ToggleButton
                                 Content="{TemplateBinding Header}"
                                 IsChecked="{Binding IsExpanded,
@@ -72,7 +70,6 @@
                                                 Background="Transparent"
                                                 CornerRadius="8"
                                                 Padding="13,12">
-
                                             <Grid>
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*"/>
@@ -140,9 +137,7 @@
             </Grid.RowDefinitions>
 
             <!-- HEADER -->
-            <StackPanel Grid.Row="0"
-                        Margin="24,25,20,15">
-
+            <StackPanel Grid.Row="0" Margin="24,25,20,15">
                 <TextBlock Text="CRMS"
                            FontSize="30"
                            FontWeight="Bold"
@@ -158,7 +153,6 @@
                         CornerRadius="8"
                         Padding="12,10"
                         Margin="0,18,0,0">
-
                     <TextBlock Text="KHU VỰC NHÂN VIÊN"
                                Foreground="White"
                                FontSize="11"
@@ -174,12 +168,11 @@
 
                 <StackPanel Margin="0,0,0,12">
 
-                    <!-- TONG QUAN -->
+                    <!-- TỔNG QUAN -->
                     <Expander x:Name="OverviewGroup"
                               Header="TỔNG QUAN"
                               Style="{StaticResource MenuGroup}"
                               Expanded="Group_Expanded">
-
                         <StackPanel>
                             <Button Content="Tổng quan công việc"
                                     Style="{StaticResource NavButton}"
@@ -188,12 +181,11 @@
                         </StackPanel>
                     </Expander>
 
-                    <!-- DON THUE -->
+                    <!-- ĐƠN THUÊ -->
                     <Expander x:Name="BookingGroup"
                               Header="QUẢN LÝ ĐƠN THUÊ"
                               Style="{StaticResource MenuGroup}"
                               Expanded="Group_Expanded">
-
                         <StackPanel>
                             <Button Content="Danh sách đơn thuê"
                                     Style="{StaticResource NavButton}"
@@ -208,12 +200,11 @@
                         </StackPanel>
                     </Expander>
 
-                    <!-- TRA CUU -->
+                    <!-- TRA CỨU -->
                     <Expander x:Name="LookupGroup"
                               Header="TRA CỨU"
                               Style="{StaticResource MenuGroup}"
                               Expanded="Group_Expanded">
-
                         <StackPanel>
                             <Button Content="Tra cứu xe"
                                     Style="{StaticResource NavButton}"
@@ -227,12 +218,11 @@
                         </StackPanel>
                     </Expander>
 
-                    <!-- VAN HANH -->
+                    <!-- VẬN HÀNH -->
                     <Expander x:Name="OperationGroup"
                               Header="VẬN HÀNH XE"
                               Style="{StaticResource MenuGroup}"
                               Expanded="Group_Expanded">
-
                         <StackPanel>
                             <Button Content="Phân công tài xế"
                                     Style="{StaticResource NavButton}"
@@ -254,18 +244,18 @@
                         </StackPanel>
                     </Expander>
 
-                    <!-- THANH TOAN -->
+                    <!-- THANH TOÁN -->
                     <Expander x:Name="PaymentGroup"
                               Header="THANH TOÁN"
                               Style="{StaticResource MenuGroup}"
                               Expanded="Group_Expanded">
-
                         <StackPanel>
+
+                            <!-- Mở trang xác nhận cọc tiền mặt -->
                             <Button Content="Xác nhận cọc tiền mặt"
                                     Style="{StaticResource NavButton}"
-                                    IsEnabled="False"
-                                    ToolTipService.ShowOnDisabled="True"
-                                    ToolTip="Chưa tích hợp CashDepositPage"/>
+                                    Command="{Binding NavigateCommand}"
+                                    CommandParameter="CashDeposit"/>
 
                             <Button Content="Thu tiền còn lại"
                                     Style="{StaticResource NavButton}"
@@ -281,12 +271,11 @@
                         </StackPanel>
                     </Expander>
 
-                    <!-- TAI KHOAN -->
+                    <!-- TÀI KHOẢN -->
                     <Expander x:Name="AccountGroup"
                               Header="TÀI KHOẢN"
                               Style="{StaticResource MenuGroup}"
                               Expanded="Group_Expanded">
-
                         <StackPanel>
                             <Button Content="Hồ sơ cá nhân"
                                     Style="{StaticResource NavButton}"
@@ -304,7 +293,6 @@
                     BorderBrush="#326052"
                     BorderThickness="0,1,0,0"
                     Padding="22,15">
-
                 <StackPanel>
                     <TextBlock Text="STAFF"
                                Foreground="White"
