@@ -1,28 +1,49 @@
-<Page x:Class="CRMS.Views.Admin.DashboardPage"
+<Page x:Class="CRMS.Views.Staff.StaffDashboardPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      Title="Dashboard quản trị"
-      Background="#F5F7FC"
+      Title="Tổng quan nhân viên"
+      Background="#F4F8F6"
       FontFamily="Segoe UI">
 
     <Page.Resources>
-        <Style x:Key="AdminCard" TargetType="Border">
+
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
+
+        <Style x:Key="StaffCard" TargetType="Border">
             <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="#E2E8F0"/>
+            <Setter Property="BorderBrush" Value="#DFEAE6"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="15"/>
+            <Setter Property="CornerRadius" Value="16"/>
             <Setter Property="Padding" Value="22"/>
         </Style>
 
-        <Style x:Key="AdminActionButton" TargetType="Button">
-            <Setter Property="Background" Value="#2563EB"/>
+        <Style x:Key="StaffActionButton" TargetType="Button">
+            <Setter Property="Background" Value="#16A085"/>
             <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="Padding" Value="18,11"/>
             <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="18,11"/>
             <Setter Property="Cursor" Value="Hand"/>
         </Style>
+
+        <Style x:Key="StaffKpiCard"
+               TargetType="Border">
+            <Setter Property="Width" Value="205"/>
+            <Setter Property="MinHeight" Value="112"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Background" Value="#E8F8F1"/>
+            <Setter Property="Padding" Value="18"/>
+            <Setter Property="Margin" Value="0,0,12,12"/>
+        </Style>
+
+        <Style x:Key="SectionTitle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="21"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#102C26"/>
+            <Setter Property="Margin" Value="0,0,0,16"/>
+        </Style>
+
     </Page.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto"
@@ -31,309 +52,398 @@
         <StackPanel Margin="30,27,30,36">
 
             <!-- HEADER -->
-            <Grid Margin="0,0,0,25">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
 
-                <StackPanel>
-                    <TextBlock Text="Dashboard quản trị"
-                               FontSize="30"
-                               FontWeight="Bold"
-                               Foreground="#142642"/>
+            <TextBlock Text="Tổng quan nhân viên"
+                       FontSize="29"
+                       FontWeight="Bold"
+                       Foreground="#102C26"/>
 
-                    <TextBlock Text="Trung tâm điều hành và quản lý hệ thống cho thuê xe CRMS."
-                               FontSize="14"
-                               Foreground="#64748B"
-                               Margin="0,8,0,0"/>
-                </StackPanel>
+            <TextBlock
+                Text="Không gian làm việc dành cho nhân viên vận hành CRMS."
+                FontSize="14"
+                Foreground="#64748B"
+                Margin="0,8,0,25"/>
 
-                <Border Grid.Column="1"
-                        Background="#DBEAFE"
-                        CornerRadius="8"
-                        Padding="14,9"
-                        VerticalAlignment="Center">
+            <!-- STAFF BANNER -->
 
-                    <TextBlock Text="ADMIN PANEL"
-                               Foreground="#1D4ED8"
-                               FontSize="12"
-                               FontWeight="Bold"/>
-                </Border>
-            </Grid>
-
-            <!-- HERO -->
             <Border CornerRadius="18"
                     Padding="30"
-                    Margin="0,0,0,27">
+                    Margin="0,0,0,28">
 
                 <Border.Background>
                     <LinearGradientBrush StartPoint="0,0"
                                          EndPoint="1,1">
-                        <GradientStop Color="#173C75" Offset="0"/>
-                        <GradientStop Color="#2563EB" Offset="1"/>
+                        <GradientStop Color="#115E50" Offset="0"/>
+                        <GradientStop Color="#16A085" Offset="1"/>
                     </LinearGradientBrush>
                 </Border.Background>
 
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="135"/>
-                    </Grid.ColumnDefinitions>
+                <StackPanel>
 
-                    <StackPanel Grid.Column="0">
-                        <TextBlock Text="CAR RENTAL MANAGEMENT SYSTEM"
-                                   Foreground="#BDD5FF"
-                                   FontSize="11"
-                                   FontWeight="Bold"/>
+                    <TextBlock Text="STAFF WORKSPACE"
+                               Foreground="#C7F5E8"
+                               FontWeight="Bold"
+                               FontSize="12"/>
 
-                        <TextBlock Text="Quản lý thông minh, vận hành hiệu quả."
-                                   Foreground="White"
-                                   FontSize="27"
-                                   FontWeight="Bold"
-                                   TextWrapping="Wrap"
-                                   Margin="0,15,0,10"/>
+                    <TextBlock Text="Sẵn sàng cho ca làm việc!"
+                               Foreground="White"
+                               FontSize="29"
+                               FontWeight="Bold"
+                               Margin="0,12,0,10"/>
 
-                        <TextBlock Text="Quản lý đội xe, đơn thuê, tài xế và truy cập các báo cáo kinh doanh từ một giao diện tập trung."
-                                   Foreground="#DAE9FF"
-                                   FontSize="14"
-                                   TextWrapping="Wrap"
-                                   MaxWidth="680"
-                                   Margin="0,0,0,20"/>
+                    <TextBlock
+                        Text="Theo dõi đơn thuê, tình trạng phương tiện và hỗ trợ khách hàng trong quá trình nhận - trả xe."
+                        Foreground="#E1F7EF"
+                        FontSize="14"
+                        TextWrapping="Wrap"
+                        Margin="0,0,0,20"/>
 
-                        <Button Content="Xem báo cáo →"
-                                HorizontalAlignment="Left"
-                                Background="White"
-                                Foreground="#1D4ED8"
-                                BorderThickness="0"
-                                Padding="21,12"
-                                FontWeight="Bold"
-                                Cursor="Hand"
-                                Command="{Binding DataContext.NavigateCommand,
-                                    RelativeSource={RelativeSource AncestorType=Window}}"
-                                CommandParameter="Reports"/>
-                    </StackPanel>
+                    <Button Content="Đi đến đơn thuê →"
+                            Background="White"
+                            Foreground="#047857"
+                            BorderThickness="0"
+                            Padding="20,12"
+                            FontWeight="SemiBold"
+                            Cursor="Hand"
+                            HorizontalAlignment="Left"
+                            Command="{Binding DataContext.NavigateCommand,
+                                      RelativeSource={RelativeSource AncestorType=Window}}"
+                            CommandParameter="Bookings"/>
 
-                    <Border Grid.Column="1"
-                            Width="115"
-                            Height="115"
-                            CornerRadius="58"
-                            Background="#3973CD"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center">
-
-                        <TextBlock Text="&#xE80F;"
-                                   FontFamily="Segoe MDL2 Assets"
-                                   FontSize="55"
-                                   Foreground="White"
-                                   HorizontalAlignment="Center"
-                                   VerticalAlignment="Center"/>
-                    </Border>
-                </Grid>
+                </StackPanel>
             </Border>
 
-            <!-- MANAGEMENT MODULES -->
-            <TextBlock Text="Quản lý hệ thống"
-                       FontSize="21"
-                       FontWeight="Bold"
-                       Foreground="#142642"
-                       Margin="0,0,0,16"/>
+            <!-- STAFF STATISTICS -->
 
-            <Grid Margin="0,0,0,28">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
+            <TextBlock Text="Thống kê vận hành"
+                       Style="{StaticResource SectionTitle}"/>
 
-                <!-- VEHICLES -->
-                <Border Grid.Column="0"
-                        Style="{StaticResource AdminCard}"
-                        Margin="0,0,15,0">
+            <Border Style="{StaticResource StaffCard}"
+                    Margin="0,0,0,28">
 
-                    <StackPanel>
-                        <Border Width="48"
-                                Height="48"
-                                CornerRadius="11"
-                                Background="#E6F0FF"
-                                HorizontalAlignment="Left">
+                <StackPanel>
 
-                            <TextBlock Text="&#xE804;"
-                                       FontFamily="Segoe MDL2 Assets"
-                                       Foreground="#2563EB"
-                                       FontSize="24"
-                                       HorizontalAlignment="Center"
-                                       VerticalAlignment="Center"/>
+                    <TextBlock
+                        Text="Thống kê đơn thuê theo ngày tạo và tình trạng đội xe hiện tại."
+                        Foreground="#64748B"
+                        FontSize="13"
+                        Margin="0,0,0,18"
+                        TextWrapping="Wrap"/>
+
+                    <!-- DATE FILTER -->
+
+                    <WrapPanel Margin="0,0,0,12">
+
+                        <StackPanel Margin="0,0,16,12">
+
+                            <TextBlock Text="Từ ngày"
+                                       Foreground="#475569"
+                                       Margin="0,0,0,6"/>
+
+                            <DatePicker Width="175"
+                                        SelectedDate="{Binding FromDate, Mode=TwoWay}"/>
+
+                        </StackPanel>
+
+                        <StackPanel Margin="0,0,16,12">
+
+                            <TextBlock Text="Đến ngày"
+                                       Foreground="#475569"
+                                       Margin="0,0,0,6"/>
+
+                            <DatePicker Width="175"
+                                        SelectedDate="{Binding ToDate, Mode=TwoWay}"/>
+
+                        </StackPanel>
+
+                        <Button Content="Cập nhật thống kê"
+                                Style="{StaticResource StaffActionButton}"
+                                Command="{Binding RefreshCommand}"
+                                VerticalAlignment="Bottom"
+                                Margin="0,0,0,12"/>
+
+                    </WrapPanel>
+
+                    <TextBlock Text="{Binding StatusMessage}"
+                               Foreground="#64748B"
+                               TextWrapping="Wrap"
+                               Margin="0,0,0,18"/>
+
+                    <!-- KPI -->
+
+                    <WrapPanel Visibility="{Binding HasData,
+                                Converter={StaticResource BoolToVisibility}}">
+
+                        <Border Style="{StaticResource StaffKpiCard}">
+                            <StackPanel>
+                                <TextBlock Text="Tổng đơn thuê"
+                                           Foreground="#64748B"/>
+                                <TextBlock Text="{Binding Snapshot.TotalBookings}"
+                                           FontSize="30"
+                                           FontWeight="Bold"
+                                           Foreground="#047857"/>
+                                <TextBlock Text="Theo khoảng ngày"
+                                           Foreground="#64748B"
+                                           FontSize="11"/>
+                            </StackPanel>
                         </Border>
 
-                        <TextBlock Text="Quản lý phương tiện"
-                                   FontSize="18"
-                                   FontWeight="Bold"
-                                   Foreground="#142642"
-                                   Margin="0,16,0,9"/>
-
-                        <TextBlock Text="Theo dõi danh sách xe, thông số và trạng thái hoạt động."
-                                   Foreground="#64748B"
-                                   TextWrapping="Wrap"
-                                   FontSize="13"
-                                   MinHeight="62"/>
-
-                        <Button Content="Quản lý xe →"
-                                Style="{StaticResource AdminActionButton}"
-                                HorizontalAlignment="Left"
-                                Margin="0,14,0,0"
-                                Command="{Binding DataContext.NavigateCommand,
-                                    RelativeSource={RelativeSource AncestorType=Window}}"
-                                CommandParameter="Vehicles"/>
-                    </StackPanel>
-                </Border>
-
-                <!-- BOOKINGS -->
-                <Border Grid.Column="1"
-                        Style="{StaticResource AdminCard}"
-                        Margin="0,0,15,0">
-
-                    <StackPanel>
-                        <Border Width="48"
-                                Height="48"
-                                CornerRadius="11"
-                                Background="#E6F7EE"
-                                HorizontalAlignment="Left">
-
-                            <TextBlock Text="&#xE8A1;"
-                                       FontFamily="Segoe MDL2 Assets"
-                                       Foreground="#16A34A"
-                                       FontSize="24"
-                                       HorizontalAlignment="Center"
-                                       VerticalAlignment="Center"/>
+                        <Border Style="{StaticResource StaffKpiCard}"
+                                Background="#E4F2FF">
+                            <StackPanel>
+                                <TextBlock Text="Chờ đặt cọc"
+                                           Foreground="#64748B"/>
+                                <TextBlock Text="{Binding Snapshot.PendingDeposit}"
+                                           FontSize="30"
+                                           FontWeight="Bold"
+                                           Foreground="#2563EB"/>
+                            </StackPanel>
                         </Border>
 
-                        <TextBlock Text="Quản lý đơn thuê"
-                                   FontSize="18"
+                        <Border Style="{StaticResource StaffKpiCard}"
+                                Background="#FFF2E2">
+                            <StackPanel>
+                                <TextBlock Text="Đã xác nhận"
+                                           Foreground="#64748B"/>
+                                <TextBlock Text="{Binding Snapshot.Confirmed}"
+                                           FontSize="30"
+                                           FontWeight="Bold"
+                                           Foreground="#D97706"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource StaffKpiCard}">
+                            <StackPanel>
+                                <TextBlock Text="Xe đang thuê"
+                                           Foreground="#64748B"/>
+                                <TextBlock Text="{Binding Snapshot.VehiclesInUse}"
+                                           FontSize="30"
+                                           FontWeight="Bold"
+                                           Foreground="#047857"/>
+                                <TextBlock Text="Trạng thái hiện tại"
+                                           FontSize="11"
+                                           Foreground="#64748B"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource StaffKpiCard}"
+                                Background="#FEF2F2">
+                            <StackPanel>
+                                <TextBlock Text="Xe đang bảo trì"
+                                           Foreground="#64748B"/>
+                                <TextBlock Text="{Binding Snapshot.VehiclesInMaintenance}"
+                                           FontSize="30"
+                                           FontWeight="Bold"
+                                           Foreground="#DC2626"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource StaffKpiCard}"
+                                Background="#F1F5F9">
+                            <StackPanel>
+                                <TextBlock Text="Tổng số xe"
+                                           Foreground="#64748B"/>
+                                <TextBlock Text="{Binding Snapshot.TotalVehicles}"
+                                           FontSize="30"
+                                           FontWeight="Bold"
+                                           Foreground="#334155"/>
+                            </StackPanel>
+                        </Border>
+
+                    </WrapPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- BOOKING STATUS -->
+
+            <Border Style="{StaticResource StaffCard}"
+                    Margin="0,0,0,28"
+                    Visibility="{Binding HasData,
+                        Converter={StaticResource BoolToVisibility}}">
+
+                <StackPanel>
+
+                    <TextBlock Text="Trạng thái các đơn thuê"
+                               Style="{StaticResource SectionTitle}"/>
+
+                    <TextBlock
+                        Text="Số lượng đơn được tạo trong khoảng thời gian đã chọn."
+                        Foreground="#64748B"
+                        Margin="0,0,0,12"
+                        TextWrapping="Wrap"/>
+
+                    <UniformGrid Columns="2">
+
+                        <StackPanel Orientation="Horizontal" Margin="0,8">
+                            <TextBlock Text="Chờ cọc: " Width="140"/>
+                            <TextBlock Text="{Binding Snapshot.PendingDeposit}"
+                                       FontWeight="Bold"/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,8">
+                            <TextBlock Text="Đã xác nhận: " Width="140"/>
+                            <TextBlock Text="{Binding Snapshot.Confirmed}"
+                                       FontWeight="Bold"/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,8">
+                            <TextBlock Text="Đang thuê: " Width="140"/>
+                            <TextBlock Text="{Binding Snapshot.InUse}"
+                                       FontWeight="Bold"/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,8">
+                            <TextBlock Text="Đã trả xe: " Width="140"/>
+                            <TextBlock Text="{Binding Snapshot.Returned}"
+                                       FontWeight="Bold"/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,8">
+                            <TextBlock Text="Hoàn tất: " Width="140"/>
+                            <TextBlock Text="{Binding Snapshot.Completed}"
+                                       FontWeight="Bold"/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,8">
+                            <TextBlock Text="Đã hủy: " Width="140"/>
+                            <TextBlock Text="{Binding Snapshot.Cancelled}"
+                                       FontWeight="Bold"/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,8">
+                            <TextBlock Text="Hết hạn: " Width="140"/>
+                            <TextBlock Text="{Binding Snapshot.Expired}"
+                                       FontWeight="Bold"/>
+                        </StackPanel>
+
+                    </UniformGrid>
+                </StackPanel>
+            </Border>
+
+            <!-- QUICK ACTIONS -->
+
+            <TextBlock Text="Truy cập nhanh"
+                       Style="{StaticResource SectionTitle}"/>
+
+            <UniformGrid Columns="3"
+                         Margin="0,0,0,28">
+
+                <Border Style="{StaticResource StaffCard}"
+                        Margin="0,0,12,0">
+                    <StackPanel>
+                        <TextBlock Text="Đơn thuê"
+                                   FontSize="19"
                                    FontWeight="Bold"
-                                   Foreground="#142642"
-                                   Margin="0,16,0,9"/>
+                                   Foreground="#102C26"/>
 
-                        <TextBlock Text="Theo dõi quy trình đặt xe và trạng thái xử lý đơn thuê."
-                                   Foreground="#64748B"
-                                   TextWrapping="Wrap"
-                                   FontSize="13"
-                                   MinHeight="62"/>
+                        <TextBlock
+                            Text="Xem danh sách và tiếp tục xử lý các đơn thuê."
+                            Foreground="#64748B"
+                            TextWrapping="Wrap"
+                            Margin="0,10,0,18"/>
 
-                        <Button Content="Xem đơn thuê →"
-                                Style="{StaticResource AdminActionButton}"
-                                HorizontalAlignment="Left"
-                                Margin="0,14,0,0"
+                        <Button Content="Xem đơn thuê"
+                                Style="{StaticResource StaffActionButton}"
                                 Command="{Binding DataContext.NavigateCommand,
-                                    RelativeSource={RelativeSource AncestorType=Window}}"
+                                          RelativeSource={RelativeSource AncestorType=Window}}"
                                 CommandParameter="Bookings"/>
                     </StackPanel>
                 </Border>
 
-                <!-- DRIVERS -->
-                <Border Grid.Column="2"
-                        Style="{StaticResource AdminCard}">
-
+                <Border Style="{StaticResource StaffCard}"
+                        Margin="0,0,12,0">
                     <StackPanel>
-                        <Border Width="48"
-                                Height="48"
-                                CornerRadius="11"
-                                Background="#FFF1E0"
-                                HorizontalAlignment="Left">
-
-                            <TextBlock Text="&#xE716;"
-                                       FontFamily="Segoe MDL2 Assets"
-                                       Foreground="#EA8B25"
-                                       FontSize="24"
-                                       HorizontalAlignment="Center"
-                                       VerticalAlignment="Center"/>
-                        </Border>
-
-                        <TextBlock Text="Quản lý tài xế"
-                                   FontSize="18"
+                        <TextBlock Text="Đội xe"
+                                   FontSize="19"
                                    FontWeight="Bold"
-                                   Foreground="#142642"
-                                   Margin="0,16,0,9"/>
+                                   Foreground="#102C26"/>
 
-                        <TextBlock Text="Quản lý thông tin và trạng thái hoạt động của tài xế."
-                                   Foreground="#64748B"
-                                   TextWrapping="Wrap"
-                                   FontSize="13"
-                                   MinHeight="62"/>
+                        <TextBlock
+                            Text="Tra cứu xe, biển số và trạng thái hoạt động."
+                            Foreground="#64748B"
+                            TextWrapping="Wrap"
+                            Margin="0,10,0,18"/>
 
-                        <Button Content="Quản lý tài xế →"
-                                Style="{StaticResource AdminActionButton}"
-                                HorizontalAlignment="Left"
-                                Margin="0,14,0,0"
+                        <Button Content="Xem danh sách xe"
+                                Style="{StaticResource StaffActionButton}"
                                 Command="{Binding DataContext.NavigateCommand,
-                                    RelativeSource={RelativeSource AncestorType=Window}}"
+                                          RelativeSource={RelativeSource AncestorType=Window}}"
+                                CommandParameter="Vehicles"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource StaffCard}">
+                    <StackPanel>
+                        <TextBlock Text="Tài xế"
+                                   FontSize="19"
+                                   FontWeight="Bold"
+                                   Foreground="#102C26"/>
+
+                        <TextBlock
+                            Text="Tra cứu danh sách và thông tin liên hệ tài xế."
+                            Foreground="#64748B"
+                            TextWrapping="Wrap"
+                            Margin="0,10,0,18"/>
+
+                        <Button Content="Xem tài xế"
+                                Style="{StaticResource StaffActionButton}"
+                                Command="{Binding DataContext.NavigateCommand,
+                                          RelativeSource={RelativeSource AncestorType=Window}}"
                                 CommandParameter="Drivers"/>
                     </StackPanel>
                 </Border>
-            </Grid>
 
-            <!-- REPORT AREA -->
-            <TextBlock Text="Báo cáo và phân tích"
-                       FontSize="21"
-                       FontWeight="Bold"
-                       Foreground="#142642"
-                       Margin="0,0,0,16"/>
+            </UniformGrid>
 
-            <Border Style="{StaticResource AdminCard}">
+            <!-- WORKFLOW -->
 
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
+            <TextBlock Text="Quy trình vận hành"
+                       Style="{StaticResource SectionTitle}"/>
 
-                    <Border Grid.Column="0"
-                            Background="#E8EDFF"
-                            Width="64"
-                            Height="64"
-                            CornerRadius="13"
-                            Margin="0,0,20,0">
+            <Border Style="{StaticResource StaffCard}">
 
-                        <TextBlock Text="&#xE9D9;"
-                                   FontFamily="Segoe MDL2 Assets"
-                                   FontSize="28"
-                                   Foreground="#4F46E5"
-                                   HorizontalAlignment="Center"
-                                   VerticalAlignment="Center"/>
-                    </Border>
+                <UniformGrid Columns="3">
 
-                    <StackPanel Grid.Column="1"
-                                VerticalAlignment="Center">
-
-                        <TextBlock Text="Revenue Reports"
-                                   FontSize="19"
+                    <StackPanel Margin="0,0,18,0">
+                        <TextBlock Text="1. Kiểm tra đơn"
                                    FontWeight="Bold"
-                                   Foreground="#142642"/>
-
-                        <TextBlock Text="Truy cập báo cáo doanh thu và các chỉ số kinh doanh của hệ thống."
-                                   Foreground="#64748B"
-                                   FontSize="13"
-                                   TextWrapping="Wrap"
-                                   Margin="0,8,10,0"/>
+                                   FontSize="16"
+                                   Foreground="#047857"/>
+                        <TextBlock
+                            Text="Kiểm tra khách hàng, phương tiện và thời gian thuê."
+                            Foreground="#64748B"
+                            TextWrapping="Wrap"
+                            Margin="0,9,0,0"/>
                     </StackPanel>
 
-                    <Button Grid.Column="2"
-                            Content="Mở báo cáo →"
-                            Style="{StaticResource AdminActionButton}"
-                            VerticalAlignment="Center"
-                            Command="{Binding DataContext.NavigateCommand,
-                                RelativeSource={RelativeSource AncestorType=Window}}"
-                            CommandParameter="Reports"/>
-                </Grid>
+                    <StackPanel Margin="0,0,18,0">
+                        <TextBlock Text="2. Bàn giao xe"
+                                   FontWeight="Bold"
+                                   FontSize="16"
+                                   Foreground="#047857"/>
+                        <TextBlock
+                            Text="Xác nhận thông tin khi khách hàng nhận xe."
+                            Foreground="#64748B"
+                            TextWrapping="Wrap"
+                            Margin="0,9,0,0"/>
+                    </StackPanel>
+
+                    <StackPanel>
+                        <TextBlock Text="3. Tiếp nhận xe trả"
+                                   FontWeight="Bold"
+                                   FontSize="16"
+                                   Foreground="#047857"/>
+                        <TextBlock
+                            Text="Kiểm tra tình trạng xe khi khách hàng trả."
+                            Foreground="#64748B"
+                            TextWrapping="Wrap"
+                            Margin="0,9,0,0"/>
+                    </StackPanel>
+
+                </UniformGrid>
             </Border>
 
-            <TextBlock Text="Các số liệu tổng hợp sẽ được kết nối trực tiếp với dữ liệu Booking và Payment trong quá trình tích hợp Dashboard."
-                       FontSize="12"
-                       Foreground="#94A3B8"
-                       TextWrapping="Wrap"
-                       Margin="0,16,0,0"/>
-
         </StackPanel>
+
     </ScrollViewer>
 </Page>
