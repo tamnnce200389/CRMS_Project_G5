@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using CRMS.Data;
 using CRMS.Helpers;
 using CRMS.Models;
+using CRMS.Services;
 using CRMS.Services.Vehicles;
 using CRMS.ViewModels;
 using Microsoft.Data.SqlClient;
@@ -184,6 +185,82 @@ Assert(editVm.Images.Count == 2 && editVm.Images[0].IsPrimary && !editVm.Images[
 editVm.SetPrimaryImageCommand.Execute(editVm.Images[1]);
 Assert(!editVm.Images[0].IsPrimary && editVm.Images[1].IsPrimary,
     "VehicleEditViewModel switches primary image");
+
+// =========================================================
+// 3B. F07 PURE AVAILABILITY RULES & VIEWMODEL CHECKS
+// =========================================================
+var baseDayLocal = DateTime.Today.AddDays(5);
+var slot10To12StartUtc = AvailabilityRules.ToUtc(baseDayLocal.AddHours(10));
+var slot10To12EndUtc = AvailabilityRules.ToUtc(baseDayLocal.AddHours(12));
+var slot12To14StartUtc = AvailabilityRules.ToUtc(baseDayLocal.AddHours(12));
+var slot12To14EndUtc = AvailabilityRules.ToUtc(baseDayLocal.AddHours(14));
+var slot08To10StartUtc = AvailabilityRules.ToUtc(baseDayLocal.AddHours(8));
+var slot08To10EndUtc = AvailabilityRules.ToUtc(baseDayLocal.AddHours(10));
+
+Assert(!AvailabilityRules.OverlapsHalfOpen(slot10To12StartUtc, slot10To12EndUtc, slot12To14StartUtc, slot12To14EndUtc),
+    "Half-open [10:00, 12:00) does not overlap [12:00, 14:00)");
+Assert(!AvailabilityRules.OverlapsHalfOpen(slot10To12StartUtc, slot10To12EndUtc, slot08To10StartUtc, slot08To10EndUtc),
+    "Half-open [10:00, 12:00) does not overlap [08:00, 10:00)");
+Assert(AvailabilityRules.OverlapsHalfOpen(
+        slot10To12StartUtc,
+        slot10To12EndUtc,
+        AvailabilityRules.ToUtc(baseDayLocal.AddHours(11).AddMinutes(59)),
+        AvailabilityRules.ToUtc(baseDayLocal.AddHours(13))),
+    "Half-open [10:00, 12:00) overlaps [11:59, 13:00)");
+
+var nowRefUtc = DateTime.UtcNow;
+var lateInUseConflicts = AvailabilityRules.EvaluateConflicts(
+    operationalStatus: "Active",
+    isCategoryActive: true,
+    categoryName: "Sedan",
+    bookings: new[]
+    {
+        // Late return: scheduled EndAt was yesterday, but still InUse!
+        new BookingConflictSnapshot("CR-LATE-01", "InUse", nowRefUtc.AddDays(-2), nowRefUtc.AddDays(-1), nowRefUtc.AddDays(-3)),
+        // Expired PendingDeposit: must be ignored!
+        new BookingConflictSnapshot("CR-EXP-01", "PendingDeposit", slot10To12StartUtc, slot10To12EndUtc, nowRefUtc.AddMinutes(-1))
+    },
+    maintenances: new[]
+    {
+        // Completed maintenance: must be ignored!
+        new MaintenanceConflictSnapshot(9, "Completed", slot10To12StartUtc, slot10To12EndUtc, "Thay nhot")
+    },
+    queryStartUtc: slot10To12StartUtc,
+    queryEndUtc: slot10To12EndUtc,
+    nowUtc: nowRefUtc,
+    includeInternalReferences: false);
+
+Assert(lateInUseConflicts.Count == 1 &&
+       lateInUseConflicts[0].Type == AvailabilityConflictType.BookingInUse &&
+       lateInUseConflicts[0].ReferenceCode == null &&
+       !lateInUseConflicts[0].Reason.Contains("CR-LATE-01", StringComparison.Ordinal),
+    "Overdue InUse blocks future slot without leaking BookingCode to Guest/Customer; expired hold & completed maintenance ignored");
+
+var staffConflicts = AvailabilityRules.EvaluateConflicts(
+    operationalStatus: "Active",
+    isCategoryActive: true,
+    categoryName: "Sedan",
+    bookings: new[]
+    {
+        new BookingConflictSnapshot("CR-CONF-99", "Confirmed", slot10To12StartUtc, slot10To12EndUtc, nowRefUtc)
+    },
+    maintenances: Array.Empty<MaintenanceConflictSnapshot>(),
+    queryStartUtc: slot10To12StartUtc,
+    queryEndUtc: slot10To12EndUtc,
+    nowUtc: nowRefUtc,
+    includeInternalReferences: true);
+
+Assert(staffConflicts.Count == 1 &&
+       staffConflicts[0].ReferenceCode == "CR-CONF-99",
+    "Staff/Admin conflict details include internal BookingCode reference");
+
+var fakeAvailService = new FakeAvailabilityService();
+var availVm = new AvailabilityViewModel(fakeAvailService, fakeService);
+await availVm.InitializeAsync();
+Assert(availVm.TotalCheckedCount == 2 && availVm.AvailableCount == 1 && availVm.UnavailableCount == 1,
+    "AvailabilityViewModel computes available/unavailable KPIs");
+availVm.SelectedAvailabilityFilter = "Chỉ xe còn trống";
+Assert(availVm.FilteredCount == 1, "AvailabilityViewModel filters available-only vehicles");
 
 if (!args.Contains("--integration"))
 {
@@ -434,7 +511,157 @@ try
     Assert(filtered.Count == 1 && filtered[0].VehicleId == newVehicleId,
         "GetVehiclesAsync filter contract returns expected vehicle for TV1");
 
-    Console.WriteLine($"ALL {passed} CHECKS PASSED (unit + SQL integration).");
+    // =========================================================
+    // 5. F07 SQL SERVER AVAILABILITY INTEGRATION CHECKS
+    // =========================================================
+    long? availActor = null;
+    var availService = new VehicleAvailabilityService(Create, () => availActor);
+
+    var testDayLocal = DateTime.Today.AddDays(10);
+    var s10 = testDayLocal.AddHours(10);
+    var s12 = testDayLocal.AddHours(12);
+    var s14 = testDayLocal.AddHours(14);
+    var s1130 = testDayLocal.AddHours(11).AddMinutes(30);
+
+    // 5.1 Initially available
+    var checkFree = await availService.CheckAvailabilityAsync(newVehicleId, s10, s12);
+    Assert(checkFree.IsAvailable && await availService.IsAvailableAsync(newVehicleId, s10, s12),
+        "F07: Active vehicle without bookings/maintenance is available");
+
+    // 5.2 Confirmed booking [10:00, 12:00) blocks overlapping [11:30, 14:00) but ACCEPTS [12:00, 14:00)
+    long f07BookingId;
+    string f07BookingCode = "TV2-F07-" + Guid.NewGuid().ToString("N")[..10];
+    using (var db = Create())
+    {
+        var b = new Booking
+        {
+            BookingCode = f07BookingCode,
+            RequestKey = Guid.NewGuid(),
+            CustomerId = customerId,
+            VehicleId = newVehicleId,
+            RentalType = "SelfDrive",
+            DepositMethod = "Cash",
+            StartAt = AvailabilityRules.ToUtc(s10),
+            EndAt = AvailabilityRules.ToUtc(s12),
+            RentalDays = 1,
+            VehicleDailyRate = 2200000m,
+            VehicleAmount = 2200000m,
+            DiscountAmount = 0m,
+            TotalAmount = 2200000m,
+            DepositAmount = 1100000m,
+            DepositDeadline = DateTime.UtcNow.AddHours(2),
+            BookingStatus = "Confirmed",
+            CreatedAt = DateTime.UtcNow
+        };
+        db.Bookings.Add(b);
+        await db.SaveChangesAsync();
+        f07BookingId = b.BookingId;
+    }
+
+    availActor = customerId;
+    var overlapConfirmed = await availService.CheckAvailabilityAsync(newVehicleId, s1130, s14);
+    Assert(!overlapConfirmed.IsAvailable &&
+           overlapConfirmed.Conflicts.Any(c => c.Type == AvailabilityConflictType.BookingConfirmed) &&
+           !overlapConfirmed.SummaryReason.Contains(f07BookingCode, StringComparison.Ordinal),
+        "F07: Confirmed booking blocks overlapping window and hides BookingCode from Customer");
+
+    availActor = staffId;
+    var staffCheck = await availService.CheckAvailabilityAsync(newVehicleId, s1130, s14);
+    Assert(!staffCheck.IsAvailable &&
+           staffCheck.Conflicts.Any(c => c.ReferenceCode == f07BookingCode),
+        "F07: Staff sees BookingCode on Confirmed conflict");
+
+    var adjacentSlot = await availService.CheckAvailabilityAsync(newVehicleId, s12, s14);
+    Assert(adjacentSlot.IsAvailable &&
+           (await availService.GetAvailableVehicleIdsAsync(s12, s14)).Contains(newVehicleId),
+        "F07 Mandatory Test: [10:00, 12:00) booking allows next booking starting at 12:00");
+
+    // 5.3 PendingDeposit unexpired blocks; expired PendingDeposit does NOT block
+    using (var db = Create())
+    {
+        var b = await db.Bookings.FindAsync(f07BookingId);
+        b!.BookingStatus = "PendingDeposit";
+        b.DepositDeadline = DateTime.UtcNow.AddMinutes(25);
+        await db.SaveChangesAsync();
+    }
+    var pendingActive = await availService.CheckAvailabilityAsync(newVehicleId, s10, s12);
+    Assert(!pendingActive.IsAvailable &&
+           pendingActive.Conflicts.Any(c => c.Type == AvailabilityConflictType.BookingPendingDeposit),
+        "F07: Unexpired PendingDeposit blocks availability with hold reason");
+
+    using (var db = Create())
+    {
+        var b = await db.Bookings.FindAsync(f07BookingId);
+        b!.DepositDeadline = DateTime.UtcNow.AddMinutes(-5);
+        await db.SaveChangesAsync();
+    }
+    Assert((await availService.CheckAvailabilityAsync(newVehicleId, s10, s12)).IsAvailable,
+        "F07: Expired PendingDeposit no longer blocks availability");
+
+    // 5.4 Overdue InUse still blocks future slot [12:00, 14:00)
+    using (var db = Create())
+    {
+        var b = await db.Bookings.FindAsync(f07BookingId);
+        b!.BookingStatus = "InUse";
+        await db.SaveChangesAsync();
+    }
+    var overdueInUse = await availService.CheckAvailabilityAsync(newVehicleId, s12, s14);
+    Assert(!overdueInUse.IsAvailable &&
+           overdueInUse.Conflicts.Any(c => c.Type == AvailabilityConflictType.BookingInUse),
+        "F07: Unreturned InUse vehicle continues blocking subsequent slots");
+
+    // Release booking -> Completed
+    using (var db = Create())
+    {
+        var b = await db.Bookings.FindAsync(f07BookingId);
+        b!.BookingStatus = "Completed";
+        await db.SaveChangesAsync();
+    }
+
+    // 5.5 Maintenance Scheduled/InProgress blocks; Completed maintenance releases
+    long maintId;
+    using (var db = Create())
+    {
+        var m = new MaintenanceRecord
+        {
+            VehicleId = newVehicleId,
+            CreatedByUserId = adminId,
+            StartAt = AvailabilityRules.ToUtc(s10),
+            EndAt = AvailabilityRules.ToUtc(s12),
+            MaintenanceStatus = "Scheduled",
+            Description = "Bao duong phanh F07",
+            Cost = 500000m
+        };
+        db.MaintenanceRecords.Add(m);
+        await db.SaveChangesAsync();
+        maintId = m.MaintenanceId;
+    }
+
+    var maintBlocked = await availService.CheckAvailabilityAsync(newVehicleId, s1130, s14);
+    Assert(!maintBlocked.IsAvailable &&
+           maintBlocked.Conflicts.Any(c => c.Type == AvailabilityConflictType.Maintenance),
+        "F07: Overlapping Scheduled maintenance blocks availability with description");
+
+    Assert((await availService.CheckAvailabilityAsync(newVehicleId, s12, s14)).IsAvailable,
+        "F07: Maintenance [10:00, 12:00) allows booking starting at 12:00");
+
+    using (var db = Create())
+    {
+        var m = await db.MaintenanceRecords.FindAsync(maintId);
+        m!.MaintenanceStatus = "Completed";
+        await db.SaveChangesAsync();
+    }
+    Assert((await availService.CheckAvailabilityAsync(newVehicleId, s10, s12)).IsAvailable,
+        "F07: Completed maintenance restores vehicle availability");
+
+    // 5.6 Suspended vehicle reports VehicleSuspended reason
+    await service.SetVehicleStatusAsync(newVehicleId, "Suspended");
+    var suspendedCheck = await availService.CheckAvailabilityAsync(newVehicleId, s10, s12);
+    Assert(!suspendedCheck.IsAvailable &&
+           suspendedCheck.Conflicts.Any(c => c.Type == AvailabilityConflictType.VehicleSuspended),
+        "F07: Suspended vehicle reports VehicleSuspended conflict");
+
+    Console.WriteLine($"ALL {passed} CHECKS PASSED (F06 + F07 unit & SQL integration).");
 }
 finally
 {
@@ -482,4 +709,46 @@ sealed class FakeVehicleService : IVehicleService
         Task.FromResult(_categories.ToList());
     public Task<int> SaveCategoryAsync(CategoryUpsertRequest request) => Task.FromResult(1);
     public Task SetCategoryActiveAsync(int categoryId, bool isActive) => Task.CompletedTask;
+}
+
+sealed class FakeAvailabilityService : IAvailabilityService
+{
+    public Task<HashSet<long>> GetAvailableVehicleIdsAsync(DateTime startAt, DateTime endAt) =>
+        Task.FromResult(new HashSet<long> { 1 });
+
+    public Task<bool> IsAvailableAsync(long vehicleId, DateTime startAt, DateTime endAt) =>
+        Task.FromResult(vehicleId == 1);
+
+    public Task<VehicleAvailabilityResult> CheckAvailabilityAsync(
+        long vehicleId, DateTime startAt, DateTime endAt, bool requireFutureStart = true) =>
+        Task.FromResult(BuildSample(startAt, endAt).First(x => x.VehicleId == vehicleId));
+
+    public Task<List<VehicleAvailabilityResult>> CheckFleetAvailabilityAsync(
+        DateTime startAt, DateTime endAt, int? categoryId = null, long? vehicleId = null,
+        bool includeSuspendedVehicles = true, bool requireFutureStart = false) =>
+        Task.FromResult(BuildSample(startAt, endAt));
+
+    private static List<VehicleAvailabilityResult> BuildSample(DateTime startAt, DateTime endAt) =>
+        new()
+        {
+            new VehicleAvailabilityResult
+            {
+                VehicleId = 1, CategoryId = 1, CategoryName = "SUV", LicensePlate = "65A-67890",
+                Brand = "Ford", Model = "Everest", SeatCount = 7, Transmission = "Automatic",
+                FuelType = "Diesel", DailyRate = 1550000m, OperationalStatus = "Active",
+                StartAtLocal = startAt, EndAtLocal = endAt,
+                Conflicts = Array.Empty<AvailabilityConflict>()
+            },
+            new VehicleAvailabilityResult
+            {
+                VehicleId = 2, CategoryId = 1, CategoryName = "SUV", LicensePlate = "DEMO-CRMS-026",
+                Brand = "Toyota", Model = "Camry Hybrid", SeatCount = 5, Transmission = "Automatic",
+                FuelType = "Hybrid", DailyRate = 1750000m, OperationalStatus = "Suspended",
+                StartAtLocal = startAt, EndAtLocal = endAt,
+                Conflicts = new[]
+                {
+                    new AvailabilityConflict(AvailabilityConflictType.VehicleSuspended, "Xe tạm ngưng", "Xe đang tạm ngưng khai thác (Suspended).")
+                }
+            }
+        };
 }

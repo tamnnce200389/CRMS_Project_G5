@@ -70,13 +70,20 @@ internal static class RenderChecks
                 var catWin = new CategoryManagementWindow(catVm);
                 RenderElement(DetachRoot(catWin, catVm), 900, 580, Path.Combine(output, "TV2-F06-CategoryManagementWindow.png"));
 
+                // 5. Admin & Staff AvailabilityPage (F07)
+                var availVm = new AvailabilityViewModel(new RenderAvailabilitySampleService(), fakeService);
+                availVm.InitializeAsync().GetAwaiter().GetResult();
+                availVm.SelectedResult = availVm.Results.LastOrDefault();
+                var availPage = new AvailabilityPage(availVm);
+                RenderElement(DetachRoot(availPage, availVm), 1280, 780, Path.Combine(output, "TV2-F07-AvailabilityPage.png"));
+
                 if (listener.Errors.Count > 0)
                 {
                     throw new InvalidOperationException(
                         "WPF DataBinding errors detected:\n" + string.Join("\n", listener.Errors));
                 }
 
-                Console.WriteLine("PASS: Rendered all 4 F06 WPF views with 0 DataBinding errors.");
+                Console.WriteLine("PASS: Rendered all 5 F06 + F07 WPF views with 0 DataBinding errors.");
             }
             catch (Exception ex)
             {
@@ -199,5 +206,61 @@ internal static class RenderChecks
             Task.FromResult(_cats.ToList());
         public Task<int> SaveCategoryAsync(CategoryUpsertRequest request) => Task.FromResult(1);
         public Task SetCategoryActiveAsync(int categoryId, bool isActive) => Task.CompletedTask;
+    }
+
+    private sealed class RenderAvailabilitySampleService : IAvailabilityService
+    {
+        public Task<HashSet<long>> GetAvailableVehicleIdsAsync(DateTime startAt, DateTime endAt) =>
+            Task.FromResult(new HashSet<long> { 1, 2 });
+
+        public Task<bool> IsAvailableAsync(long vehicleId, DateTime startAt, DateTime endAt) =>
+            Task.FromResult(vehicleId <= 2);
+
+        public Task<VehicleAvailabilityResult> CheckAvailabilityAsync(
+            long vehicleId, DateTime startAt, DateTime endAt, bool requireFutureStart = true) =>
+            Task.FromResult(CheckFleetAvailabilityAsync(startAt, endAt).Result.First());
+
+        public Task<List<VehicleAvailabilityResult>> CheckFleetAvailabilityAsync(
+            DateTime startAt, DateTime endAt, int? categoryId = null, long? vehicleId = null,
+            bool includeSuspendedVehicles = true, bool requireFutureStart = false) =>
+            Task.FromResult(new List<VehicleAvailabilityResult>
+            {
+                new VehicleAvailabilityResult
+                {
+                    VehicleId = 1, CategoryId = 1, CategoryName = "Sedan", LicensePlate = "65A-12345",
+                    Brand = "Toyota", Model = "Vios G", SeatCount = 5, Transmission = "Automatic",
+                    FuelType = "Gasoline", DailyRate = 750000m, OperationalStatus = "Active",
+                    StartAtLocal = startAt, EndAtLocal = endAt,
+                    Conflicts = Array.Empty<AvailabilityConflict>()
+                },
+                new VehicleAvailabilityResult
+                {
+                    VehicleId = 2, CategoryId = 2, CategoryName = "SUV", LicensePlate = "65A-67890",
+                    Brand = "Ford", Model = "Everest Titanium", SeatCount = 7, Transmission = "Automatic",
+                    FuelType = "Diesel", DailyRate = 1550000m, OperationalStatus = "Active",
+                    StartAtLocal = startAt, EndAtLocal = endAt,
+                    Conflicts = Array.Empty<AvailabilityConflict>()
+                },
+                new VehicleAvailabilityResult
+                {
+                    VehicleId = 3, CategoryId = 3, CategoryName = "MPV", LicensePlate = "51K-889.99",
+                    Brand = "Kia", Model = "Carnival Signature", SeatCount = 7, Transmission = "Automatic",
+                    FuelType = "Diesel", DailyRate = 2100000m, OperationalStatus = "Active",
+                    StartAtLocal = startAt, EndAtLocal = endAt,
+                    Conflicts = new[]
+                    {
+                        new AvailabilityConflict(
+                            AvailabilityConflictType.BookingConfirmed,
+                            "Đơn thuê đã xác nhận cọc",
+                            "Trùng lịch đơn đã xác nhận (03/11/2026 10:00 → 04/11/2026 12:00).",
+                            startAt, endAt, "CR-20261102-A89F12"),
+                        new AvailabilityConflict(
+                            AvailabilityConflictType.Maintenance,
+                            "Lịch bảo trì định kỳ",
+                            "Trùng lịch bảo trì Đã lên lịch (04/11/2026 13:00 → 04/11/2026 18:00 · Thay dầu hộp số).",
+                            startAt, endAt, "BT-#14")
+                    }
+                }
+            });
     }
 }

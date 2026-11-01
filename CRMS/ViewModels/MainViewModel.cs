@@ -231,6 +231,9 @@ namespace CRMS.ViewModels
                 case "PaymentSummary":
                     if (IsLoggedIn) CurrentPage = new PaymentSummaryPage();
                     break;
+                case "Availability":
+                    if (IsManagement) CurrentPage = new AvailabilityPage();
+                    break;
                 // Cac chuc nang chua tich hop
                 // khong mo Page khac
                 default:
@@ -254,6 +257,14 @@ namespace CRMS.ViewModels
         // =====================================
         // 10. REFRESH SAU LOGIN / LOGOUT
         // =====================================
+        public void OpenAvailability(long? vehicleId = null)
+        {
+            if (IsManagement)
+            {
+                CurrentPage = new AvailabilityPage(vehicleId);
+            }
+        }
+
         public void RefreshSession()
         {
             // Cap nhat Role cho MainWindow

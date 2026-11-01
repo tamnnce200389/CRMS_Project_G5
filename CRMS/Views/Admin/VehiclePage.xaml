@@ -21,6 +21,15 @@
             <StackPanel DockPanel.Dock="Right"
                         Orientation="Horizontal"
                         VerticalAlignment="Center">
+                <Button Content="Kiểm tra lịch trống"
+                        Click="OpenAvailability_Click"
+                        Background="White"
+                        Foreground="#1D4ED8"
+                        BorderBrush="#BFDBFE"
+                        BorderThickness="1"
+                        Padding="15,10"
+                        Margin="0,0,10,0" />
+
                 <Button Content="Danh mục loại xe"
                         Command="{Binding ManageCategoriesCommand}"
                         Background="White"

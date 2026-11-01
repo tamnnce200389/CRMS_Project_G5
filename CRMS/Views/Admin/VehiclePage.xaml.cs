@@ -112,6 +112,15 @@ public partial class VehiclePage : Page
         }
     }
 
+    private void OpenAvailability_Click(object sender, RoutedEventArgs e)
+    {
+        var selectedVehicleId = (DataContext as VehicleViewModel)?.SelectedVehicle?.VehicleId;
+        if (Window.GetWindow(this)?.DataContext is MainViewModel mainVm)
+        {
+            mainVm.OpenAvailability(selectedVehicleId);
+        }
+    }
+
     private void VehiclesGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
         if (DataContext is VehicleViewModel vm &&

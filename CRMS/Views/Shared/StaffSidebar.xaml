@@ -209,6 +209,11 @@
                                     Command="{Binding NavigateCommand}"
                                     CommandParameter="Vehicles"/>
 
+                            <Button Content="Kiểm tra lịch trống"
+                                    Style="{StaticResource NavButton}"
+                                    Command="{Binding NavigateCommand}"
+                                    CommandParameter="Availability"/>
+
                             <Button Content="Tra cứu tài xế"
                                     Style="{StaticResource NavButton}"
                                     Command="{Binding NavigateCommand}"
