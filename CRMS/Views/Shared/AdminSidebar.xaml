@@ -210,9 +210,8 @@
 
                             <Button Content="Quản lý bảo trì"
                                     Style="{StaticResource NavButton}"
-                                    IsEnabled="False"
-                                    ToolTipService.ShowOnDisabled="True"
-                                    ToolTip="Chưa tích hợp MaintenancePage"/>
+                                    Command="{Binding NavigateCommand}"
+                                    CommandParameter="Maintenance"/>
                         </StackPanel>
                     </Expander>
 

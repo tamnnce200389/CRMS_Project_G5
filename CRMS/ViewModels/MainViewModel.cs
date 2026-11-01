@@ -234,6 +234,9 @@ namespace CRMS.ViewModels
                 case "Availability":
                     if (IsManagement) CurrentPage = new AvailabilityPage();
                     break;
+                case "Maintenance":
+                    if (IsAdmin) CurrentPage = new MaintenancePage();
+                    break;
                 // Cac chuc nang chua tich hop
                 // khong mo Page khac
                 default:
@@ -262,6 +265,14 @@ namespace CRMS.ViewModels
             if (IsManagement)
             {
                 CurrentPage = new AvailabilityPage(vehicleId);
+            }
+        }
+
+        public void OpenMaintenance(long? vehicleId = null)
+        {
+            if (IsAdmin)
+            {
+                CurrentPage = new MaintenancePage(vehicleId);
             }
         }
 

@@ -27,6 +27,10 @@ public sealed class VietnameseLabelConverter : IValueConverter
             "DIESEL" => "Dầu Diesel",
             "ELECTRIC" => "Điện",
             "HYBRID" => "Hybrid",
+            "SCHEDULED" => "Đã lên lịch",
+            "INPROGRESS" => "Đang bảo trì",
+            "COMPLETED" => "Đã hoàn thành",
+            "CANCELLED" => "Đã hủy",
             _ => text
         };
     }

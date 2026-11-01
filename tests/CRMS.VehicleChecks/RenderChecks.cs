@@ -77,13 +77,20 @@ internal static class RenderChecks
                 var availPage = new AvailabilityPage(availVm);
                 RenderElement(DetachRoot(availPage, availVm), 1280, 780, Path.Combine(output, "TV2-F07-AvailabilityPage.png"));
 
+                // 6. Admin MaintenancePage (F24)
+                var maintVm = new MaintenanceViewModel(new RenderMaintenanceSampleService(), fakeService);
+                maintVm.InitializeAsync().GetAwaiter().GetResult();
+                maintVm.SelectedRecord = maintVm.Records.Skip(1).FirstOrDefault();
+                var maintPage = new MaintenancePage(maintVm);
+                RenderElement(DetachRoot(maintPage, maintVm), 1280, 780, Path.Combine(output, "TV2-F24-MaintenancePage.png"));
+
                 if (listener.Errors.Count > 0)
                 {
                     throw new InvalidOperationException(
                         "WPF DataBinding errors detected:\n" + string.Join("\n", listener.Errors));
                 }
 
-                Console.WriteLine("PASS: Rendered all 5 F06 + F07 WPF views with 0 DataBinding errors.");
+                Console.WriteLine("PASS: Rendered all 6 F06 + F07 + F24 WPF views with 0 DataBinding errors.");
             }
             catch (Exception ex)
             {
@@ -262,5 +269,58 @@ internal static class RenderChecks
                     }
                 }
             });
+    }
+
+    private sealed class RenderMaintenanceSampleService : IMaintenanceService
+    {
+        public Task<List<MaintenanceListItem>> GetMaintenanceRecordsAsync(MaintenanceFilter? filter = null) =>
+            Task.FromResult(new List<MaintenanceListItem>
+            {
+                new MaintenanceListItem
+                {
+                    MaintenanceId = 15, VehicleId = 2, LicensePlate = "65A-67890",
+                    Brand = "Ford", Model = "Everest Titanium", CategoryName = "SUV",
+                    CreatedByUserId = 1, CreatedByName = "Quản trị viên",
+                    StartAtLocal = DateTime.Today.AddHours(8), EndAtLocal = DateTime.Today.AddHours(17),
+                    MaintenanceStatus = "InProgress",
+                    Description = "Thay má phanh trước, kiểm tra cảm biến ABS và cân bằng động 4 bánh.",
+                    Cost = 1450000m
+                },
+                new MaintenanceListItem
+                {
+                    MaintenanceId = 16, VehicleId = 3, LicensePlate = "51K-889.99",
+                    Brand = "Kia", Model = "Carnival Signature", CategoryName = "MPV",
+                    CreatedByUserId = 1, CreatedByName = "Quản trị viên",
+                    StartAtLocal = DateTime.Today.AddDays(4).AddHours(9), EndAtLocal = DateTime.Today.AddDays(4).AddHours(16),
+                    MaintenanceStatus = "Scheduled",
+                    Description = "Bảo dưỡng định kỳ 10.000 km & thay dầu hộp số chính hãng.",
+                    Cost = 1850000m
+                },
+                new MaintenanceListItem
+                {
+                    MaintenanceId = 12, VehicleId = 1, LicensePlate = "65A-12345",
+                    Brand = "Toyota", Model = "Vios G", CategoryName = "Sedan",
+                    CreatedByUserId = 1, CreatedByName = "Quản trị viên",
+                    StartAtLocal = DateTime.Today.AddDays(-12).AddHours(8), EndAtLocal = DateTime.Today.AddDays(-12).AddHours(12),
+                    MaintenanceStatus = "Completed",
+                    Description = "Thay nhớt động cơ, lọc gió điều hòa và vệ sinh buồng đốt.",
+                    Cost = 850000m
+                },
+                new MaintenanceListItem
+                {
+                    MaintenanceId = 11, VehicleId = 4, LicensePlate = "DEMO-CRMS-026",
+                    Brand = "Toyota", Model = "Camry Hybrid", CategoryName = "Sedan",
+                    CreatedByUserId = 1, CreatedByName = "Quản trị viên",
+                    StartAtLocal = DateTime.Today.AddDays(-18).AddHours(13), EndAtLocal = DateTime.Today.AddDays(-18).AddHours(17),
+                    MaintenanceStatus = "Cancelled",
+                    Description = "Hủy lịch kiểm tra pin do dời sang kỳ bảo dưỡng tổng thể.",
+                    Cost = 0m
+                }
+            });
+
+        public Task<long> ScheduleMaintenanceAsync(MaintenanceScheduleRequest request) => Task.FromResult(17L);
+        public Task UpdateMaintenanceAsync(MaintenanceUpdateRequest request) => Task.CompletedTask;
+        public Task ChangeStatusAsync(long maintenanceId, string nextStatus, decimal? finalCost = null, string? updatedDescription = null) =>
+            Task.CompletedTask;
     }
 }

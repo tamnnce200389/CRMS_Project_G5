@@ -64,6 +64,11 @@ Assert((string)labelConverter.Convert("Gasoline", typeof(string), null!, Culture
        (string)labelConverter.Convert("Electric", typeof(string), null!, CultureInfo.InvariantCulture) == "Điện" &&
        (string)labelConverter.Convert("Hybrid", typeof(string), null!, CultureInfo.InvariantCulture) == "Hybrid",
     "Converter maps all CK_Vehicles_Fuel values");
+Assert((string)labelConverter.Convert("Scheduled", typeof(string), null!, CultureInfo.InvariantCulture) == "Đã lên lịch" &&
+       (string)labelConverter.Convert("InProgress", typeof(string), null!, CultureInfo.InvariantCulture) == "Đang bảo trì" &&
+       (string)labelConverter.Convert("Completed", typeof(string), null!, CultureInfo.InvariantCulture) == "Đã hoàn thành" &&
+       (string)labelConverter.Convert("Cancelled", typeof(string), null!, CultureInfo.InvariantCulture) == "Đã hủy",
+    "Converter maps all CK_Maintenance_Status values");
 
 // =========================================================
 // 2. PURE VEHICLE RULES CHECKS (NO DATABASE CONNECTION)
@@ -261,6 +266,60 @@ Assert(availVm.TotalCheckedCount == 2 && availVm.AvailableCount == 1 && availVm.
     "AvailabilityViewModel computes available/unavailable KPIs");
 availVm.SelectedAvailabilityFilter = "Chỉ xe còn trống";
 Assert(availVm.FilteredCount == 1, "AvailabilityViewModel filters available-only vehicles");
+
+// =========================================================
+// 3C. F24 PURE MAINTENANCE RULES & VIEWMODEL CHECKS
+// =========================================================
+var validMaintReq = new MaintenanceScheduleRequest(
+    VehicleId: 1,
+    StartAtLocal: baseDayLocal.AddHours(9),
+    EndAtLocal: baseDayLocal.AddHours(15),
+    Description: "  Thay dầu phanh & cân chỉnh thước lái  ",
+    Cost: 850000m,
+    StartImmediately: false);
+
+var (normMaint, _, _) = MaintenanceRules.ValidateSchedule(validMaintReq, nowRefUtc);
+Assert(normMaint.Description == "Thay dầu phanh & cân chỉnh thước lái" && normMaint.Cost == 850000m,
+    "F24: ValidateSchedule trims description and preserves valid cost");
+
+Reject(() => MaintenanceRules.ValidateSchedule(validMaintReq with { VehicleId = 0 }, nowRefUtc),
+    "F24: Reject invalid VehicleId");
+Reject(() => MaintenanceRules.ValidateSchedule(validMaintReq with { Description = "   " }, nowRefUtc),
+    "F24: Reject empty maintenance description");
+Reject(() => MaintenanceRules.ValidateSchedule(validMaintReq with { Description = new string('M', 1501) }, nowRefUtc),
+    "F24: Reject maintenance description > 1500 chars");
+Reject(() => MaintenanceRules.ValidateSchedule(validMaintReq with { Cost = -1m }, nowRefUtc),
+    "F24: Reject negative maintenance cost");
+Reject(() => MaintenanceRules.ValidateSchedule(validMaintReq with { Cost = 100.555m }, nowRefUtc),
+    "F24: Reject maintenance cost > 2 decimals");
+Reject(() => MaintenanceRules.ValidateSchedule(validMaintReq with { EndAtLocal = validMaintReq.StartAtLocal }, nowRefUtc),
+    "F24: Reject EndAt <= StartAt");
+Reject(() => MaintenanceRules.ValidateSchedule(
+        validMaintReq with { StartAtLocal = DateTime.Today.AddDays(-1), EndAtLocal = DateTime.Today.AddDays(1), StartImmediately = false },
+        nowRefUtc),
+    "F24: Reject past StartAt for non-immediate Scheduled maintenance");
+
+MaintenanceRules.ValidateTransition("Scheduled", "InProgress");
+MaintenanceRules.ValidateTransition("InProgress", "Completed");
+MaintenanceRules.ValidateTransition("Scheduled", "Cancelled");
+Reject(() => MaintenanceRules.ValidateTransition("InProgress", "Scheduled"),
+    "F24: Reject backwards transition InProgress -> Scheduled");
+Reject(() => MaintenanceRules.ValidateTransition("Completed", "InProgress"),
+    "F24: Reject modifying Completed maintenance");
+Reject(() => MaintenanceRules.ValidateTransition("Cancelled", "Scheduled"),
+    "F24: Reject modifying Cancelled maintenance");
+
+var fakeMaintService = new FakeMaintenanceService();
+var maintVm = new MaintenanceViewModel(fakeMaintService, fakeService);
+await maintVm.InitializeAsync();
+Assert(maintVm.TotalRecords == 3 &&
+       maintVm.InProgressCount == 1 &&
+       maintVm.ScheduledCount == 1 &&
+       maintVm.CompletedCount == 1 &&
+       maintVm.TotalCompletedCost == 850000m,
+    "F24: MaintenanceViewModel computes status KPIs and completed cost");
+maintVm.SelectedStatusFilter = "Scheduled";
+Assert(maintVm.FilteredCount == 1, "F24: MaintenanceViewModel filters by MaintenanceStatus");
 
 if (!args.Contains("--integration"))
 {
@@ -661,7 +720,127 @@ try
            suspendedCheck.Conflicts.Any(c => c.Type == AvailabilityConflictType.VehicleSuspended),
         "F07: Suspended vehicle reports VehicleSuspended conflict");
 
-    Console.WriteLine($"ALL {passed} CHECKS PASSED (F06 + F07 unit & SQL integration).");
+    // =========================================================
+    // 6. F24 SQL SERVER MAINTENANCE INTEGRATION CHECKS
+    // =========================================================
+    await service.SetVehicleStatusAsync(newVehicleId, "Active");
+
+    long? maintActor = null;
+    var maintService = new MaintenanceService(Create, () => maintActor);
+    var mDay = DateTime.Today.AddDays(15);
+    var m10 = mDay.AddHours(10);
+    var m12 = mDay.AddHours(12);
+    var m14 = mDay.AddHours(14);
+    var m11 = mDay.AddHours(11);
+
+    // 6.1 Role guard: Guest, Customer, Staff cannot schedule maintenance
+    var baseMaintReq = new MaintenanceScheduleRequest(newVehicleId, m10, m12, "Bao tri dinh ky 20.000km", 450000m);
+    await RejectAsync(() => maintService.ScheduleMaintenanceAsync(baseMaintReq),
+        "F24: Guest cannot schedule maintenance");
+    maintActor = customerId;
+    await RejectAsync(() => maintService.ScheduleMaintenanceAsync(baseMaintReq),
+        "F24: Customer cannot schedule maintenance");
+    maintActor = staffId;
+    await RejectAsync(() => maintService.ScheduleMaintenanceAsync(baseMaintReq),
+        "F24: Staff cannot schedule maintenance");
+
+    // 6.2 Mandatory TV2 Test: Cannot schedule maintenance overlapping active Booking
+    long f24BookingId;
+    using (var db = Create())
+    {
+        var b = new Booking
+        {
+            BookingCode = "TV2-F24-" + Guid.NewGuid().ToString("N")[..10],
+            RequestKey = Guid.NewGuid(),
+            CustomerId = customerId,
+            VehicleId = newVehicleId,
+            RentalType = "SelfDrive",
+            DepositMethod = "Cash",
+            StartAt = AvailabilityRules.ToUtc(m10),
+            EndAt = AvailabilityRules.ToUtc(m12),
+            RentalDays = 1,
+            VehicleDailyRate = 2200000m,
+            VehicleAmount = 2200000m,
+            DiscountAmount = 0m,
+            TotalAmount = 2200000m,
+            DepositAmount = 1100000m,
+            DepositDeadline = DateTime.UtcNow.AddHours(2),
+            BookingStatus = "Confirmed",
+            CreatedAt = DateTime.UtcNow
+        };
+        db.Bookings.Add(b);
+        await db.SaveChangesAsync();
+        f24BookingId = b.BookingId;
+    }
+
+    maintActor = adminId;
+    await RejectAsync(() => maintService.ScheduleMaintenanceAsync(
+            new MaintenanceScheduleRequest(newVehicleId, m11, m14, "Trung lich Booking Confirmed", 300000m)),
+        "F24 Mandatory Test: Cannot schedule maintenance overlapping Confirmed booking (usp_ScheduleMaintenance 51404)");
+
+    // 6.3 Adjacent half-open [12:00, 14:00) right after [10:00, 12:00) booking SUCCEEDS via usp_ScheduleMaintenance
+    var scheduledMaintId = await maintService.ScheduleMaintenanceAsync(
+        new MaintenanceScheduleRequest(newVehicleId, m12, m14, "Bao duong sau chuyen thue", 650000m));
+    Assert(scheduledMaintId > 0,
+        "F24: Adjacent maintenance [12:00, 14:00) right after [10:00, 12:00) booking succeeds via usp_ScheduleMaintenance");
+
+    // Overlapping second maintenance rejected (usp_ScheduleMaintenance 51405)
+    await RejectAsync(() => maintService.ScheduleMaintenanceAsync(
+            new MaintenanceScheduleRequest(newVehicleId, m12.AddMinutes(30), m14.AddHours(1), "Trung lich bao tri", 100000m)),
+        "F24: Overlapping second maintenance schedule rejected (51405)");
+
+    // Attempting to move maintenance back into [11:00, 14:00) overlapping booking is rejected
+    await RejectAsync(() => maintService.UpdateMaintenanceAsync(
+            new MaintenanceUpdateRequest(scheduledMaintId, m11, m14, "Doi gio de len booking", 650000m, "Scheduled")),
+        "F24: Updating maintenance window to overlap active booking is rejected");
+
+    // 6.4 Lifecycle Scheduled -> InProgress -> Completed updates cost & frees F07 availability
+    Assert(!(await availService.CheckAvailabilityAsync(newVehicleId, m12, m14)).IsAvailable,
+        "F24 <-> F07: Scheduled maintenance blocks vehicle availability");
+
+    await maintService.ChangeStatusAsync(scheduledMaintId, "InProgress");
+    var listAfterStart = await maintService.GetMaintenanceRecordsAsync(new MaintenanceFilter(VehicleId: newVehicleId));
+    var activeRecord = listAfterStart.First(x => x.MaintenanceId == scheduledMaintId);
+    Assert(activeRecord.MaintenanceStatus == "InProgress" && activeRecord.Cost == 650000m,
+        "F24: Maintenance transitions Scheduled -> InProgress and preserves cost");
+    Assert(!(await availService.CheckAvailabilityAsync(newVehicleId, m12, m14)).IsAvailable,
+        "F24 <-> F07: InProgress maintenance continues blocking availability");
+
+    await maintService.ChangeStatusAsync(scheduledMaintId, "Completed", finalCost: 920000m, updatedDescription: "Hoan tat thay ma phanh & dau phanh");
+    var completedRecord = (await maintService.GetMaintenanceRecordsAsync(new MaintenanceFilter(VehicleId: newVehicleId)))
+        .First(x => x.MaintenanceId == scheduledMaintId);
+    Assert(completedRecord.MaintenanceStatus == "Completed" && completedRecord.Cost == 920000m,
+        "F24: Completing maintenance updates status and final repair cost");
+    Assert((await availService.CheckAvailabilityAsync(newVehicleId, m12, m14)).IsAvailable,
+        "F24 <-> F07: Completed maintenance immediately frees vehicle availability");
+
+    await RejectAsync(() => maintService.UpdateMaintenanceAsync(
+            new MaintenanceUpdateRequest(scheduledMaintId, m12, m14, "Sua lai phieu da dong", 100000m, "InProgress")),
+        "F24: Completed maintenance record is locked against further edits");
+
+    // Cleanup test booking status so vehicle has clean state
+    using (var db = Create())
+    {
+        var b = await db.Bookings.FindAsync(f24BookingId);
+        b!.BookingStatus = "Completed";
+        await db.SaveChangesAsync();
+    }
+
+    // 6.5 Immediate emergency maintenance (StartImmediately = true -> InProgress) & Cancel frees availability
+    var nowVn = AvailabilityRules.ToVietnamLocal(DateTime.UtcNow);
+    var emergencyEnd = nowVn.AddHours(3);
+    var emergencyId = await maintService.ScheduleMaintenanceAsync(
+        new MaintenanceScheduleRequest(newVehicleId, nowVn.AddMinutes(-5), emergencyEnd, "Sua chua khan cap", 0m, StartImmediately: true));
+    var emergencyRec = (await maintService.GetMaintenanceRecordsAsync(new MaintenanceFilter(VehicleId: newVehicleId)))
+        .First(x => x.MaintenanceId == emergencyId);
+    Assert(emergencyRec.MaintenanceStatus == "InProgress",
+        "F24: Emergency StartImmediately creates InProgress maintenance immediately");
+
+    await maintService.ChangeStatusAsync(emergencyId, "Cancelled");
+    Assert((await availService.CheckAvailabilityAsync(newVehicleId, nowVn.AddHours(1), emergencyEnd)).IsAvailable,
+        "F24: Cancelling InProgress maintenance frees vehicle availability");
+
+    Console.WriteLine($"ALL {passed} CHECKS PASSED (F06 + F07 + F24 unit & SQL integration).");
 }
 finally
 {
@@ -751,4 +930,40 @@ sealed class FakeAvailabilityService : IAvailabilityService
                 }
             }
         };
+}
+
+sealed class FakeMaintenanceService : IMaintenanceService
+{
+    private readonly List<MaintenanceListItem> _items = new()
+    {
+        new MaintenanceListItem
+        {
+            MaintenanceId = 1, VehicleId = 1, LicensePlate = "65A-67890", Brand = "Ford", Model = "Everest",
+            CategoryName = "SUV", CreatedByUserId = 1, CreatedByName = "Admin Demo",
+            StartAtLocal = DateTime.Today.AddHours(8), EndAtLocal = DateTime.Today.AddHours(17),
+            MaintenanceStatus = "InProgress", Description = "Bảo dưỡng phanh & lốp", Cost = 450000m
+        },
+        new MaintenanceListItem
+        {
+            MaintenanceId = 2, VehicleId = 1, LicensePlate = "65A-67890", Brand = "Ford", Model = "Everest",
+            CategoryName = "SUV", CreatedByUserId = 1, CreatedByName = "Admin Demo",
+            StartAtLocal = DateTime.Today.AddDays(5).AddHours(9), EndAtLocal = DateTime.Today.AddDays(5).AddHours(15),
+            MaintenanceStatus = "Scheduled", Description = "Thay dầu hộp số", Cost = 0m
+        },
+        new MaintenanceListItem
+        {
+            MaintenanceId = 3, VehicleId = 2, LicensePlate = "DEMO-CRMS-026", Brand = "Toyota", Model = "Camry Hybrid",
+            CategoryName = "SUV", CreatedByUserId = 1, CreatedByName = "Admin Demo",
+            StartAtLocal = DateTime.Today.AddDays(-10).AddHours(8), EndAtLocal = DateTime.Today.AddDays(-10).AddHours(14),
+            MaintenanceStatus = "Completed", Description = "Bảo dưỡng định kỳ 10.000km", Cost = 850000m
+        }
+    };
+
+    public Task<List<MaintenanceListItem>> GetMaintenanceRecordsAsync(MaintenanceFilter? filter = null) =>
+        Task.FromResult(_items.ToList());
+
+    public Task<long> ScheduleMaintenanceAsync(MaintenanceScheduleRequest request) => Task.FromResult(4L);
+    public Task UpdateMaintenanceAsync(MaintenanceUpdateRequest request) => Task.CompletedTask;
+    public Task ChangeStatusAsync(long maintenanceId, string nextStatus, decimal? finalCost = null, string? updatedDescription = null) =>
+        Task.CompletedTask;
 }
