@@ -368,12 +368,13 @@ public partial class CrmsContext : DbContext
 
             entity.HasIndex(e => new { e.VehicleId, e.SortOrder }, "IX_Images_Vehicle");
 
-            entity.HasIndex(e => e.VehicleId, "UX_Images_OnePrimary").IsUnique();
+            entity.HasIndex(e => e.VehicleId, "UX_Images_OnePrimary").IsUnique().HasFilter("([IsPrimary]=(1))");
 
             entity.Property(e => e.ImageUrl).HasMaxLength(1000);
 
-            entity.HasOne(d => d.Vehicle).WithOne(p => p.VehicleImage)
-                .HasForeignKey<VehicleImage>(d => d.VehicleId)
+            entity.HasOne(d => d.Vehicle).WithMany(p => p.VehicleImages)
+                .HasForeignKey(d => d.VehicleId)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK_Images_Vehicle");
         });
 
