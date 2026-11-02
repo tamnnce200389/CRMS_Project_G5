@@ -3,7 +3,7 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:vm="clr-namespace:CRMS.ViewModels"
       Title="Tra cứu xe"
-      Background="#F4F8F6"
+      Background="{StaticResource PageBackground}"
       FontFamily="Segoe UI">
 
     <Page.DataContext>
@@ -18,16 +18,16 @@
             <TextBlock Text="Tra cứu phương tiện"
                        FontSize="28"
                        FontWeight="Bold"
-                       Foreground="#153D34"/>
+                       Foreground="{StaticResource Ink}"/>
 
             <TextBlock Text="Xem thông tin và tình trạng các xe trong hệ thống."
-                       Foreground="#64748B"
+                       Foreground="{StaticResource MutedReadable}"
                        Margin="0,8,0,24"/>
 
             <!-- SEARCH -->
-            <Border Background="White"
+            <Border Background="{StaticResource Surface}"
                     CornerRadius="14"
-                    BorderBrush="#DCEAE5"
+                    BorderBrush="{StaticResource Line}"
                     BorderThickness="1"
                     Padding="20"
                     Margin="0,0,0,20">
@@ -43,7 +43,7 @@
                                 Margin="0,0,14,0">
 
                         <TextBlock Text="Tìm theo hãng, mẫu hoặc biển số"
-                                   Foreground="#64748B"
+                                   Foreground="{StaticResource MutedReadable}"
                                    Margin="0,0,0,8"/>
 
                         <TextBox Height="42"
@@ -56,10 +56,10 @@
                                 Margin="0,0,14,0">
 
                         <TextBlock Text="Trạng thái xe"
-                                   Foreground="#64748B"
+                                   Foreground="{StaticResource MutedReadable}"
                                    Margin="0,0,0,8"/>
 
-                        <ComboBox Height="42"
+                        <ComboBox Style="{StaticResource RoundedComboBox}" Height="42"
                                   ItemsSource="{Binding StatusOptions}"
                                   SelectedItem="{Binding SelectedStatus}"/>
                     </StackPanel>
@@ -69,8 +69,8 @@
                             Width="110"
                             Height="42"
                             VerticalAlignment="Bottom"
-                            Background="#16A085"
-                            Foreground="White"
+                            Background="{StaticResource PrimaryHover}"
+                            Foreground="{StaticResource Surface}"
                             BorderThickness="0"
                             FontWeight="SemiBold"
                             Cursor="Hand"
@@ -79,9 +79,9 @@
             </Border>
 
             <!-- VEHICLE TABLE -->
-            <Border Background="White"
+            <Border Background="{StaticResource Surface}"
                     CornerRadius="14"
-                    BorderBrush="#DCEAE5"
+                    BorderBrush="{StaticResource Line}"
                     BorderThickness="1"
                     Padding="18">
 
@@ -96,12 +96,12 @@
                         <TextBlock Text="Danh sách phương tiện"
                                    FontSize="20"
                                    FontWeight="Bold"
-                                   Foreground="#153D34"/>
+                                   Foreground="{StaticResource Ink}"/>
 
                         <TextBlock Grid.Column="1"
                                    Text="{Binding FilteredCount,
                                        StringFormat={}{0} xe}"
-                                   Foreground="#047857"
+                                   Foreground="{StaticResource PrimaryHover}"
                                    FontWeight="SemiBold"
                                    VerticalAlignment="Center"/>
                     </Grid>
@@ -115,7 +115,7 @@
                               RowHeight="42"
                               ColumnHeaderHeight="42"
                               MinHeight="350"
-                              Background="White"
+                              Background="{StaticResource Surface}"
                               BorderThickness="0"
                               GridLinesVisibility="Horizontal"
                               HeadersVisibility="Column">
@@ -155,12 +155,12 @@
                     </DataGrid>
 
                     <TextBlock Text="{Binding StatusMessage}"
-                               Foreground="#64748B"
+                               Foreground="{StaticResource MutedReadable}"
                                FontSize="12"
                                Margin="0,13,0,0"/>
 
                     <TextBlock Text="Nhân viên chỉ được tra cứu. Thay đổi giá và thông tin phương tiện thuộc quyền quản trị."
-                               Foreground="#94A3B8"
+                               Foreground="{StaticResource Muted}"
                                FontStyle="Italic"
                                FontSize="12"
                                TextWrapping="Wrap"

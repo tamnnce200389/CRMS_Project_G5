@@ -1,4 +1,6 @@
-﻿
+using System.Windows.Controls.Primitives;
+using System.Windows.Media;
+
 using System;
 using System.Windows;
 using System.Windows.Controls;
@@ -87,6 +89,77 @@ namespace CRMS.Views.Guest
                     "Lỗi tải danh sách xe",
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
+            }
+        }
+
+        // Show navigation arrows only when quick filters exceed the available width.
+        // LongTerm has a separate centered row and never shows these buttons.
+        private void QuickFiltersScroll_ScrollChanged(object sender, ScrollChangedEventArgs e)
+        {
+            // A template/layout event can fire while the visual tree is being built.
+            if (ScrollLeftButton == null || ScrollRightButton == null)
+                return;
+
+            const double epsilon = 1.0;
+            ScrollLeftButton.Visibility =
+                QuickFiltersScroll.HorizontalOffset > epsilon
+                    ? Visibility.Visible : Visibility.Collapsed;
+            ScrollRightButton.Visibility =
+                QuickFiltersScroll.ScrollableWidth - QuickFiltersScroll.HorizontalOffset > epsilon
+                    ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        // Scroll the quick filter ribbon. This only scrolls the screen, it never filters cars.
+        private void ScrollQuickLeft_Click(object sender, RoutedEventArgs e)
+        {
+            QuickFiltersScroll.ScrollToHorizontalOffset(
+                Math.Max(0, QuickFiltersScroll.HorizontalOffset - 310));
+        }
+
+        private void ScrollQuickRight_Click(object sender, RoutedEventArgs e)
+        {
+            QuickFiltersScroll.ScrollToHorizontalOffset(
+                QuickFiltersScroll.HorizontalOffset + 310);
+        }
+
+        // Pure UI-preview controls. These never call the search service or modify filters in the VM.
+        private void OpenShortTermFilters_Click(object sender, RoutedEventArgs e)
+        {
+            VisualFiltersPopup.PlacementTarget = AdvancedFiltersToggle;
+            VisualFiltersPopup.HorizontalOffset = -430;
+        }
+
+        private void OpenLongTermFilters_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is ToggleButton button)
+            {
+                button.IsChecked = false;
+                VisualFiltersPopup.PlacementTarget = button;
+                VisualFiltersPopup.HorizontalOffset = 0;
+            }
+            AdvancedFiltersToggle.IsChecked = true;
+        }
+
+        private void CloseVisualFilters_Click(object sender, RoutedEventArgs e)
+        {
+            AdvancedFiltersToggle.IsChecked = false;
+        }
+
+        private void ResetVisualFilters_Click(object sender, RoutedEventArgs e)
+        {
+            ClearPreviewSelections(QuickFilterStripRoot);
+            ClearPreviewSelections(LongTermQuickFilters);
+            ClearPreviewSelections(AdvancedFilterPanel);
+        }
+
+        private static void ClearPreviewSelections(DependencyObject root)
+        {
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(root); i++)
+            {
+                var child = VisualTreeHelper.GetChild(root, i);
+                if (child is ToggleButton toggle)
+                    toggle.IsChecked = false;
+                ClearPreviewSelections(child);
             }
         }
 

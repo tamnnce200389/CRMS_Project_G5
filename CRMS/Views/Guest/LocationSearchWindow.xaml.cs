@@ -1,4 +1,4 @@
-﻿
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -17,8 +17,11 @@ namespace CRMS.Views.Guest
 
         public List<string> SelectedBudgets { get; private set; } = new();
 
+        private readonly string _initialCity;
+
         public LocationSearchWindow(string currentCity = "Cần Thơ")
         {
+            _initialCity = currentCity;
             InitializeComponent();
 
             foreach (ComboBoxItem item in CityCombo.Items)
@@ -39,6 +42,22 @@ namespace CRMS.Views.Guest
                 .Select(button => button.Tag?.ToString() ?? "")
                 .Where(value => value.Length > 0)
                 .ToList();
+        }
+
+        // Reset UI to the city that was active when the dialog opened.
+        // Applying filters remains a separate, explicit action.
+        private void Reset_Click(object sender, RoutedEventArgs e)
+        {
+            CityCombo.SelectedItem = CityCombo.Items
+                .OfType<ComboBoxItem>()
+                .FirstOrDefault(item => item.Content?.ToString() == _initialCity)
+                ?? CityCombo.Items.OfType<ComboBoxItem>().FirstOrDefault();
+
+            foreach (WrapPanel panel in new[] { NeedsPanel, TrendsPanel, BudgetPanel })
+            {
+                foreach (ToggleButton chip in panel.Children.OfType<ToggleButton>())
+                    chip.IsChecked = false;
+            }
         }
 
         private void Apply_Click(object sender, RoutedEventArgs e)

@@ -2,7 +2,7 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       Title="Tổng quan nhân viên"
-      Background="#F4F8F6"
+      Background="{StaticResource PageBackground}"
       FontFamily="Segoe UI">
 
     <Page.Resources>
@@ -11,14 +11,19 @@
 
         <Style x:Key="StaffCard" TargetType="Border">
             <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="#DFEAE6"/>
+            <Setter Property="BorderBrush" Value="{StaticResource Line}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="16"/>
             <Setter Property="Padding" Value="22"/>
-        </Style>
 
-        <Style x:Key="StaffActionButton" TargetType="Button">
-            <Setter Property="Background" Value="#16A085"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.06" Color="{StaticResource ShadowColor}"/>
+                </Setter.Value>
+            </Setter></Style>
+
+        <Style BasedOn="{StaticResource {x:Type Button}}" x:Key="StaffActionButton" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource PrimaryHover}"/>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="FontSize" Value="14"/>
@@ -32,7 +37,7 @@
             <Setter Property="Width" Value="205"/>
             <Setter Property="MinHeight" Value="112"/>
             <Setter Property="CornerRadius" Value="12"/>
-            <Setter Property="Background" Value="#E8F8F1"/>
+            <Setter Property="Background" Value="{StaticResource PrimarySoft}"/>
             <Setter Property="Padding" Value="18"/>
             <Setter Property="Margin" Value="0,0,12,12"/>
         </Style>
@@ -40,7 +45,7 @@
         <Style x:Key="SectionTitle" TargetType="TextBlock">
             <Setter Property="FontSize" Value="21"/>
             <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="#102C26"/>
+            <Setter Property="Foreground" Value="{StaticResource Ink}"/>
             <Setter Property="Margin" Value="0,0,0,16"/>
         </Style>
 
@@ -56,12 +61,12 @@
             <TextBlock Text="Tổng quan nhân viên"
                        FontSize="29"
                        FontWeight="Bold"
-                       Foreground="#102C26"/>
+                       Foreground="{StaticResource Ink}"/>
 
             <TextBlock
                 Text="Không gian làm việc dành cho nhân viên vận hành CRMS."
                 FontSize="14"
-                Foreground="#64748B"
+                Foreground="{StaticResource MutedReadable}"
                 Margin="0,8,0,25"/>
 
             <!-- STAFF BANNER -->
@@ -73,34 +78,34 @@
                 <Border.Background>
                     <LinearGradientBrush StartPoint="0,0"
                                          EndPoint="1,1">
-                        <GradientStop Color="#115E50" Offset="0"/>
-                        <GradientStop Color="#16A085" Offset="1"/>
+                        <GradientStop Color="{StaticResource PrimaryPressedColor}" Offset="0"/>
+                        <GradientStop Color="{StaticResource PrimaryColor}" Offset="1"/>
                     </LinearGradientBrush>
                 </Border.Background>
 
                 <StackPanel>
 
                     <TextBlock Text="STAFF WORKSPACE"
-                               Foreground="#C7F5E8"
+                               Foreground="{StaticResource HeroText}"
                                FontWeight="Bold"
                                FontSize="12"/>
 
                     <TextBlock Text="Sẵn sàng cho ca làm việc!"
-                               Foreground="White"
+                               Foreground="{StaticResource Surface}"
                                FontSize="29"
                                FontWeight="Bold"
                                Margin="0,12,0,10"/>
 
                     <TextBlock
                         Text="Theo dõi đơn thuê, tình trạng phương tiện và hỗ trợ khách hàng trong quá trình nhận - trả xe."
-                        Foreground="#E1F7EF"
+                        Foreground="{StaticResource HeroText}"
                         FontSize="14"
                         TextWrapping="Wrap"
                         Margin="0,0,0,20"/>
 
                     <Button Content="Đi đến đơn thuê →"
-                            Background="White"
-                            Foreground="#047857"
+                            Background="{StaticResource Surface}"
+                            Foreground="{StaticResource PrimaryHover}"
                             BorderThickness="0"
                             Padding="20,12"
                             FontWeight="SemiBold"
@@ -125,7 +130,7 @@
 
                     <TextBlock
                         Text="Thống kê đơn thuê theo ngày tạo và tình trạng đội xe hiện tại."
-                        Foreground="#64748B"
+                        Foreground="{StaticResource MutedReadable}"
                         FontSize="13"
                         Margin="0,0,0,18"
                         TextWrapping="Wrap"/>
@@ -137,10 +142,10 @@
                         <StackPanel Margin="0,0,16,12">
 
                             <TextBlock Text="Từ ngày"
-                                       Foreground="#475569"
+                                       Foreground="{StaticResource MutedReadable}"
                                        Margin="0,0,0,6"/>
 
-                            <DatePicker Width="175"
+                            <DatePicker Style="{StaticResource RoundedDatePicker}" Width="175"
                                         SelectedDate="{Binding FromDate, Mode=TwoWay}"/>
 
                         </StackPanel>
@@ -148,10 +153,10 @@
                         <StackPanel Margin="0,0,16,12">
 
                             <TextBlock Text="Đến ngày"
-                                       Foreground="#475569"
+                                       Foreground="{StaticResource MutedReadable}"
                                        Margin="0,0,0,6"/>
 
-                            <DatePicker Width="175"
+                            <DatePicker Style="{StaticResource RoundedDatePicker}" Width="175"
                                         SelectedDate="{Binding ToDate, Mode=TwoWay}"/>
 
                         </StackPanel>
@@ -165,7 +170,7 @@
                     </WrapPanel>
 
                     <TextBlock Text="{Binding StatusMessage}"
-                               Foreground="#64748B"
+                               Foreground="{StaticResource MutedReadable}"
                                TextWrapping="Wrap"
                                Margin="0,0,0,18"/>
 
@@ -177,76 +182,76 @@
                         <Border Style="{StaticResource StaffKpiCard}">
                             <StackPanel>
                                 <TextBlock Text="Tổng đơn thuê"
-                                           Foreground="#64748B"/>
+                                           Foreground="{StaticResource MutedReadable}"/>
                                 <TextBlock Text="{Binding Snapshot.TotalBookings}"
                                            FontSize="30"
                                            FontWeight="Bold"
-                                           Foreground="#047857"/>
+                                           Foreground="{StaticResource PrimaryHover}"/>
                                 <TextBlock Text="Theo khoảng ngày"
-                                           Foreground="#64748B"
+                                           Foreground="{StaticResource MutedReadable}"
                                            FontSize="11"/>
                             </StackPanel>
                         </Border>
 
                         <Border Style="{StaticResource StaffKpiCard}"
-                                Background="#E4F2FF">
+                                Background="{StaticResource PrimarySoft}">
                             <StackPanel>
                                 <TextBlock Text="Chờ đặt cọc"
-                                           Foreground="#64748B"/>
+                                           Foreground="{StaticResource MutedReadable}"/>
                                 <TextBlock Text="{Binding Snapshot.PendingDeposit}"
                                            FontSize="30"
                                            FontWeight="Bold"
-                                           Foreground="#2563EB"/>
+                                           Foreground="{StaticResource PrimaryHover}"/>
                             </StackPanel>
                         </Border>
 
                         <Border Style="{StaticResource StaffKpiCard}"
-                                Background="#FFF2E2">
+                                Background="{StaticResource HighlightSoft}">
                             <StackPanel>
                                 <TextBlock Text="Đã xác nhận"
-                                           Foreground="#64748B"/>
+                                           Foreground="{StaticResource MutedReadable}"/>
                                 <TextBlock Text="{Binding Snapshot.Confirmed}"
                                            FontSize="30"
                                            FontWeight="Bold"
-                                           Foreground="#D97706"/>
+                                           Foreground="{StaticResource HighlightInk}"/>
                             </StackPanel>
                         </Border>
 
                         <Border Style="{StaticResource StaffKpiCard}">
                             <StackPanel>
                                 <TextBlock Text="Xe đang thuê"
-                                           Foreground="#64748B"/>
+                                           Foreground="{StaticResource MutedReadable}"/>
                                 <TextBlock Text="{Binding Snapshot.VehiclesInUse}"
                                            FontSize="30"
                                            FontWeight="Bold"
-                                           Foreground="#047857"/>
+                                           Foreground="{StaticResource PrimaryHover}"/>
                                 <TextBlock Text="Trạng thái hiện tại"
                                            FontSize="11"
-                                           Foreground="#64748B"/>
+                                           Foreground="{StaticResource MutedReadable}"/>
                             </StackPanel>
                         </Border>
 
                         <Border Style="{StaticResource StaffKpiCard}"
-                                Background="#FEF2F2">
+                                Background="{StaticResource DangerSoft}">
                             <StackPanel>
                                 <TextBlock Text="Xe đang bảo trì"
-                                           Foreground="#64748B"/>
+                                           Foreground="{StaticResource MutedReadable}"/>
                                 <TextBlock Text="{Binding Snapshot.VehiclesInMaintenance}"
                                            FontSize="30"
                                            FontWeight="Bold"
-                                           Foreground="#DC2626"/>
+                                           Foreground="{StaticResource Danger}"/>
                             </StackPanel>
                         </Border>
 
                         <Border Style="{StaticResource StaffKpiCard}"
-                                Background="#F1F5F9">
+                                Background="{StaticResource SurfaceMuted}">
                             <StackPanel>
                                 <TextBlock Text="Tổng số xe"
-                                           Foreground="#64748B"/>
+                                           Foreground="{StaticResource MutedReadable}"/>
                                 <TextBlock Text="{Binding Snapshot.TotalVehicles}"
                                            FontSize="30"
                                            FontWeight="Bold"
-                                           Foreground="#334155"/>
+                                           Foreground="{StaticResource Ink}"/>
                             </StackPanel>
                         </Border>
 
@@ -268,7 +273,7 @@
 
                     <TextBlock
                         Text="Số lượng đơn được tạo trong khoảng thời gian đã chọn."
-                        Foreground="#64748B"
+                        Foreground="{StaticResource MutedReadable}"
                         Margin="0,0,0,12"
                         TextWrapping="Wrap"/>
 
@@ -334,11 +339,11 @@
                         <TextBlock Text="Đơn thuê"
                                    FontSize="19"
                                    FontWeight="Bold"
-                                   Foreground="#102C26"/>
+                                   Foreground="{StaticResource Ink}"/>
 
                         <TextBlock
                             Text="Xem danh sách và tiếp tục xử lý các đơn thuê."
-                            Foreground="#64748B"
+                            Foreground="{StaticResource MutedReadable}"
                             TextWrapping="Wrap"
                             Margin="0,10,0,18"/>
 
@@ -356,11 +361,11 @@
                         <TextBlock Text="Đội xe"
                                    FontSize="19"
                                    FontWeight="Bold"
-                                   Foreground="#102C26"/>
+                                   Foreground="{StaticResource Ink}"/>
 
                         <TextBlock
                             Text="Tra cứu xe, biển số và trạng thái hoạt động."
-                            Foreground="#64748B"
+                            Foreground="{StaticResource MutedReadable}"
                             TextWrapping="Wrap"
                             Margin="0,10,0,18"/>
 
@@ -377,11 +382,11 @@
                         <TextBlock Text="Tài xế"
                                    FontSize="19"
                                    FontWeight="Bold"
-                                   Foreground="#102C26"/>
+                                   Foreground="{StaticResource Ink}"/>
 
                         <TextBlock
                             Text="Tra cứu danh sách và thông tin liên hệ tài xế."
-                            Foreground="#64748B"
+                            Foreground="{StaticResource MutedReadable}"
                             TextWrapping="Wrap"
                             Margin="0,10,0,18"/>
 
@@ -408,10 +413,10 @@
                         <TextBlock Text="1. Kiểm tra đơn"
                                    FontWeight="Bold"
                                    FontSize="16"
-                                   Foreground="#047857"/>
+                                   Foreground="{StaticResource PrimaryHover}"/>
                         <TextBlock
                             Text="Kiểm tra khách hàng, phương tiện và thời gian thuê."
-                            Foreground="#64748B"
+                            Foreground="{StaticResource MutedReadable}"
                             TextWrapping="Wrap"
                             Margin="0,9,0,0"/>
                     </StackPanel>
@@ -420,10 +425,10 @@
                         <TextBlock Text="2. Bàn giao xe"
                                    FontWeight="Bold"
                                    FontSize="16"
-                                   Foreground="#047857"/>
+                                   Foreground="{StaticResource PrimaryHover}"/>
                         <TextBlock
                             Text="Xác nhận thông tin khi khách hàng nhận xe."
-                            Foreground="#64748B"
+                            Foreground="{StaticResource MutedReadable}"
                             TextWrapping="Wrap"
                             Margin="0,9,0,0"/>
                     </StackPanel>
@@ -432,10 +437,10 @@
                         <TextBlock Text="3. Tiếp nhận xe trả"
                                    FontWeight="Bold"
                                    FontSize="16"
-                                   Foreground="#047857"/>
+                                   Foreground="{StaticResource PrimaryHover}"/>
                         <TextBlock
                             Text="Kiểm tra tình trạng xe khi khách hàng trả."
-                            Foreground="#64748B"
+                            Foreground="{StaticResource MutedReadable}"
                             TextWrapping="Wrap"
                             Margin="0,9,0,0"/>
                     </StackPanel>

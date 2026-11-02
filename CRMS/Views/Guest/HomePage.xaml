@@ -4,7 +4,7 @@
       xmlns:vm="clr-namespace:CRMS.ViewModels"
       xmlns:services="clr-namespace:CRMS.Services"
       Title="Trang chủ"
-      Background="#F5F7FB">
+      Background="{StaticResource PageBackground}">
 
     <!-- RESOURCES -->
     <Page.Resources>
@@ -12,10 +12,10 @@
         <BooleanToVisibilityConverter x:Key="GuestVisibility"/>
 
         <!-- Header menu -->
-        <Style x:Key="TopMenuButton" TargetType="Button">
+        <Style x:Key="TopMenuButton" TargetType="Button" BasedOn="{StaticResource GhostButton}">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Foreground" Value="#1F2937"/>
+            <Setter Property="Foreground" Value="{StaticResource Ink}"/>
             <Setter Property="FontSize" Value="15"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Padding" Value="12,8"/>
@@ -23,35 +23,27 @@
         </Style>
 
         <!-- Login / Logout -->
-        <Style x:Key="OutlineButton" TargetType="Button">
+        <Style x:Key="OutlineButton" TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
             <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="#111827"/>
+            <Setter Property="BorderBrush" Value="{StaticResource Ink}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Foreground" Value="#111827"/>
+            <Setter Property="Foreground" Value="{StaticResource Ink}"/>
             <Setter Property="Padding" Value="18,10"/>
             <Setter Property="FontSize" Value="15"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Cursor" Value="Hand"/>
         </Style>
 
-        <!-- Primary search button -->
-        <Style x:Key="PrimaryButton" TargetType="Button">
-            <Setter Property="Background" Value="#22C55E"/>
-            <Setter Property="BorderBrush" Value="#22C55E"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="FontSize" Value="15"/>
-            <Setter Property="Cursor" Value="Hand"/>
-        </Style>
+        <!-- PrimaryButton is now centralized in App.xaml. -->
 
-        <!-- Base style for rental tabs -->
-        <Style x:Key="ServiceTabButton" TargetType="Button">
-            <Setter Property="Background" Value="#F3F4F6"/>
-            <Setter Property="Foreground" Value="#6B7280"/>
+<!-- Base style for rental tabs -->
+        <Style x:Key="ServiceTabButton" TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
+            <Setter Property="Background" Value="{StaticResource SurfaceMuted}"/>
+            <Setter Property="Foreground" Value="{StaticResource MutedReadable}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Padding" Value="20,15"/>
             <Setter Property="MinWidth" Value="175"/>
+            <Setter Property="Height" Value="48"/>
             <Setter Property="FontSize" Value="15"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Cursor" Value="Hand"/>
@@ -63,8 +55,8 @@
                BasedOn="{StaticResource ServiceTabButton}">
             <Style.Triggers>
                 <DataTrigger Binding="{Binding IsSelfDrive}" Value="True">
-                    <Setter Property="Background" Value="#5AD07A"/>
-                    <Setter Property="Foreground" Value="White"/>
+                    <Setter Property="Background" Value="{StaticResource PrimaryHover}"/>
+                    <Setter Property="Foreground" Value="{StaticResource Surface}"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
@@ -75,8 +67,8 @@
                BasedOn="{StaticResource ServiceTabButton}">
             <Style.Triggers>
                 <DataTrigger Binding="{Binding IsWithDriver}" Value="True">
-                    <Setter Property="Background" Value="#5AD07A"/>
-                    <Setter Property="Foreground" Value="White"/>
+                    <Setter Property="Background" Value="{StaticResource PrimaryHover}"/>
+                    <Setter Property="Foreground" Value="{StaticResource Surface}"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
@@ -87,24 +79,24 @@
                BasedOn="{StaticResource ServiceTabButton}">
             <Style.Triggers>
                 <DataTrigger Binding="{Binding IsLongTerm}" Value="True">
-                    <Setter Property="Background" Value="#5AD07A"/>
-                    <Setter Property="Foreground" Value="White"/>
+                    <Setter Property="Background" Value="{StaticResource PrimaryHover}"/>
+                    <Setter Property="Foreground" Value="{StaticResource Surface}"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
 
         <!-- Labels -->
         <Style x:Key="SearchLabel" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="#64748B"/>
+            <Setter Property="Foreground" Value="{StaticResource MutedReadable}"/>
             <Setter Property="FontSize" Value="14"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
         </Style>
 
         <!-- Input buttons -->
-        <Style x:Key="InputButton" TargetType="Button">
+        <Style x:Key="InputButton" TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
             <Setter Property="Background" Value="White"/>
-            <Setter Property="Foreground" Value="#1F2937"/>
-            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+            <Setter Property="Foreground" Value="{StaticResource Ink}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource Line}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Height" Value="48"/>
             <Setter Property="Padding" Value="14,0"/>
@@ -114,11 +106,11 @@
         </Style>
 
         <!-- Service information -->
-        <Style x:Key="InfoCard" TargetType="Border">
+        <Style x:Key="InfoCard" TargetType="Border" BasedOn="{StaticResource Card}">
             <Setter Property="Background" Value="White"/>
             <Setter Property="CornerRadius" Value="16"/>
             <Setter Property="Padding" Value="22"/>
-            <Setter Property="BorderBrush" Value="#E5E7EB"/>
+            <Setter Property="BorderBrush" Value="{StaticResource Line}"/>
             <Setter Property="BorderThickness" Value="1"/>
         </Style>
 
@@ -136,7 +128,7 @@
         <StackPanel Margin="28,20,28,35">
 
             <!-- HEADER -->
-            <Border Background="White"
+            <Border Background="{StaticResource Surface}"
                     CornerRadius="18"
                     Padding="22,16"
                     Margin="0,0,0,22">
@@ -156,11 +148,11 @@
                         <Border Width="44"
                                 Height="44"
                                 CornerRadius="10"
-                                Background="#D1FAE5">
+                                Background="{StaticResource PrimarySoft}">
 
                             <TextBlock Text="&#xE804;"
                                        FontFamily="Segoe MDL2 Assets"
-                                       Foreground="#22C55E"
+                                       Foreground="{StaticResource Primary}"
                                        FontSize="23"
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center"/>
@@ -172,11 +164,11 @@
                             <TextBlock Text="CRMS"
                                        FontSize="27"
                                        FontWeight="Bold"
-                                       Foreground="#111827"/>
+                                       Foreground="{StaticResource Ink}"/>
 
                             <TextBlock Text="Car Rental Management System"
                                        FontSize="11"
-                                       Foreground="#64748B"/>
+                                       Foreground="{StaticResource MutedReadable}"/>
                         </StackPanel>
                     </StackPanel>
 
@@ -240,8 +232,8 @@
                     <Grid.Background>
                         <LinearGradientBrush StartPoint="0,0"
                                              EndPoint="1,1">
-                            <GradientStop Color="#334155" Offset="0"/>
-                            <GradientStop Color="#0F172A" Offset="1"/>
+                            <GradientStop Color="{StaticResource PrimaryPressedColor}" Offset="0"/>
+                            <GradientStop Color="{StaticResource PrimaryHoverColor}" Offset="1"/>
                         </LinearGradientBrush>
                     </Grid.Background>
 
@@ -249,7 +241,7 @@
                     <TextBlock Text="&#xE804;"
                                FontFamily="Segoe MDL2 Assets"
                                FontSize="190"
-                               Foreground="White"
+                               Foreground="{StaticResource Surface}"
                                Opacity="0.09"
                                HorizontalAlignment="Left"
                                VerticalAlignment="Center"
@@ -258,7 +250,7 @@
                     <TextBlock Text="&#xE804;"
                                FontFamily="Segoe MDL2 Assets"
                                FontSize="170"
-                               Foreground="White"
+                               Foreground="{StaticResource Surface}"
                                Opacity="0.07"
                                HorizontalAlignment="Right"
                                VerticalAlignment="Center"
@@ -269,13 +261,13 @@
                                 HorizontalAlignment="Center">
 
                         <TextBlock Text="CRMS - Đồng hành cùng bạn"
-                                   Foreground="White"
+                                   Foreground="{StaticResource Surface}"
                                    FontSize="32"
                                    FontWeight="Bold"
                                    HorizontalAlignment="Center"/>
 
                         <TextBlock Text="trên mọi hành trình"
-                                   Foreground="White"
+                                   Foreground="{StaticResource Surface}"
                                    FontSize="32"
                                    FontWeight="Bold"
                                    HorizontalAlignment="Center"
@@ -283,12 +275,12 @@
 
                         <Border Height="2"
                                 Width="260"
-                                Background="#CBD5E1"
+                                Background="{StaticResource Line}"
                                 HorizontalAlignment="Center"
                                 Margin="0,22,0,20"/>
 
                         <TextBlock Text="Dễ dàng thuê xe tự lái, xe có tài xế hoặc thuê dài hạn với nhiều lựa chọn phù hợp."
-                                   Foreground="#E2E8F0"
+                                   Foreground="{StaticResource HeroText}"
                                    FontSize="16"
                                    TextWrapping="Wrap"
                                    TextAlignment="Center"
@@ -299,8 +291,8 @@
             </Border>
 
             <!-- SEARCH AREA -->
-            <Border Background="White"
-                    BorderBrush="#E5E7EB"
+            <Border Background="{StaticResource Surface}"
+                    BorderBrush="{StaticResource Line}"
                     BorderThickness="1"
                     CornerRadius="18"
                     Padding="25"
@@ -309,9 +301,8 @@
                 <StackPanel>
 
                     <!-- RENTAL TABS -->
-                    <StackPanel Orientation="Horizontal"
-                                HorizontalAlignment="Center"
-                                Margin="0,0,0,28">
+                    <WrapPanel HorizontalAlignment="Center"
+                               Margin="0,0,0,28">
 
                         <Button Content="Xe tự lái"
                                 Style="{StaticResource SelfDriveTabStyle}"
@@ -330,7 +321,7 @@
                                 CommandParameter="LongTerm"
                                 Margin="8,0,0,0"/>
 
-                    </StackPanel>
+                    </WrapPanel>
 
                     <!-- FORMS BY RENTAL MODE -->
                     <Grid>
@@ -380,6 +371,7 @@
                             <!-- Search -->
                             <Button Grid.Column="2"
                                     Content="Tìm xe"
+                                    Tag="SelfDrive"
                                     Width="130"
                                     Height="48"
                                     VerticalAlignment="Bottom"
@@ -397,7 +389,7 @@
                             <TextBlock Text="Lộ trình"
                                        FontSize="20"
                                        FontWeight="Bold"
-                                       Foreground="#111827"
+                                       Foreground="{StaticResource Ink}"
                                        Margin="0,0,0,15"/>
 
                             <!-- Route options -->
@@ -405,21 +397,24 @@
                                         Margin="0,0,0,15">
 
                                 <RadioButton x:Name="InnerCityRadio"
+                                             Style="{StaticResource ChoiceChip}"
                                              Content="Nội thành"
                                              GroupName="DriverRoute"
                                              IsChecked="True"
                                              FontSize="15"
                                              FontWeight="SemiBold"
-                                             Margin="0,0,30,0"/>
+                                             Margin="0,0,10,0"/>
 
                                 <RadioButton x:Name="InterCityRadio"
+                                             Style="{StaticResource ChoiceChip}"
                                              Content="Liên tỉnh"
                                              GroupName="DriverRoute"
                                              FontSize="15"
                                              FontWeight="SemiBold"
-                                             Margin="0,0,30,0"/>
+                                             Margin="0,0,10,0"/>
 
                                 <RadioButton x:Name="OneWayRadio"
+                                             Style="{StaticResource ChoiceChip}"
                                              Content="Liên tỉnh (1 chiều)"
                                              GroupName="DriverRoute"
                                              FontSize="15"
@@ -433,15 +428,16 @@
                                        Margin="0,0,0,8"/>
 
                             <ComboBox x:Name="DriverPickupCombo"
-                                      Height="45"
+                                      Style="{StaticResource RoundedComboBox}"
+                                      Height="48"
                                       FontSize="15"
                                       SelectedIndex="0"
                                       Margin="0,0,0,20">
 
-                                <ComboBoxItem Content="Cần Thơ"/>
-                                <ComboBoxItem Content="TP. Hồ Chí Minh"/>
-                                <ComboBoxItem Content="Hà Nội"/>
-                                <ComboBoxItem Content="Đà Nẵng"/>
+                                <ComboBoxItem Style="{StaticResource RoundedComboBoxItem}" Content="Cần Thơ"/>
+                                <ComboBoxItem Style="{StaticResource RoundedComboBoxItem}" Content="TP. Hồ Chí Minh"/>
+                                <ComboBoxItem Style="{StaticResource RoundedComboBoxItem}" Content="Hà Nội"/>
+                                <ComboBoxItem Style="{StaticResource RoundedComboBoxItem}" Content="Đà Nẵng"/>
                             </ComboBox>
 
                             <!-- Destination -->
@@ -469,16 +465,18 @@
                                            Margin="0,0,0,8"/>
 
                                 <ComboBox x:Name="DriverDestinationCombo"
+                                      Style="{StaticResource RoundedComboBox}"
                                           Height="45"
                                           FontSize="15"
                                           SelectedIndex="0">
 
-                                    <ComboBoxItem Content="Chọn địa điểm đến"
+                                    <ComboBoxItem Style="{StaticResource RoundedComboBoxItem}" Content="Chọn địa điểm đến"
+                                                  Foreground="{StaticResource Muted}"
                                                   IsEnabled="False"/>
-                                    <ComboBoxItem Content="Cần Thơ"/>
-                                    <ComboBoxItem Content="TP. Hồ Chí Minh"/>
-                                    <ComboBoxItem Content="Hà Nội"/>
-                                    <ComboBoxItem Content="Đà Nẵng"/>
+                                    <ComboBoxItem Style="{StaticResource RoundedComboBoxItem}" Content="Cần Thơ"/>
+                                    <ComboBoxItem Style="{StaticResource RoundedComboBoxItem}" Content="TP. Hồ Chí Minh"/>
+                                    <ComboBoxItem Style="{StaticResource RoundedComboBoxItem}" Content="Hà Nội"/>
+                                    <ComboBoxItem Style="{StaticResource RoundedComboBoxItem}" Content="Đà Nẵng"/>
                                 </ComboBox>
 
                             </StackPanel>
@@ -487,7 +485,7 @@
                             <TextBlock Text="Thời gian"
                                        FontSize="20"
                                        FontWeight="Bold"
-                                       Foreground="#111827"
+                                       Foreground="{StaticResource Ink}"
                                        Margin="0,0,0,15"/>
 
                             <Grid>
@@ -508,6 +506,7 @@
                                 <!-- Search -->
                                 <Button Grid.Column="1"
                                         Content="Tìm xe"
+                                        Tag="WithDriver"
                                         Width="130"
                                         Height="50"
                                         Style="{StaticResource PrimaryButton}"
@@ -536,7 +535,7 @@
                                 <TextBlock Text="Cần Thơ"
                                            FontSize="22"
                                            FontWeight="SemiBold"
-                                           Foreground="#111827"/>
+                                           Foreground="{StaticResource Ink}"/>
 
                             </StackPanel>
 
@@ -560,18 +559,18 @@
                         Margin="0,0,0,20">
 
                 <TextBlock Text="VỀ CHÚNG TÔI"
-                           Foreground="#22C55E"
+                           Foreground="{StaticResource Primary}"
                            FontSize="12"
                            FontWeight="Bold"/>
 
                 <TextBlock Text="Giải pháp thuê xe linh hoạt và hiện đại"
-                           Foreground="#111827"
+                           Foreground="{StaticResource Ink}"
                            FontSize="28"
                            FontWeight="Bold"
                            Margin="0,8,0,10"/>
 
                 <TextBlock Text="CRMS mang đến trải nghiệm thuê xe thuận tiện và nhanh chóng, phù hợp cho cá nhân, gia đình và công tác. Khách hàng có thể lựa chọn dịch vụ tự lái, có tài xế hoặc thuê dài hạn theo nhu cầu."
-                           Foreground="#64748B"
+                           Foreground="{StaticResource MutedReadable}"
                            FontSize="15"
                            TextWrapping="Wrap"/>
 
@@ -596,10 +595,10 @@
                         <TextBlock Text="Xe tự lái"
                                    FontSize="20"
                                    FontWeight="Bold"
-                                   Foreground="#111827"/>
+                                   Foreground="{StaticResource Ink}"/>
 
                         <TextBlock Text="Chủ động lựa chọn hành trình và thời gian di chuyển cùng gia đình, bạn bè."
-                                   Foreground="#64748B"
+                                   Foreground="{StaticResource MutedReadable}"
                                    FontSize="14"
                                    TextWrapping="Wrap"
                                    Margin="0,10,0,0"/>
@@ -617,10 +616,10 @@
                         <TextBlock Text="Xe có tài xế"
                                    FontSize="20"
                                    FontWeight="Bold"
-                                   Foreground="#111827"/>
+                                   Foreground="{StaticResource Ink}"/>
 
                         <TextBlock Text="Thuận tiện di chuyển nội thành hoặc liên tỉnh với dịch vụ tài xế."
-                                   Foreground="#64748B"
+                                   Foreground="{StaticResource MutedReadable}"
                                    FontSize="14"
                                    TextWrapping="Wrap"
                                    Margin="0,10,0,0"/>
@@ -637,10 +636,10 @@
                         <TextBlock Text="Thuê xe dài hạn"
                                    FontSize="20"
                                    FontWeight="Bold"
-                                   Foreground="#111827"/>
+                                   Foreground="{StaticResource Ink}"/>
 
                         <TextBlock Text="Lựa chọn phương án thuê dài hạn phù hợp cho nhu cầu sử dụng thường xuyên."
-                                   Foreground="#64748B"
+                                   Foreground="{StaticResource MutedReadable}"
                                    FontSize="14"
                                    TextWrapping="Wrap"
                                    Margin="0,10,0,0"/>

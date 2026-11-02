@@ -1,538 +1,357 @@
-﻿<Page x:Class="CRMS.Views.Guest.CarSearchPage"
+<Page x:Class="CRMS.Views.Guest.CarSearchPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      Title="Tìm kiếm xe"
-      Background="#F5F6F8"
-      FontFamily="Segoe UI">
+      Title="Khám phá xe CRMS"
+      Background="{StaticResource PageBackground}"
+      FontFamily="Segoe UI" FontSize="14">
+  <Page.Resources>
+    <BooleanToVisibilityConverter x:Key="BoolVisible"/>
+    <!-- These mode conditions are visual-only; RentalMode remains in the existing VM. -->
+    <Style x:Key="ShowSelfDrive" TargetType="StackPanel">
+      <Setter Property="Visibility" Value="Collapsed"/>
+      <Style.Triggers><DataTrigger Binding="{Binding RentalMode}" Value="SelfDrive"><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers>
+    </Style>
+    <Style x:Key="ShowWithDriver" TargetType="StackPanel">
+      <Setter Property="Visibility" Value="Collapsed"/>
+      <Style.Triggers><DataTrigger Binding="{Binding RentalMode}" Value="WithDriver"><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers>
+    </Style>
+    <Style x:Key="ShowLongTerm" TargetType="StackPanel">
+      <Setter Property="Visibility" Value="Collapsed"/>
+      <Style.Triggers><DataTrigger Binding="{Binding RentalMode}" Value="LongTerm"><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers>
+    </Style>
 
-    <Page.Resources>
-        <BooleanToVisibilityConverter x:Key="BoolVisible"/>
+    <!-- v7: scale-independent outline icons. Windows glyph fonts and emoji are intentionally avoided. -->
+    <PathGeometry x:Key="IconCar" Figures="M5,17 L19,17 M5,17 L5,19 M19,17 L19,19 M3,17 L3,10 L6,7 L18,7 L21,10 L21,17 Z M8,7 L9.5,4 L14.5,4 L16,7 M6,13 L8,13 M16,13 L18,13"/>
+    <PathGeometry x:Key="IconBrand" Figures="M12,2 A10,10 0 1 1 12,22 A10,10 0 1 1 12,2 M2,12 L22,12 M12,2 C6,7 6,17 12,22 M12,2 C18,7 18,17 12,22"/>
+    <PathGeometry x:Key="IconClock" Figures="M12,2 A10,10 0 1 1 12,22 A10,10 0 1 1 12,2 M12,6 L12,12 L16,14"/>
+    <PathGeometry x:Key="IconMap" Figures="M12,22 C10,19 4,14 4,10 A8,8 0 1 1 20,10 C20,14 14,19 12,22 M12,7 A3,3 0 1 1 12,13 A3,3 0 1 1 12,7"/>
+    <PathGeometry x:Key="IconStar" Figures="M12,2 L15,8 L22,9 L17,14 L18,21 L12,18 L6,21 L7,14 L2,9 L9,8 Z"/>
+    <PathGeometry x:Key="IconBolt" Figures="M13,2 L4,13 L11,13 L10,22 L20,10 L13,10 Z"/>
+    <PathGeometry x:Key="IconShield" Figures="M12,2 L20,6 L20,12 C20,17 16,20 12,22 C8,20 4,17 4,12 L4,6 Z M8,12 L11,15 L16,9"/>
+    <PathGeometry x:Key="IconPercent" Figures="M5,19 L19,5 M6,5 A2,2 0 1 1 6,9 A2,2 0 1 1 6,5 M18,15 A2,2 0 1 1 18,19 A2,2 0 1 1 18,15"/>
+    <PathGeometry x:Key="IconChild" Figures="M9,4 A2,2 0 1 1 9,8 A2,2 0 1 1 9,4 M9,8 L13,11 L17,11 M9,8 L7,14 L12,17 M7,14 L4,19 M12,17 L17,20"/>
+    <PathGeometry x:Key="IconExpand" Figures="M3,9 L3,3 L9,3 M3,3 L10,10 M21,15 L21,21 L15,21 M21,21 L14,14"/>
+    <PathGeometry x:Key="IconShuttle" Figures="M3,8 L16,8 L21,12 L21,18 L3,18 Z M16,8 L16,13 L21,13 M7,18 A2,2 0 1 1 11,18 M15,18 A2,2 0 1 1 19,18"/>
+    <PathGeometry x:Key="IconElectric" Figures="M6,2 L17,2 L11,11 L19,11 L7,22 L11,13 L4,13 Z"/>
+    <PathGeometry x:Key="IconHybrid" Figures="M2,14 L4,8 L18,8 L22,14 L22,18 L2,18 Z M8,18 A2,2 0 1 1 12,18 M16,18 A2,2 0 1 1 20,18 M13,9 L15,4 L12,4 L14,1"/>
+    <PathGeometry x:Key="IconSort" Figures="M4,6 L20,6 M4,12 L16,12 M4,18 L12,18"/>
+    <PathGeometry x:Key="IconTransmission" Figures="M6,3 L6,21 M6,6 L15,6 L15,12 L20,12 M6,18 L17,18 M15,2 L15,6 M17,18 L17,21"/>
+    <PathGeometry x:Key="IconFilters" Figures="M4,6 L20,6 M4,12 L20,12 M4,18 L20,18 M9,3 L9,9 M16,9 L16,15 M9,15 L9,21"/>
+    <PathGeometry x:Key="IconBack" Figures="M15,4 L7,12 L15,20"/>
+    <PathGeometry x:Key="IconLeft" Figures="M15,6 L9,12 L15,18"/>
+    <PathGeometry x:Key="IconRight" Figures="M9,6 L15,12 L9,18"/>
+    <PathGeometry x:Key="IconCalendar" Figures="M5,3 L5,7 M19,3 L19,7 M3,9 L21,9 M4,5 L20,5 L20,21 L4,21 Z"/>
+    <PathGeometry x:Key="IconClose" Figures="M5,5 L19,19 M19,5 L5,19"/>
+    <PathGeometry x:Key="IconSeat" Figures="M8,3 L8,13 C8,15 10,17 12,17 L18,17 M8,10 L16,10 L18,13 L18,20 M5,17 L5,21 M18,17 L18,21"/>
+    <PathGeometry x:Key="IconFuel" Figures="M5,4 L14,4 L14,21 L5,21 Z M14,9 L17,9 L20,12 L20,18 C20,20 17,20 17,18 L17,14 M7,7 L12,7 L12,12 L7,12 Z"/>
+    <DataTemplate x:Key="QuickFilterLabel">
+      <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+        <Path Data="{Binding RelativeSource={RelativeSource AncestorType={x:Type ToggleButton}}, Path=Tag}"
+              Width="17" Height="17" Stretch="Uniform" Margin="0,0,8,0"
+              Stroke="{Binding RelativeSource={RelativeSource AncestorType={x:Type ToggleButton}}, Path=Foreground}"
+              StrokeThickness="1.7" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+        <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
+      </StackPanel>
+    </DataTemplate>
+    <Style x:Key="FilterNavigationButton" TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
+      <Setter Property="Width" Value="36"/><Setter Property="Height" Value="38"/>
+      <Setter Property="MinHeight" Value="38"/><Setter Property="Padding" Value="9"/>
+      <Setter Property="Margin" Value="0,0,5,0"/>
+    </Style>
+    <Style x:Key="MiotoQuickChip" TargetType="ToggleButton" BasedOn="{StaticResource FilterChip}">
+      <Setter Property="MinHeight" Value="38"/><Setter Property="Padding" Value="13,7"/>
+      <Setter Property="FontSize" Value="13"/><Setter Property="FontWeight" Value="Normal"/>
+      <Setter Property="Margin" Value="0,0,9,0"/>
+      <Setter Property="ContentTemplate" Value="{StaticResource QuickFilterLabel}"/>
+    </Style>
+    <Style x:Key="MiotoPanelChip" TargetType="ToggleButton" BasedOn="{StaticResource FilterChip}">
+      <Setter Property="MinHeight" Value="36"/><Setter Property="Padding" Value="12,6"/>
+      <Setter Property="FontSize" Value="13"/><Setter Property="Margin" Value="0,0,8,8"/>
+      <Setter Property="FontWeight" Value="Normal"/>
+    </Style>
+    <Style x:Key="SmallMeta" TargetType="TextBlock">
+      <Setter Property="Foreground" Value="{StaticResource MutedReadable}"/>
+      <Setter Property="FontSize" Value="14"/>
+      <Setter Property="FontWeight" Value="Medium"/>
+      <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
 
-        <Style x:Key="GreenButton" TargetType="Button">
-            <Setter Property="Background" Value="#59CA82"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="FontSize" Value="15"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Padding" Value="16,10"/>
-        </Style>
-
-        <Style x:Key="FilterButton" TargetType="Button">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="Foreground" Value="#334155"/>
-            <Setter Property="BorderBrush" Value="#D8DEE6"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="15,9"/>
-            <Setter Property="Cursor" Value="Hand"/>
-        </Style>
-
-        <!-- CARD XE TU LAI / CO TAI XE -->
-        <DataTemplate x:Key="ShortTermCardTemplate">
-            <Border Background="White"
-                    BorderBrush="#E1E6ED"
-                    BorderThickness="1"
-                    CornerRadius="14"
-                    Margin="0,0,14,18"
-                    ClipToBounds="True">
-                <StackPanel>
-
-                    <Grid Height="190" Background="#F1F5F9">
-                        <TextBlock Text="&#xE804;"
-                                   FontFamily="Segoe MDL2 Assets"
-                                   FontSize="68"
-                                   Foreground="#CBD5E1"
-                                   HorizontalAlignment="Center"
-                                   VerticalAlignment="Center"/>
-
-                        <Image Source="{Binding ImageUrl}"
-                               Stretch="UniformToFill"/>
-                    </Grid>
-
-                    <StackPanel Margin="16">
-                        <TextBlock Text="{Binding Brand}"
-                                   FontSize="17"
-                                   FontWeight="Bold"
-                                   Foreground="#111827"/>
-
-                        <TextBlock Text="{Binding Model}"
-                                   FontSize="16"
-                                   FontWeight="SemiBold"
-                                   Foreground="#334155"
-                                   TextTrimming="CharacterEllipsis"
-                                   Margin="0,3,0,8"/>
-
-                        <TextBlock Text="{Binding CategoryName}"
-                                   FontSize="13"
-                                   Foreground="#16A34A"
-                                   Margin="0,0,0,10"/>
-
-                        <StackPanel Orientation="Horizontal"
-                                    Margin="0,0,0,8">
-                            <TextBlock Text="{Binding Transmission}"
-                                       FontSize="12"
-                                       Foreground="#475569"/>
-                            <TextBlock Text="  •  "
-                                       Foreground="#94A3B8"/>
-                            <TextBlock Text="{Binding FuelType}"
-                                       FontSize="12"
-                                       Foreground="#475569"/>
-                        </StackPanel>
-
-                        <TextBlock Text="{Binding SeatCount,
-                            StringFormat={}{0} chỗ}"
-                                   FontSize="12"
-                                   Foreground="#64748B"
-                                   Margin="0,0,0,12"/>
-
-                        <Separator Margin="0,0,0,12"/>
-
-                        <TextBlock Text="{Binding DailyRate,
-                            StringFormat={}{0:N0} ₫/ngày}"
-                                   FontSize="19"
-                                   FontWeight="Bold"
-                                   Foreground="#16A34A"
-                                   Margin="0,0,0,12"/>
-
-
-                        <Button Content="Chọn xe"
-                                Height="39"
-                                Background="#57C985"
-                                Foreground="White"
-                                FontWeight="Bold"
-                                BorderThickness="0"
-                                Cursor="Hand"
-                                Tag="{Binding VehicleId}"
-                                Click="SelectCar_Click"/>
-
-                    </StackPanel>
-                </StackPanel>
-            </Border>
-        </DataTemplate>
-
-        <!-- CARD XE DAI HAN GIONG MAU -->
-        <DataTemplate x:Key="LongTermCardTemplate">
-            <Border Background="White"
-                    BorderBrush="#DEDEDE"
-                    BorderThickness="1"
-                    CornerRadius="16"
-                    Margin="0,0,18,20"
-                    ClipToBounds="True">
-
-                <Grid Margin="18">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="230"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-
-                    <!-- TEN XE -->
-                    <StackPanel Grid.Row="0"
-                                Orientation="Horizontal"
-                                Margin="0,2,0,16">
-
-                        <TextBlock Text="{Binding Brand}"
-                                   FontSize="19"
-                                   FontWeight="Bold"
-                                   Foreground="#111827"/>
-
-                        <TextBlock Text="{Binding Model,
-                            StringFormat={} {0}}"
-                                   FontSize="19"
-                                   FontWeight="Bold"
-                                   Foreground="#111827"
-                                   Margin="5,0,0,0"/>
-                    </StackPanel>
-
-                    <!-- THONG SO VA NHAN -->
-                    <Grid Grid.Row="1" Margin="0,0,0,6">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-
-                        <StackPanel Grid.Column="0"
-                                    Orientation="Horizontal"
-                                    VerticalAlignment="Center">
-
-                            <TextBlock Text="{Binding Transmission}"
-                                       FontSize="13"
-                                       Foreground="#334155"/>
-
-                            <TextBlock Text="  •  "
-                                       Foreground="#94A3B8"/>
-
-                            <TextBlock Text="{Binding FuelType}"
-                                       FontSize="13"
-                                       Foreground="#334155"/>
-                        </StackPanel>
-
-                        <Border Grid.Column="1"
-                                Background="#F0FFF5"
-                                BorderBrush="#59CA82"
-                                BorderThickness="1"
-                                CornerRadius="18"
-                                Padding="10,6">
-
-                            <TextBlock Text="Có gói thuê dài hạn"
-                                       Foreground="#15803D"
-                                       FontSize="12"/>
-                        </Border>
-                    </Grid>
-
-                    <!-- ANH XE LON -->
-                    <Grid Grid.Row="2"
-                          Background="White"
-                          Margin="0,5,0,8">
-
-                        <TextBlock Text="&#xE804;"
-                                   FontFamily="Segoe MDL2 Assets"
-                                   FontSize="85"
-                                   Foreground="#E2E8F0"
-                                   HorizontalAlignment="Center"
-                                   VerticalAlignment="Center"/>
-
-                        <Image Source="{Binding ImageUrl}"
-                               Stretch="Uniform"
-                               HorizontalAlignment="Stretch"
-                               VerticalAlignment="Stretch"/>
-                    </Grid>
-
-                    <!-- GIA + NUT CHON XE -->
-                    <Grid Grid.Row="3" Margin="0,6,0,0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-
-                        <StackPanel Grid.Column="0"
-                                    VerticalAlignment="Bottom"
-                                    Margin="0,0,12,4">
-
-                            <TextBlock Text="Giá ưu đãi gói 3 tháng"
-                                       Foreground="#64748B"
-                                       FontSize="12"
-                                       Margin="0,0,0,6"/>
-
-                            <StackPanel Orientation="Horizontal"
-                                        VerticalAlignment="Bottom">
-
-                                <TextBlock Text="{Binding LongTermBaseMonthlyRate,
-                                    StringFormat={}{0:N0}}"
-                                           TextDecorations="Strikethrough"
-                                           Foreground="#9CA3AF"
-                                           FontSize="13"
-                                           VerticalAlignment="Bottom"
-                                           Margin="0,0,8,3"/>
-
-                                <TextBlock Text="{Binding LongTermMonthlyRate,
-                                    StringFormat={}{0:N0}}"
-                                           Foreground="#59CA82"
-                                           FontWeight="Bold"
-                                           FontSize="23"
-                                           VerticalAlignment="Bottom"/>
-                            </StackPanel>
-
-                            <TextBlock Text="₫/tháng"
-                                       Foreground="#64748B"
-                                       FontSize="12"
-                                       Margin="0,1,0,0"/>
-
-                            <TextBlock Text="Giảm 2% khi thuê gói 3 tháng"
-                                       Foreground="#64748B"
-                                       FontSize="12"
-                                       Margin="0,6,0,0"/>
-                        </StackPanel>
-
-                        <Button Grid.Column="1"
-                                Content="Chọn xe"
-                                Width="125"
-                                Height="58"
-                                VerticalAlignment="Bottom"
-                                Style="{StaticResource GreenButton}"
-                                Click="LongTermChoose_Click"/>
-                    </Grid>
-
-                </Grid>
-            </Border>
-        </DataTemplate>
-    </Page.Resources>
-
-    <ScrollViewer VerticalScrollBarVisibility="Auto"
-                  HorizontalScrollBarVisibility="Disabled">
-
+    <!-- Compact four-across Mioto-like cards; prices are real CRMS database fields. -->
+    <DataTemplate x:Key="ShortTermCardTemplate">
+      <Border Width="326" Margin="0,0,12,16" Padding="12"
+              CornerRadius="14" BorderThickness="1"
+              BorderBrush="{StaticResource Line}" Background="{StaticResource Surface}">
+        <Border.Effect><DropShadowEffect Color="{StaticResource ShadowColor}" BlurRadius="10" ShadowDepth="1" Opacity="0.05"/></Border.Effect>
         <StackPanel>
-
-            <!-- DAU TRANG: QUAY LAI + DIA DIEM -->
-            <Border Background="White"
-                    BorderBrush="#E5E7EB"
-                    BorderThickness="0,0,0,1"
-                    Padding="28,18">
-
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-
-                    <Button Grid.Column="0"
-                            Content="← Quay lại"
-                            Height="38"
-                            Style="{StaticResource FilterButton}"
-                            Click="BackToHome_Click"/>
-
-                    <StackPanel Grid.Column="1"
-                                Orientation="Horizontal"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center">
-
-                        <TextBlock Text="⌖"
-                                   FontSize="23"
-                                   Margin="0,0,10,0"/>
-
-                        <TextBlock Text="Cần Thơ"
-                                   FontSize="19"
-                                   Foreground="#111827"
-                                   VerticalAlignment="Center"/>
-                    </StackPanel>
-
-                    <TextBlock Grid.Column="2"
-                               Text="CRMS"
-                               FontSize="19"
-                               FontWeight="Bold"
-                               Foreground="#59CA82"
-                               VerticalAlignment="Center"/>
-                </Grid>
-            </Border>
-
-            <!-- ============================ -->
-            <!-- XE TU LAI / XE CO TAI XE     -->
-            <!-- ============================ -->
-            <StackPanel Margin="28,26,28,35"
-                        Visibility="{Binding IsShortTerm,
-                            Converter={StaticResource BoolVisible}}">
-
-                <TextBlock Text="Tìm xe phù hợp"
-                           FontSize="29"
-                           FontWeight="Bold"
-                           Foreground="#111827"/>
-
-                <TextBlock Text="Khám phá đội xe của CRMS"
-                           Foreground="#64748B"
-                           Margin="0,8,0,20"/>
-
-                <Border Background="White"
-                        BorderBrush="#E2E8F0"
-                        BorderThickness="1"
-                        CornerRadius="12"
-                        Padding="18"
-                        Margin="0,0,0,20">
-
-                    <StackPanel>
-                        <TextBlock Text="Bộ lọc xe"
-                                   FontSize="18"
-                                   FontWeight="Bold"
-                                   Margin="0,0,0,14"/>
-
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="2*"/>
-                                <ColumnDefinition Width="1.2*"/>
-                                <ColumnDefinition Width="1*"/>
-                                <ColumnDefinition Width="1*"/>
-                            </Grid.ColumnDefinitions>
-
-                            <StackPanel Grid.Column="0"
-                                        Margin="0,0,10,0">
-                                <TextBlock Text="Hãng hoặc mẫu xe"
-                                           Margin="0,0,0,6"/>
-                                <TextBox Height="40"
-                                         Padding="10,7"
-                                         Text="{Binding SearchText,
-                                             UpdateSourceTrigger=PropertyChanged}"/>
-                            </StackPanel>
-
-                            <StackPanel Grid.Column="1"
-                                        Margin="0,0,10,0">
-                                <TextBlock Text="Loại xe"
-                                           Margin="0,0,0,6"/>
-                                <ComboBox Height="40"
-                                          ItemsSource="{Binding Categories}"
-                                          DisplayMemberPath="CategoryName"
-                                          SelectedItem="{Binding SelectedCategory}"/>
-                            </StackPanel>
-
-                            <StackPanel Grid.Column="2"
-                                        Margin="0,0,10,0">
-                                <TextBlock Text="Giá từ / ngày"
-                                           Margin="0,0,0,6"/>
-                                <TextBox Height="40"
-                                         Padding="10,7"
-                                         Text="{Binding MinPrice,
-                                             UpdateSourceTrigger=PropertyChanged}"/>
-                            </StackPanel>
-
-                            <StackPanel Grid.Column="3">
-                                <TextBlock Text="Giá đến / ngày"
-                                           Margin="0,0,0,6"/>
-                                <TextBox Height="40"
-                                         Padding="10,7"
-                                         Text="{Binding MaxPrice,
-                                             UpdateSourceTrigger=PropertyChanged}"/>
-                            </StackPanel>
-                        </Grid>
-
-                        <StackPanel Orientation="Horizontal"
-                                    HorizontalAlignment="Right"
-                                    Margin="0,16,0,0">
-
-                            <Button Content="Xóa bộ lọc"
-                                    Command="{Binding ClearFilterCommand}"
-                                    Padding="16,9"
-                                    Margin="0,0,10,0"/>
-
-                            <Button Content="Tìm kiếm"
-                                    Command="{Binding SearchCommand}"
-                                    Style="{StaticResource GreenButton}"/>
-                        </StackPanel>
-                    </StackPanel>
-                </Border>
-
-                <TextBlock Text="{Binding StatusMessage}"
-                           Foreground="#64748B"
-                           Margin="0,0,0,16"/>
-
-                <ItemsControl ItemsSource="{Binding Cars}"
-                              ItemTemplate="{StaticResource ShortTermCardTemplate}">
-
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <UniformGrid Columns="4"/>
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                </ItemsControl>
+          <Border Height="210" CornerRadius="11" Background="{StaticResource SurfaceMuted}" ClipToBounds="True">
+            <Grid>
+              <Path Data="{StaticResource IconCar}" Stroke="{StaticResource Line}" StrokeThickness="1.6"
+                    Width="74" Height="74" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+              <Image Source="{Binding ImageUrl}" Stretch="UniformToFill"/>
+              <Border Background="{StaticResource Surface}" Opacity="0.94" CornerRadius="16"
+                      Padding="9,5" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="10">
+                <TextBlock Text="{Binding CategoryName}" Foreground="{StaticResource PrimaryPressed}" FontSize="13" FontWeight="SemiBold"/>
+              </Border>
+            </Grid>
+          </Border>
+          <TextBlock Text="{Binding Brand}" FontSize="17" FontWeight="Bold" Foreground="{StaticResource Ink}"
+                     TextTrimming="CharacterEllipsis" Margin="1,14,1,0"/>
+          <TextBlock Text="{Binding Model}" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource Ink}"
+                     TextTrimming="CharacterEllipsis" Margin="1,1,1,12"/>
+          <Grid Margin="1,0,1,12">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+              <Path Data="{StaticResource IconTransmission}" Stroke="{StaticResource MutedReadable}" StrokeThickness="1.8" Width="16" Height="16" Stretch="Uniform" Margin="0,0,5,0"/>
+              <TextBlock Text="{Binding Transmission}" Style="{StaticResource SmallMeta}" TextTrimming="CharacterEllipsis"/>
             </StackPanel>
-
-            <!-- ============================ -->
-            <!-- THUE XE DAI HAN             -->
-            <!-- ============================ -->
-            <StackPanel Visibility="{Binding IsLongTerm,
-                Converter={StaticResource BoolVisible}}">
-
-                <!-- THANH BO LOC NGANG -->
-                <Border Background="White"
-                        BorderBrush="#E5E7EB"
-                        BorderThickness="0,0,0,1"
-                        Padding="28,15">
-
-                    <StackPanel>
-                        <WrapPanel HorizontalAlignment="Center">
-
-                            <ComboBox Width="155"
-                                      Height="39"
-                                      Margin="5"
-                                      ItemsSource="{Binding SortOptions}"
-                                      SelectedItem="{Binding SelectedSort}"
-                                      ToolTip="Sắp xếp danh sách xe"/>
-
-                            <ComboBox Width="155"
-                                      Height="39"
-                                      Margin="5"
-                                      ItemsSource="{Binding TransmissionOptions}"
-                                      SelectedItem="{Binding SelectedTransmission}"
-                                      ToolTip="Lọc theo hộp số"/>
-
-                            <ComboBox Width="170"
-                                      Height="39"
-                                      Margin="5"
-                                      ItemsSource="{Binding Categories}"
-                                      DisplayMemberPath="CategoryName"
-                                      SelectedItem="{Binding SelectedCategory}"
-                                      ToolTip="Loại xe"/>
-
-                            <TextBox Width="195"
-                                     Height="39"
-                                     Margin="5"
-                                     Padding="10,8"
-                                     Text="{Binding SearchText,
-                                         UpdateSourceTrigger=PropertyChanged}"
-                                     ToolTip="Nhập hãng hoặc mẫu xe"/>
-
-                            <Button Content="Tìm kiếm"
-                                    Height="39"
-                                    Margin="5"
-                                    Command="{Binding SearchCommand}"
-                                    Style="{StaticResource GreenButton}"/>
-
-                            <Button Content="Bộ lọc giá"
-                                    Height="39"
-                                    Margin="5"
-                                    Style="{StaticResource FilterButton}"
-                                    Click="ToggleLongTermFilter_Click"/>
-                        </WrapPanel>
-
-                        <!-- MO RONG BO LOC GIA -->
-                        <Border x:Name="LongTermPriceFilter"
-                                Visibility="Collapsed"
-                                BorderBrush="#E5E7EB"
-                                BorderThickness="0,1,0,0"
-                                Margin="0,15,0,0"
-                                Padding="0,15,0,0">
-
-                            <StackPanel Orientation="Horizontal"
-                                        HorizontalAlignment="Center">
-
-                                <TextBlock Text="Giá/tháng từ:"
-                                           VerticalAlignment="Center"
-                                           Margin="0,0,8,0"/>
-
-                                <TextBox Width="145"
-                                         Height="37"
-                                         Padding="9,6"
-                                         Text="{Binding MinPrice,
-                                             UpdateSourceTrigger=PropertyChanged}"
-                                         Margin="0,0,18,0"/>
-
-                                <TextBlock Text="Đến:"
-                                           VerticalAlignment="Center"
-                                           Margin="0,0,8,0"/>
-
-                                <TextBox Width="145"
-                                         Height="37"
-                                         Padding="9,6"
-                                         Text="{Binding MaxPrice,
-                                             UpdateSourceTrigger=PropertyChanged}"
-                                         Margin="0,0,15,0"/>
-
-                                <Button Content="Xóa lọc"
-                                        Padding="12,7"
-                                        Command="{Binding ClearFilterCommand}"/>
-                            </StackPanel>
-                        </Border>
-                    </StackPanel>
-                </Border>
-
-                <!-- DANH SACH 3 COT -->
-                <StackPanel Margin="28,24,10,35">
-
-                    <TextBlock Text="{Binding StatusMessage}"
-                               Foreground="#64748B"
-                               Margin="0,0,0,14"/>
-
-                    <ItemsControl ItemsSource="{Binding Cars}"
-                                  ItemTemplate="{StaticResource LongTermCardTemplate}">
-
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <UniformGrid Columns="3"/>
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                    </ItemsControl>
-                </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+              <Path Data="{StaticResource IconSeat}" Stroke="{StaticResource MutedReadable}" StrokeThickness="1.8" Width="16" Height="16" Stretch="Uniform" Margin="0,0,5,0"/>
+              <TextBlock Text="{Binding SeatCount, StringFormat={}{0} chỗ}" Style="{StaticResource SmallMeta}"/>
             </StackPanel>
-
+            <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+              <Path Data="{StaticResource IconFuel}" Stroke="{StaticResource MutedReadable}" StrokeThickness="1.8" Width="16" Height="16" Stretch="Uniform" Margin="0,0,5,0"/>
+              <TextBlock Text="{Binding FuelType}" Style="{StaticResource SmallMeta}" TextTrimming="CharacterEllipsis"/>
+            </StackPanel>
+          </Grid>
+          <StackPanel Orientation="Horizontal" Margin="1,0,0,12">
+            <Path Data="{StaticResource IconCalendar}" Stroke="{StaticResource Primary}" StrokeThickness="1.8"
+                  Width="16" Height="16" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding ManufactureYear, StringFormat='Năm sản xuất: {0}'}" Style="{StaticResource SmallMeta}"/>
+          </StackPanel>
+          <Border BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0" Margin="0,0,0,11"/>
+          <StackPanel Margin="1,0,1,14">
+<TextBlock Text="Giá thuê" Style="{StaticResource SmallMeta}" Margin="0,0,0,5"/>
+<TextBlock Text="{Binding DailyRate, StringFormat={}{0:N0} ₫/ngày}" Foreground="{StaticResource PrimaryHover}" FontSize="22" FontWeight="Bold" HorizontalAlignment="Right"/>
+</StackPanel>
+          <Button Content="Chọn xe" Height="42" Style="{StaticResource PrimaryButton}" Tag="{Binding VehicleId}" Click="SelectCar_Click"/>
         </StackPanel>
+      </Border>
+    </DataTemplate>
+
+    <DataTemplate x:Key="LongTermCardTemplate">
+      <Border Width="326" Margin="0,0,12,16" Padding="12" CornerRadius="14"
+              BorderThickness="1" BorderBrush="{StaticResource Line}" Background="{StaticResource Surface}">
+        <Border.Effect><DropShadowEffect Color="{StaticResource ShadowColor}" BlurRadius="10" ShadowDepth="1" Opacity="0.05"/></Border.Effect>
+        <StackPanel>
+          <Border Height="210" Background="{StaticResource SurfaceMuted}" CornerRadius="11" ClipToBounds="True">
+            <Grid>
+              <Path Data="{StaticResource IconCar}" Stroke="{StaticResource Line}" StrokeThickness="1.6"
+                    Width="74" Height="74" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+              <Image Source="{Binding ImageUrl}" Stretch="UniformToFill"/>
+              <Border Background="{StaticResource HighlightSoft}" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                      CornerRadius="15" Padding="10,5" Margin="9">
+                <TextBlock Text="{Binding LongTermDiscountPercent, StringFormat='Ưu đãi {0:0.#}%'}" FontSize="14" FontWeight="SemiBold"
+                           Foreground="{StaticResource HighlightInk}"/>
+              </Border>
+            </Grid>
+          </Border>
+          <TextBlock Text="{Binding Brand}" Margin="1,14,1,0" FontSize="17" FontWeight="Bold"
+                     Foreground="{StaticResource Ink}" TextTrimming="CharacterEllipsis"/>
+          <TextBlock Text="{Binding Model, StringFormat={} {0}}" Margin="1,1,1,12" FontSize="16" FontWeight="SemiBold"
+                     Foreground="{StaticResource Ink}" TextTrimming="CharacterEllipsis"/>
+          <Grid Margin="1,0,1,12">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+              <Path Data="{StaticResource IconTransmission}" Stroke="{StaticResource MutedReadable}" StrokeThickness="1.8" Width="16" Height="16" Stretch="Uniform" Margin="0,0,5,0"/>
+              <TextBlock Text="{Binding Transmission}" Style="{StaticResource SmallMeta}" TextTrimming="CharacterEllipsis"/>
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+              <Path Data="{StaticResource IconSeat}" Stroke="{StaticResource MutedReadable}" StrokeThickness="1.8" Width="16" Height="16" Stretch="Uniform" Margin="0,0,5,0"/>
+              <TextBlock Text="{Binding SeatCount, StringFormat={}{0} chỗ}" Style="{StaticResource SmallMeta}"/>
+            </StackPanel>
+            <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+              <Path Data="{StaticResource IconFuel}" Stroke="{StaticResource MutedReadable}" StrokeThickness="1.8" Width="16" Height="16" Stretch="Uniform" Margin="0,0,5,0"/>
+              <TextBlock Text="{Binding FuelType}" Style="{StaticResource SmallMeta}" TextTrimming="CharacterEllipsis"/>
+            </StackPanel>
+          </Grid>
+          <StackPanel Orientation="Horizontal" Margin="1,0,0,12">
+            <Path Data="{StaticResource IconCalendar}" Stroke="{StaticResource Primary}" StrokeThickness="1.8"
+                  Width="16" Height="16" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding ManufactureYear, StringFormat='Năm sản xuất: {0}'}" Style="{StaticResource SmallMeta}"/>
+          </StackPanel>
+          <Border BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0" Margin="0,0,0,11"/>
+          <Grid Margin="1,0,1,14">
+<Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+<TextBlock Text="Giá gói" Style="{StaticResource SmallMeta}" VerticalAlignment="Bottom" Margin="0,0,10,2"/>
+<StackPanel Grid.Column="1" HorizontalAlignment="Right">
+<TextBlock Text="{Binding LongTermBaseMonthlyRate, StringFormat={}{0:N0}}" TextDecorations="Strikethrough" FontSize="14" Foreground="{StaticResource MutedReadable}" HorizontalAlignment="Right" Margin="0,0,0,5"/>
+<WrapPanel HorizontalAlignment="Right">
+<TextBlock Text="{Binding LongTermMonthlyRate, StringFormat={}{0:N0}}" Foreground="{StaticResource PrimaryHover}" FontSize="22" FontWeight="Bold"/>
+<TextBlock Text=" ₫/tháng" Style="{StaticResource SmallMeta}" VerticalAlignment="Bottom" Margin="4,0,0,2"/>
+</WrapPanel></StackPanel></Grid>
+          <Button Content="Xem gói thuê" Height="42" Style="{StaticResource PrimaryButton}" Click="LongTermChoose_Click"/>
+        </StackPanel>
+      </Border>
+    </DataTemplate>
+  </Page.Resources>
+
+  <!-- v7: mode-aware filters. Long-term mode uses a genuinely centered row. -->
+  <Grid>
+    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+    <Border Grid.Row="0" Background="{StaticResource Surface}" BorderBrush="{StaticResource Line}"
+            BorderThickness="0,0,0,1" Padding="24,15,24,16">
+      <StackPanel>
+        <Grid Margin="0,0,0,16">
+          <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+          <Button Grid.Column="0" Style="{StaticResource FilterNavigationButton}" Click="BackToHome_Click" ToolTip="Quay lại trang chủ"
+                  Width="40" Height="40" Margin="0,0,18,0">
+            <Path Data="{StaticResource IconBack}" Stroke="{StaticResource Ink}" StrokeThickness="2" Width="18" Height="18" Stretch="Uniform"/>
+          </Button>
+          <StackPanel Grid.Column="1" Style="{StaticResource ShowSelfDrive}" Orientation="Horizontal" VerticalAlignment="Center">
+            <Path Data="{StaticResource IconMap}" Stroke="{StaticResource Ink}" StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Width="19" Height="19" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center"/>
+            <TextBlock Text="Cần Thơ" Foreground="{StaticResource Ink}" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,18,0"/>
+            <Path Data="{StaticResource IconCalendar}" Stroke="{StaticResource Ink}" StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Width="18" Height="18" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding StartAtLocal, StringFormat={}{0:HH:mm dd/MM}}" Foreground="{StaticResource Ink}" VerticalAlignment="Center"/>
+            <TextBlock Text="  –  " Foreground="{StaticResource MutedReadable}" VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding EndAtLocal, StringFormat={}{0:HH:mm dd/MM}}" Foreground="{StaticResource Ink}" VerticalAlignment="Center"/>
+          </StackPanel>
+          <StackPanel Grid.Column="1" Style="{StaticResource ShowWithDriver}" Orientation="Horizontal" VerticalAlignment="Center">
+            <Path Data="{StaticResource IconMap}" Stroke="{StaticResource Ink}" StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Width="19" Height="19" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center"/>
+            <TextBlock Text="Cần Thơ" Foreground="{StaticResource Ink}" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,18,0"/>
+            <Path Data="{StaticResource IconCalendar}" Stroke="{StaticResource Ink}" StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Width="18" Height="18" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding StartAtLocal, StringFormat={}{0:HH:mm dd/MM}}" Foreground="{StaticResource Ink}" VerticalAlignment="Center"/>
+            <TextBlock Text="  –  " Foreground="{StaticResource MutedReadable}" VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding EndAtLocal, StringFormat={}{0:HH:mm dd/MM}}" Foreground="{StaticResource Ink}" VerticalAlignment="Center"/>
+          </StackPanel>
+          <StackPanel Grid.Column="1" Style="{StaticResource ShowLongTerm}" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Path Data="{StaticResource IconMap}" Stroke="{StaticResource Ink}" StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Width="19" Height="19" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center"/>
+            <TextBlock Text="Cần Thơ" Foreground="{StaticResource Ink}" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center"/>
+          </StackPanel>
+        </Grid>
+        <!-- Self-drive and driver modes need horizontal scrolling for many filter chips. -->
+        <Grid>
+          <Grid.Style><Style TargetType="Grid"><Setter Property="Visibility" Value="Collapsed"/>
+            <Style.Triggers>
+              <DataTrigger Binding="{Binding RentalMode}" Value="SelfDrive"><Setter Property="Visibility" Value="Visible"/></DataTrigger>
+              <DataTrigger Binding="{Binding RentalMode}" Value="WithDriver"><Setter Property="Visibility" Value="Visible"/></DataTrigger>
+            </Style.Triggers></Style></Grid.Style>
+          <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+          <ScrollViewer x:Name="QuickFiltersScroll" Grid.Column="0" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled"
+                        ScrollChanged="QuickFiltersScroll_ScrollChanged" Padding="0,0,6,0" CanContentScroll="False">
+            <StackPanel x:Name="QuickFilterStripRoot" Orientation="Vertical">
+              <StackPanel Style="{StaticResource ShowSelfDrive}" Orientation="Horizontal">
+                <ToggleButton Content="Loại xe" Tag="{StaticResource IconCar}" ToolTip="Chọn loại xe: sedan, SUV, MPV…" Style="{StaticResource MiotoQuickChip}"/>
+                <ToggleButton Content="Hãng xe" Tag="{StaticResource IconBrand}" ToolTip="Chọn hãng sản xuất của xe" Style="{StaticResource MiotoQuickChip}"/>
+                <ToggleButton Content="Thuê giờ" Tag="{StaticResource IconClock}" ToolTip="Xem lựa chọn thuê theo giờ" Style="{StaticResource MiotoQuickChip}"/>
+                <ToggleButton Content="Giao nhận tận nơi" Tag="{StaticResource IconMap}" ToolTip="Ưu tiên xe có hỗ trợ giao nhận tận nơi" Style="{StaticResource MiotoQuickChip}"/>
+                <ToggleButton Content="Chủ xe 5★" Tag="{StaticResource IconStar}" ToolTip="Ưu tiên xe của chủ xe được đánh giá cao" Style="{StaticResource MiotoQuickChip}"/>
+                <ToggleButton Content="Đặt xe nhanh" Tag="{StaticResource IconBolt}" ToolTip="Ưu tiên xe có thể xác nhận đặt nhanh" Style="{StaticResource MiotoQuickChip}"/>
+                <ToggleButton Content="Miễn thế chấp" Tag="{StaticResource IconShield}" ToolTip="Xem xe có chính sách miễn thế chấp" Style="{StaticResource MiotoQuickChip}"/>
+                <ToggleButton Content="Giảm giá" Tag="{StaticResource IconPercent}" ToolTip="Xem xe đang có ưu đãi" Style="{StaticResource MiotoQuickChip}"/>
+                <ToggleButton Content="Ghế trẻ em" Tag="{StaticResource IconChild}" ToolTip="Xe có thể cung cấp ghế trẻ em" Style="{StaticResource MiotoQuickChip}"/>
+                <ToggleButton Content="Di chuyển mở rộng" Tag="{StaticResource IconExpand}" ToolTip="Xem xe hỗ trợ phạm vi di chuyển mở rộng" Style="{StaticResource MiotoQuickChip}"/>
+              </StackPanel>
+              <StackPanel Style="{StaticResource ShowWithDriver}" Orientation="Horizontal">
+                <ToggleButton Content="Loại xe" Tag="{StaticResource IconCar}" ToolTip="Chọn loại xe phù hợp số hành khách" Style="{StaticResource MiotoQuickChip}"/>
+                <ToggleButton Content="Hãng xe" Tag="{StaticResource IconBrand}" ToolTip="Chọn hãng sản xuất của xe" Style="{StaticResource MiotoQuickChip}"/>
+                <ToggleButton Content="Miễn phí đưa đón" Tag="{StaticResource IconShuttle}" ToolTip="Chuyến đi có hỗ trợ đưa đón miễn phí" Style="{StaticResource MiotoQuickChip}"/>
+                <ToggleButton Content="Chủ xe 5★" Tag="{StaticResource IconStar}" ToolTip="Ưu tiên dịch vụ được đánh giá cao" Style="{StaticResource MiotoQuickChip}"/>
+                <ToggleButton Content="Đặt xe nhanh" Tag="{StaticResource IconBolt}" ToolTip="Ưu tiên chuyến đi xác nhận nhanh" Style="{StaticResource MiotoQuickChip}"/>
+                <ToggleButton Content="Giảm giá" Tag="{StaticResource IconPercent}" ToolTip="Xem chuyến đi có ưu đãi" Style="{StaticResource MiotoQuickChip}"/>
+                <ToggleButton Content="Xe điện" Tag="{StaticResource IconElectric}" ToolTip="Chọn xe vận hành bằng điện" Style="{StaticResource MiotoQuickChip}"/>
+                <ToggleButton Content="Xe xăng &amp; điện" Tag="{StaticResource IconHybrid}" ToolTip="Chọn xe chạy xăng hoặc xe hybrid" Style="{StaticResource MiotoQuickChip}"/>
+              </StackPanel>
+            </StackPanel>
+          </ScrollViewer>
+          <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top" Margin="3,0,3,0">
+            <Button x:Name="ScrollLeftButton" Visibility="Collapsed" Style="{StaticResource FilterNavigationButton}"
+                    Click="ScrollQuickLeft_Click" ToolTip="Xem các bộ lọc phía trước">
+              <Path Data="{StaticResource IconLeft}" Stroke="{StaticResource Ink}" StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Width="16" Height="16" Stretch="Uniform" Margin="0" VerticalAlignment="Center"/>
+            </Button>
+            <Button x:Name="ScrollRightButton" Visibility="Collapsed" Style="{StaticResource FilterNavigationButton}"
+                    Click="ScrollQuickRight_Click" ToolTip="Xem thêm bộ lọc">
+              <Path Data="{StaticResource IconRight}" Stroke="{StaticResource Ink}" StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Width="16" Height="16" Stretch="Uniform" Margin="0" VerticalAlignment="Center"/>
+            </Button>
+          </StackPanel>
+          <ToggleButton x:Name="AdvancedFiltersToggle" Click="OpenShortTermFilters_Click" Grid.Column="2" Content="Bộ lọc"
+                        Tag="{StaticResource IconFilters}" ToolTip="Xem các tiêu chí lọc nâng cao"
+                        Style="{StaticResource MiotoQuickChip}" MinWidth="122" Height="38"
+                        Margin="8,0,0,0" VerticalAlignment="Top" FontWeight="SemiBold"/>
+        </Grid>
+        <!-- Long-term: only four controls, aligned to the true center, without unnecessary arrows. -->
+        <Grid>
+          <Grid.Style><Style TargetType="Grid"><Setter Property="Visibility" Value="Collapsed"/>
+            <Style.Triggers><DataTrigger Binding="{Binding RentalMode}" Value="LongTerm"><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers>
+          </Style></Grid.Style>
+          <StackPanel x:Name="LongTermQuickFilters" Orientation="Horizontal" HorizontalAlignment="Center">
+            <ToggleButton Click="OpenLongTermFilters_Click" Content="Sắp xếp" Tag="{StaticResource IconSort}" ToolTip="Sắp xếp danh sách xe thuê theo tháng" Style="{StaticResource MiotoQuickChip}"/>
+            <ToggleButton Click="OpenLongTermFilters_Click" Content="Truyền động" Tag="{StaticResource IconTransmission}" ToolTip="Chọn xe số tự động hoặc số sàn" Style="{StaticResource MiotoQuickChip}"/>
+            <ToggleButton Click="OpenLongTermFilters_Click" Content="Loại xe" Tag="{StaticResource IconCar}" ToolTip="Chọn loại xe cho nhu cầu dài hạn" Style="{StaticResource MiotoQuickChip}"/>
+            <ToggleButton Click="OpenLongTermFilters_Click" Content="Hãng xe" Tag="{StaticResource IconBrand}" ToolTip="Chọn hãng xe cho nhu cầu dài hạn" Style="{StaticResource MiotoQuickChip}"/>
+          </StackPanel>
+        </Grid>
+      </StackPanel>
+    </Border>
+
+    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+      <Grid Background="{StaticResource PageBackground}" MinHeight="600">
+        <StackPanel MaxWidth="1440" HorizontalAlignment="Center" Margin="26,24,12,40">
+          <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+            <StackPanel Style="{StaticResource ShowSelfDrive}"><TextBlock Text="Xe tự lái" FontSize="26" FontWeight="Bold" Foreground="{StaticResource Ink}"/></StackPanel>
+            <StackPanel Style="{StaticResource ShowWithDriver}"><TextBlock Text="Xe có tài xế" FontSize="26" FontWeight="Bold" Foreground="{StaticResource Ink}"/></StackPanel>
+            <StackPanel Style="{StaticResource ShowLongTerm}"><TextBlock Text="Thuê xe dài hạn" FontSize="26" FontWeight="Bold" Foreground="{StaticResource Ink}"/></StackPanel>
+          </StackPanel>
+          <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource MutedReadable}" Margin="0,0,0,16"/>
+          <ItemsControl ItemsSource="{Binding Cars}" ItemTemplate="{StaticResource ShortTermCardTemplate}">
+            <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel ItemWidth="338"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+            <ItemsControl.Style><Style TargetType="ItemsControl"><Setter Property="Visibility" Value="Visible"/>
+               <Style.Triggers><DataTrigger Binding="{Binding IsLongTerm}" Value="True"><Setter Property="Visibility" Value="Collapsed"/></DataTrigger></Style.Triggers></Style></ItemsControl.Style>
+          </ItemsControl>
+          <ItemsControl ItemsSource="{Binding Cars}" ItemTemplate="{StaticResource LongTermCardTemplate}">
+            <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel ItemWidth="338"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+            <ItemsControl.Style><Style TargetType="ItemsControl"><Setter Property="Visibility" Value="Collapsed"/>
+                <Style.Triggers><DataTrigger Binding="{Binding IsLongTerm}" Value="True"><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></ItemsControl.Style>
+          </ItemsControl>
+        </StackPanel>
+      </Grid>
     </ScrollViewer>
+
+
+
+    <Border x:Name="LongTermPriceFilter" Visibility="Collapsed"/>
+    <Popup x:Name="VisualFiltersPopup" IsOpen="{Binding IsChecked, ElementName=AdvancedFiltersToggle, Mode=TwoWay}"
+           StaysOpen="False" AllowsTransparency="True" Placement="Bottom"
+           PlacementTarget="{Binding ElementName=AdvancedFiltersToggle}" HorizontalOffset="-430" VerticalOffset="8">
+      <Border x:Name="AdvancedFilterPanel" Width="560" MaxHeight="600" Background="{StaticResource Surface}"
+              BorderBrush="{StaticResource Line}" BorderThickness="1" CornerRadius="16" Padding="20">
+        <Border.Effect><DropShadowEffect Color="{StaticResource ShadowColor}" BlurRadius="18" ShadowDepth="5" Opacity="0.16"/></Border.Effect>
+        <DockPanel LastChildFill="True">
+          <Grid DockPanel.Dock="Top" Margin="0,0,0,10">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+            <StackPanel>
+              <TextBlock Text="Bộ lọc nâng cao" FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource Ink}"/>
+              <TextBlock Text="Chọn tiêu chí để tìm xe phù hợp" FontSize="12" Foreground="{StaticResource MutedReadable}" Margin="0,5,0,0"/>
+            </StackPanel>
+            <Button Grid.Column="1" Width="36" Height="36" Style="{StaticResource FilterNavigationButton}" Click="CloseVisualFilters_Click" ToolTip="Đóng bộ lọc">
+              <Path Data="{StaticResource IconClose}" Stroke="{StaticResource Ink}" StrokeThickness="1.8" Width="16" Height="16" Stretch="Uniform"/>
+            </Button>
+          </Grid>
+          <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+            <Button Content="Đặt lại" Style="{StaticResource SecondaryButton}" Margin="0,0,12,0" Command="{Binding ClearFilterCommand}"/>
+            <Button Content="Áp dụng" Style="{StaticResource PrimaryButton}" Command="{Binding SearchCommand}" Click="CloseVisualFilters_Click"/>
+          </StackPanel>
+          <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" MaxHeight="420">
+<StackPanel>
+<TextBlock Text="Hãng hoặc mẫu xe" Margin="0,8,0,6"/>
+<TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" MinHeight="42"/>
+<TextBlock Text="Loại xe" Margin="0,16,0,6"/>
+<ComboBox ItemsSource="{Binding Categories}" SelectedItem="{Binding SelectedCategory}" MinHeight="42"><ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding CategoryName}"/></DataTemplate></ComboBox.ItemTemplate></ComboBox>
+<StackPanel Visibility="{Binding IsLongTerm, Converter={StaticResource BoolVisible}}">
+<TextBlock Text="Sắp xếp" Margin="0,16,0,6"/>
+<ComboBox ItemsSource="{Binding SortOptions}" SelectedItem="{Binding SelectedSort}" MinHeight="42"/>
+<TextBlock Text="Truyền động" Margin="0,16,0,6"/>
+<ComboBox ItemsSource="{Binding TransmissionOptions}" SelectedItem="{Binding SelectedTransmission}" MinHeight="42"/>
+</StackPanel>
+<TextBlock Text="Khoảng giá" Margin="0,16,0,6"/>
+<TextBlock Text="Giá mỗi ngày" Visibility="{Binding IsShortTerm, Converter={StaticResource BoolVisible}}" Foreground="{StaticResource MutedReadable}"/>
+<TextBlock Text="Giá mỗi tháng" Visibility="{Binding IsLongTerm, Converter={StaticResource BoolVisible}}" Foreground="{StaticResource MutedReadable}"/>
+<Grid Margin="0,6,0,0"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="20"/><ColumnDefinition/></Grid.ColumnDefinitions>
+<TextBox Text="{Binding MinPrice, UpdateSourceTrigger=PropertyChanged}" MinHeight="42" ToolTip="Giá từ"/>
+<TextBox Grid.Column="2" Text="{Binding MaxPrice, UpdateSourceTrigger=PropertyChanged}" MinHeight="42" ToolTip="Giá đến"/>
+</Grid></StackPanel>
+          </ScrollViewer>
+        </DockPanel>
+      </Border>
+    </Popup>
+  </Grid>
 </Page>

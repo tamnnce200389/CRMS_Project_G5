@@ -1,4 +1,4 @@
-﻿
+
 using CRMS.Models;
 using CRMS.Services;
 using System;
@@ -193,22 +193,15 @@ namespace CRMS.Views.Guest
                     button.Tag?.ToString() ==
                     months.ToString();
 
-                button.Background = isSelected
-                    ? new SolidColorBrush(
-                        Color.FromRgb(220, 252, 231))
-                    : Brushes.White;
+                // Theme chung: khong khai bao mau trong code-behind.
+                button.Background = (System.Windows.Media.Brush)FindResource(
+                    isSelected ? "PrimarySoft" : "Surface");
 
-                button.BorderBrush = isSelected
-                    ? new SolidColorBrush(
-                        Color.FromRgb(34, 197, 94))
-                    : new SolidColorBrush(
-                        Color.FromRgb(203, 213, 225));
+                button.BorderBrush = (System.Windows.Media.Brush)FindResource(
+                    isSelected ? "Primary" : "Line");
 
-                button.Foreground = isSelected
-                    ? new SolidColorBrush(
-                        Color.FromRgb(21, 128, 61))
-                    : new SolidColorBrush(
-                        Color.FromRgb(17, 24, 39));
+                button.Foreground = (System.Windows.Media.Brush)FindResource(
+                    isSelected ? "PrimaryPressed" : "Ink");
             }
 
             // Gia goc chua giam

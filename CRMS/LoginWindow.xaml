@@ -1,4 +1,4 @@
-﻿<Window x:Class="CRMS.Views.LoginWindow"
+<Window x:Class="CRMS.Views.LoginWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="CRMS - Đăng nhập"
@@ -7,10 +7,10 @@
         MinHeight="520"
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterOwner"
-        Background="#F1F5F9">
+        Background="{StaticResource SurfaceMuted}">
 
     <Border Margin="20"
-            Background="White"
+            Background="{StaticResource Surface}"
             CornerRadius="14"
             Padding="30">
 
@@ -22,13 +22,13 @@
                 <TextBlock Text="CRMS"
                            FontSize="32"
                            FontWeight="Bold"
-                           Foreground="#2563EB"
+                           Foreground="{StaticResource PrimaryHover}"
                            HorizontalAlignment="Center"
                            Margin="0,15,0,5"/>
 
                 <TextBlock Text="Đăng nhập vào tài khoản"
                            FontSize="14"
-                           Foreground="#64748B"
+                           Foreground="{StaticResource MutedReadable}"
                            HorizontalAlignment="Center"
                            Margin="0,0,0,30"/>
 
@@ -57,7 +57,7 @@
 
                 <!-- Error message -->
                 <TextBlock Text="{Binding ErrorMessage}"
-                           Foreground="#DC2626"
+                           Foreground="{StaticResource Danger}"
                            FontSize="12"
                            TextWrapping="Wrap"
                            Margin="0,12,0,12"
@@ -66,8 +66,8 @@
                 <!-- LOGIN BUTTON -->
                 <Button Content="Đăng nhập"
                         Height="45"
-                        Background="#2563EB"
-                        Foreground="White"
+                        Background="{StaticResource PrimaryHover}"
+                        Foreground="{StaticResource Surface}"
                         FontSize="15"
                         FontWeight="Bold"
                         BorderThickness="0"
@@ -82,12 +82,12 @@
 
                     <TextBlock Text="Chưa có tài khoản?"
                                FontSize="13"
-                               Foreground="#64748B"
+                               Foreground="{StaticResource MutedReadable}"
                                VerticalAlignment="Center"/>
 
                     <Button Content="Đăng ký ngay"
                             Background="Transparent"
-                            Foreground="#2563EB"
+                            Foreground="{StaticResource PrimaryHover}"
                             BorderThickness="0"
                             FontSize="13"
                             FontWeight="SemiBold"
