@@ -2,7 +2,7 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       Title="Báo cáo doanh thu"
-      Background="#F4F7FC"
+      Background="{StaticResource PageBackground}"
       FontFamily="Segoe UI">
 
     <Page.Resources>
@@ -13,11 +13,16 @@
         <!-- CARD STYLE -->
         <Style x:Key="ReportCard" TargetType="Border">
             <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="#E2E8F0"/>
+            <Setter Property="BorderBrush" Value="{StaticResource Line}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="14"/>
             <Setter Property="Padding" Value="20"/>
-        </Style>
+
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.06" Color="{StaticResource ShadowColor}"/>
+                </Setter.Value>
+            </Setter></Style>
 
         <!-- KPI CARD -->
         <Style x:Key="KpiCard"
@@ -33,14 +38,14 @@
                TargetType="TextBlock">
             <Setter Property="FontSize" Value="20"/>
             <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="#183A72"/>
+            <Setter Property="Foreground" Value="{StaticResource Ink}"/>
             <Setter Property="Margin" Value="0,0,0,16"/>
         </Style>
 
         <!-- BUTTON -->
-        <Style x:Key="ReportButton"
+        <Style BasedOn="{StaticResource {x:Type Button}}" x:Key="ReportButton"
                TargetType="Button">
-            <Setter Property="Background" Value="#2563EB"/>
+            <Setter Property="Background" Value="{StaticResource PrimaryHover}"/>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="Padding" Value="18,11"/>
             <Setter Property="BorderThickness" Value="0"/>
@@ -62,11 +67,11 @@
             <TextBlock Text="Báo cáo doanh thu"
                        FontSize="29"
                        FontWeight="Bold"
-                       Foreground="#102A56"/>
+                       Foreground="{StaticResource Ink}"/>
 
             <TextBlock
                 Text="Theo dõi các khoản thanh toán, hoàn tiền và xuất báo cáo doanh thu."
-                Foreground="#64748B"
+                Foreground="{StaticResource MutedReadable}"
                 FontSize="14"
                 TextWrapping="Wrap"
                 Margin="0,8,0,24"/>
@@ -82,9 +87,9 @@
                 <Border.Background>
                     <LinearGradientBrush StartPoint="0,0"
                                          EndPoint="1,1">
-                        <GradientStop Color="#183A72"
+                        <GradientStop Color="{StaticResource PrimaryPressedColor}"
                                       Offset="0"/>
-                        <GradientStop Color="#2563EB"
+                        <GradientStop Color="{StaticResource PrimaryColor}"
                                       Offset="1"/>
                     </LinearGradientBrush>
                 </Border.Background>
@@ -92,19 +97,19 @@
                 <StackPanel>
 
                     <TextBlock Text="REVENUE REPORT"
-                               Foreground="#BFDBFE"
+                               Foreground="{StaticResource HeroText}"
                                FontSize="12"
                                FontWeight="Bold"/>
 
                     <TextBlock Text="Phân tích dòng tiền kinh doanh"
-                               Foreground="White"
+                               Foreground="{StaticResource Surface}"
                                FontSize="27"
                                FontWeight="Bold"
                                Margin="0,12,0,10"/>
 
                     <TextBlock
                         Text="Báo cáo dựa trên giao dịch thành công, không cộng các khoản chưa được thanh toán."
-                        Foreground="#DBEAFE"
+                        Foreground="{StaticResource HeroText}"
                         FontSize="14"
                         TextWrapping="Wrap"/>
 
@@ -129,10 +134,10 @@
                         <StackPanel Margin="0,0,16,12">
 
                             <TextBlock Text="Từ ngày"
-                                       Foreground="#64748B"
+                                       Foreground="{StaticResource MutedReadable}"
                                        Margin="0,0,0,6"/>
 
-                            <DatePicker Width="180"
+                            <DatePicker Style="{StaticResource RoundedDatePicker}" Width="180"
                                         SelectedDate="{Binding FromDate, Mode=TwoWay}"/>
                         </StackPanel>
 
@@ -140,10 +145,10 @@
                         <StackPanel Margin="0,0,16,12">
 
                             <TextBlock Text="Đến ngày"
-                                       Foreground="#64748B"
+                                       Foreground="{StaticResource MutedReadable}"
                                        Margin="0,0,0,6"/>
 
-                            <DatePicker Width="180"
+                            <DatePicker Style="{StaticResource RoundedDatePicker}" Width="180"
                                         SelectedDate="{Binding ToDate, Mode=TwoWay}"/>
                         </StackPanel>
 
@@ -157,7 +162,7 @@
                         <!-- EXPORT BUTTON -->
                         <Button Content="Xuất CSV"
                                 Style="{StaticResource ReportButton}"
-                                Background="#059669"
+                                Background="{StaticResource PrimaryHover}"
                                 Command="{Binding ExportCsvCommand}"
                                 VerticalAlignment="Bottom"
                                 Margin="0,0,0,12"/>
@@ -165,7 +170,7 @@
                     </WrapPanel>
 
                     <TextBlock Text="{Binding StatusMessage}"
-                               Foreground="#64748B"
+                               Foreground="{StaticResource MutedReadable}"
                                TextWrapping="Wrap"/>
 
                 </StackPanel>
@@ -190,17 +195,17 @@
                         <StackPanel>
 
                             <TextBlock Text="Đơn có thanh toán"
-                                       Foreground="#64748B"/>
+                                       Foreground="{StaticResource MutedReadable}"/>
 
                             <TextBlock
                                 Text="{Binding Report.TotalBookings}"
-                                Foreground="#2563EB"
+                                Foreground="{StaticResource PrimaryHover}"
                                 FontWeight="Bold"
                                 FontSize="30"
                                 Margin="0,10,0,5"/>
 
                             <TextBlock Text="Trong khoảng ngày"
-                                       Foreground="#94A3B8"
+                                       Foreground="{StaticResource Muted}"
                                        FontSize="11"/>
                         </StackPanel>
                     </Border>
@@ -210,80 +215,80 @@
                         <StackPanel>
 
                             <TextBlock Text="Giao dịch thành công"
-                                       Foreground="#64748B"/>
+                                       Foreground="{StaticResource MutedReadable}"/>
 
                             <TextBlock
                                 Text="{Binding Report.TotalTransactions}"
-                                Foreground="#183A72"
+                                Foreground="{StaticResource Ink}"
                                 FontWeight="Bold"
                                 FontSize="30"
                                 Margin="0,10,0,5"/>
 
                             <TextBlock Text="Deposit, Balance, Refund"
-                                       Foreground="#94A3B8"
+                                       Foreground="{StaticResource Muted}"
                                        FontSize="11"/>
                         </StackPanel>
                     </Border>
 
                     <!-- TOTAL DEPOSITS -->
                     <Border Style="{StaticResource KpiCard}"
-                            Background="#EFF6FF">
+                            Background="{StaticResource PrimarySoft}">
                         <StackPanel>
 
                             <TextBlock Text="Tiền cọc đã thu"
-                                       Foreground="#64748B"/>
+                                       Foreground="{StaticResource MutedReadable}"/>
 
                             <TextBlock
                                 Text="{Binding Report.TotalDeposits, StringFormat='{}{0:N0} đ'}"
-                                Foreground="#2563EB"
+                                Foreground="{StaticResource PrimaryHover}"
                                 FontWeight="Bold"
                                 FontSize="24"
                                 Margin="0,12,0,5"/>
 
                             <TextBlock Text="Deposit thành công"
-                                       Foreground="#94A3B8"
+                                       Foreground="{StaticResource Muted}"
                                        FontSize="11"/>
                         </StackPanel>
                     </Border>
 
                     <!-- TOTAL BALANCE -->
                     <Border Style="{StaticResource KpiCard}"
-                            Background="#F0FDF4">
+                            Background="{StaticResource PrimarySoft}">
                         <StackPanel>
 
                             <TextBlock Text="Tiền còn lại đã thu"
-                                       Foreground="#64748B"/>
+                                       Foreground="{StaticResource MutedReadable}"/>
 
                             <TextBlock
                                 Text="{Binding Report.TotalBalances, StringFormat='{}{0:N0} đ'}"
-                                Foreground="#059669"
+                                Foreground="{StaticResource PrimaryHover}"
                                 FontWeight="Bold"
                                 FontSize="24"
                                 Margin="0,12,0,5"/>
 
                             <TextBlock Text="Balance thành công"
-                                       Foreground="#94A3B8"
+                                       Foreground="{StaticResource Muted}"
                                        FontSize="11"/>
                         </StackPanel>
                     </Border>
 
                     <!-- TOTAL REFUND -->
                     <Border Style="{StaticResource KpiCard}"
-                            Background="#FEF2F2">
+                            Background="{StaticResource DangerSoft}">
                         <StackPanel>
 
                             <TextBlock Text="Tiền đã hoàn"
-                                       Foreground="#64748B"/>
+                                       Foreground="{StaticResource MutedReadable}"/>
 
                             <TextBlock
                                 Text="{Binding Report.TotalRefunds, StringFormat='{}{0:N0} đ'}"
-                                Foreground="#DC2626"
+                                Foreground="{StaticResource Danger}"
                                 FontWeight="Bold"
                                 FontSize="24"
                                 Margin="0,12,0,5"/>
 
                             <TextBlock Text="Refund thành công"
-                                       Foreground="#94A3B8"
+                                       Foreground="{StaticResource Muted}"
                                        FontSize="11"/>
                         </StackPanel>
                     </Border>
@@ -292,8 +297,8 @@
 
                 <!-- NET REVENUE -->
 
-                <Border Background="#EFF6FF"
-                        BorderBrush="#BFDBFE"
+                <Border Background="{StaticResource PrimarySoft}"
+                        BorderBrush="{StaticResource HeroText}"
                         BorderThickness="1"
                         CornerRadius="12"
                         Padding="22"
@@ -310,19 +315,19 @@
 
                             <TextBlock Text="TỔNG TIỀN THỰC THU"
                                        FontWeight="Bold"
-                                       Foreground="#183A72"
+                                       Foreground="{StaticResource Ink}"
                                        FontSize="15"/>
 
                             <TextBlock
                                 Text="Tiền cọc + tiền còn lại - tiền đã hoàn"
-                                Foreground="#64748B"
+                                Foreground="{StaticResource MutedReadable}"
                                 FontSize="12"
                                 Margin="0,6,0,0"/>
                         </StackPanel>
 
                         <TextBlock Grid.Column="1"
                                    Text="{Binding Report.NetRevenue, StringFormat='{}{0:N0} đ'}"
-                                   Foreground="#1D4ED8"
+                                   Foreground="{StaticResource PrimaryPressed}"
                                    FontSize="25"
                                    FontWeight="Bold"
                                    VerticalAlignment="Center"
@@ -345,7 +350,7 @@
 
                         <TextBlock
                             Text="Mỗi dòng là một Booking có giao dịch thành công trong khoảng thời gian đã chọn. Đơn vị tiền: VND."
-                            Foreground="#64748B"
+                            Foreground="{StaticResource MutedReadable}"
                             TextWrapping="Wrap"
                             Margin="0,0,0,16"/>
 
@@ -361,11 +366,11 @@
                             RowHeight="38"
                             ColumnHeaderHeight="42"
                             Height="390"
-                            HorizontalScrollBarVisibility="Auto"
-                            VerticalScrollBarVisibility="Auto"
-                            Background="White"
-                            BorderBrush="#E2E8F0"
-                            AlternatingRowBackground="#F8FAFC">
+                            ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                            ScrollViewer.VerticalScrollBarVisibility="Auto"
+                            Background="{StaticResource Surface}"
+                            BorderBrush="{StaticResource Line}"
+                            AlternatingRowBackground="{StaticResource SurfaceMuted}">
 
                             <DataGrid.Columns>
 
@@ -432,7 +437,7 @@
 
                         <TextBlock
                             Text="Không có giao dịch thành công trong khoảng thời gian này."
-                            Foreground="#64748B"
+                            Foreground="{StaticResource MutedReadable}"
                             TextAlignment="Center"
                             Margin="0,15,0,0"
                             Visibility="{Binding HasNoTransactions,
@@ -449,7 +454,7 @@
 
             <Button Content="Về Dashboard"
                     Style="{StaticResource ReportButton}"
-                    Background="#475569"
+                    Background="{StaticResource MutedReadable}"
                     HorizontalAlignment="Left"
                     Command="{Binding DataContext.NavigateCommand,
                         RelativeSource={RelativeSource AncestorType=Window}}"

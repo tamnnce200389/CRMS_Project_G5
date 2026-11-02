@@ -10,11 +10,11 @@
         </StackPanel>
         <Border Grid.Row="1" Style="{StaticResource Card}">
             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="440" Margin="12,24">
-                <Border Width="80" Height="80" Background="#EDF3FF" CornerRadius="22" HorizontalAlignment="Center">
-                    <TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="32" Foreground="#2563EB" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                <Border Width="80" Height="80" Background="{StaticResource PrimarySoft}" CornerRadius="22" HorizontalAlignment="Center">
+                    <TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="32" Foreground="{StaticResource PrimaryHover}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                 </Border>
-                <Border Background="#FFF5DF" CornerRadius="5" Padding="10,6" HorizontalAlignment="Center" Margin="0,24,0,16">
-                    <TextBlock Text="ĐANG PHÁT TRIỂN" Foreground="#A16B11" FontSize="10" FontWeight="SemiBold" />
+                <Border Background="{StaticResource HighlightSoft}" CornerRadius="5" Padding="10,6" HorizontalAlignment="Center" Margin="0,24,0,16">
+                    <TextBlock Text="ĐANG PHÁT TRIỂN" Foreground="{StaticResource HighlightInk}" FontSize="10" FontWeight="SemiBold" />
                 </Border>
                 <TextBlock Text="Chức năng đặt xe đang được phát triển" FontSize="23" FontWeight="SemiBold" TextAlignment="Center" TextWrapping="Wrap" />
                 <TextBlock Text="Chức năng tạo đơn, lên lịch thuê và theo dõi trạng thái đơn sẽ có trong phiên bản tiếp theo." Style="{StaticResource Subtitle}" TextAlignment="Center" Margin="0,14,0,24" />
