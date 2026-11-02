@@ -9,7 +9,7 @@
         MinWidth="1100"
         MinHeight="680"
         WindowStartupLocation="CenterScreen"
-        Background="#F5F7FB"
+        Background="{StaticResource PageBackground}"
         FontFamily="Segoe UI">
 
     <Window.DataContext>
@@ -41,7 +41,7 @@
 
         <!-- PAGE CONTENT -->
         <Grid Grid.Column="1"
-              Background="#F5F7FB">
+              Background="{StaticResource PageBackground}">
 
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -51,8 +51,8 @@
             <!-- MANAGEMENT HEADER -->
             <Border Grid.Row="0"
                     Height="72"
-                    Background="White"
-                    BorderBrush="#E5E7EB"
+                    Background="{StaticResource Surface}"
+                    BorderBrush="{StaticResource Line}"
                     BorderThickness="0,0,0,1"
                     Padding="28,0"
                     Visibility="{Binding IsManagement,
@@ -70,16 +70,16 @@
                                 VerticalAlignment="Center">
 
                         <TextBlock Text="CRMS"
-                                   Foreground="#94A3B8"
+                                   Foreground="{StaticResource Muted}"
                                    FontSize="14"/>
 
                         <TextBlock Text="/"
-                                   Foreground="#CBD5E1"
+                                   Foreground="{StaticResource Line}"
                                    FontSize="14"
                                    Margin="12,0"/>
 
                         <TextBlock Text="{Binding CurrentPage.Title}"
-                                   Foreground="#111827"
+                                   Foreground="{StaticResource Ink}"
                                    FontSize="15"
                                    FontWeight="SemiBold"/>
                     </StackPanel>
@@ -90,7 +90,7 @@
                                 VerticalAlignment="Center">
 
                         <!-- ADMIN BADGE -->
-                        <Border Background="#EFF6FF"
+                        <Border Background="{StaticResource PrimarySoft}"
                                 CornerRadius="7"
                                 Padding="13,8"
                                 Margin="0,0,12,0"
@@ -98,13 +98,13 @@
                                     Converter={StaticResource BoolVisible}}">
 
                             <TextBlock Text="ADMIN"
-                                       Foreground="#1D4ED8"
+                                       Foreground="{StaticResource PrimaryPressed}"
                                        FontSize="12"
                                        FontWeight="Bold"/>
                         </Border>
 
                         <!-- STAFF BADGE -->
-                        <Border Background="#ECFDF5"
+                        <Border Background="{StaticResource PrimarySoft}"
                                 CornerRadius="7"
                                 Padding="13,8"
                                 Margin="0,0,12,0"
@@ -112,7 +112,7 @@
                                     Converter={StaticResource BoolVisible}}">
 
                             <TextBlock Text="STAFF"
-                                       Foreground="#047857"
+                                       Foreground="{StaticResource PrimaryHover}"
                                        FontSize="12"
                                        FontWeight="Bold"/>
                         </Border>
@@ -122,9 +122,9 @@
                                 Height="36"
                                 Padding="16,6"
                                 Margin="0,0,8,0"
-                                Background="White"
-                                Foreground="#334155"
-                                BorderBrush="#CBD5E1"
+                                Background="{StaticResource Surface}"
+                                Foreground="{StaticResource Ink}"
+                                BorderBrush="{StaticResource Line}"
                                 Cursor="Hand"
                                 Command="{Binding NavigateCommand}"
                                 CommandParameter="Profile"
@@ -135,9 +135,9 @@
                         <Button Content="Đăng xuất"
                                 Height="36"
                                 Padding="16,6"
-                                Background="White"
-                                Foreground="#334155"
-                                BorderBrush="#CBD5E1"
+                                Background="{StaticResource Surface}"
+                                Foreground="{StaticResource Ink}"
+                                BorderBrush="{StaticResource Line}"
                                 Cursor="Hand"
                                 Click="Logout_Click"/>
                     </StackPanel>
@@ -149,7 +149,7 @@
                    Content="{Binding CurrentPage}"
                    NavigationUIVisibility="Hidden"
                    JournalOwnership="OwnsJournal"
-                   Background="#F5F7FB"/>
+                   Background="{StaticResource PageBackground}"/>
 
         </Grid>
     </Grid>

@@ -2,7 +2,7 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Width="250"
-             Background="#103B34"
+             Background="{StaticResource StaffSidebarBackground}"
              FontFamily="Segoe UI">
 
     <UserControl.Resources>
@@ -10,7 +10,7 @@
         <!-- MENU BUTTON -->
         <Style x:Key="NavButton" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#D7F4EA"/>
+            <Setter Property="Foreground" Value="{StaticResource StaffSidebarText}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="FontWeight" Value="Medium"/>
@@ -35,21 +35,60 @@
 
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#176453"/>
+                    <Setter Property="Background" Value="{StaticResource StaffSidebarHover}"/>
                     <Setter Property="Foreground" Value="White"/>
                 </Trigger>
 
                 <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Foreground" Value="#80AA9D"/>
+                    <Setter Property="Foreground" Value="{StaticResource StaffSidebarMuted}"/>
                     <Setter Property="Cursor" Value="Arrow"/>
                 </Trigger>
+            </Style.Triggers>
+        </Style>
+
+
+        <!-- Active navigation: green primary, based on existing MainViewModel state -->
+        <Style x:Key="IsDashboardActiveNav" TargetType="Button" BasedOn="{StaticResource NavButton}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding DataContext.IsDashboard, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
+                    <Setter Property="Background" Value="{StaticResource PrimaryHover}"/>
+                    <Setter Property="Foreground" Value="{StaticResource Surface}"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="IsBookingsActiveNav" TargetType="Button" BasedOn="{StaticResource NavButton}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding DataContext.IsBookings, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
+                    <Setter Property="Background" Value="{StaticResource PrimaryHover}"/>
+                    <Setter Property="Foreground" Value="{StaticResource Surface}"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="IsVehiclesActiveNav" TargetType="Button" BasedOn="{StaticResource NavButton}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding DataContext.IsVehicles, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
+                    <Setter Property="Background" Value="{StaticResource PrimaryHover}"/>
+                    <Setter Property="Foreground" Value="{StaticResource Surface}"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="IsDriversActiveNav" TargetType="Button" BasedOn="{StaticResource NavButton}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding DataContext.IsDrivers, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
+                    <Setter Property="Background" Value="{StaticResource PrimaryHover}"/>
+                    <Setter Property="Foreground" Value="{StaticResource Surface}"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                </DataTrigger>
             </Style.Triggers>
         </Style>
 
         <!-- COLLAPSIBLE GROUP -->
         <Style x:Key="MenuGroup" TargetType="Expander">
             <Setter Property="Margin" Value="10,4,10,0"/>
-            <Setter Property="Foreground" Value="#A4E1D0"/>
+            <Setter Property="Foreground" Value="{StaticResource StaffSidebarText}"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
 
             <Setter Property="Template">
@@ -61,7 +100,7 @@
                                 IsChecked="{Binding IsExpanded,
                                     RelativeSource={RelativeSource TemplatedParent},
                                     Mode=TwoWay}"
-                                Foreground="#A4E1D0"
+                                Foreground="{StaticResource StaffSidebarText}"
                                 Cursor="Hand">
 
                                 <ToggleButton.Template>
@@ -83,7 +122,7 @@
                                                 <TextBlock Grid.Column="1"
                                                            Text="⌄"
                                                            FontSize="16"
-                                                           Foreground="#A4E1D0"
+                                                           Foreground="{StaticResource StaffSidebarText}"
                                                            HorizontalAlignment="Center"
                                                            VerticalAlignment="Center"/>
                                             </Grid>
@@ -94,14 +133,14 @@
                                                      Value="True">
                                                 <Setter TargetName="HeaderBackground"
                                                         Property="Background"
-                                                        Value="#17594C"/>
+                                                        Value="{StaticResource StaffSidebarHover}"/>
                                             </Trigger>
 
                                             <Trigger Property="IsChecked"
                                                      Value="True">
                                                 <Setter TargetName="HeaderBackground"
                                                         Property="Background"
-                                                        Value="#207261"/>
+                                                        Value="{StaticResource PrimaryHover}"/>
                                             </Trigger>
                                         </ControlTemplate.Triggers>
                                     </ControlTemplate>
@@ -128,7 +167,7 @@
 
     </UserControl.Resources>
 
-    <Border Background="#103B34">
+    <Border Background="{StaticResource StaffSidebarBackground}">
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -141,20 +180,20 @@
                 <TextBlock Text="CRMS"
                            FontSize="30"
                            FontWeight="Bold"
-                           Foreground="White"/>
+                           Foreground="{StaticResource Surface}"/>
 
                 <TextBlock Text="STAFF WORKSPACE"
                            FontSize="12"
                            FontWeight="SemiBold"
-                           Foreground="#9AE5CF"
+                           Foreground="{StaticResource StaffSidebarText}"
                            Margin="0,5,0,0"/>
 
-                <Border Background="#1D594D"
+                <Border Background="{StaticResource StaffSidebarPanel}"
                         CornerRadius="8"
                         Padding="12,10"
                         Margin="0,18,0,0">
                     <TextBlock Text="KHU VỰC NHÂN VIÊN"
-                               Foreground="White"
+                               Foreground="{StaticResource Surface}"
                                FontSize="11"
                                FontWeight="SemiBold"
                                HorizontalAlignment="Center"/>
@@ -175,7 +214,7 @@
                               Expanded="Group_Expanded">
                         <StackPanel>
                             <Button Content="Tổng quan công việc"
-                                    Style="{StaticResource NavButton}"
+                                    Style="{StaticResource IsDashboardActiveNav}"
                                     Command="{Binding NavigateCommand}"
                                     CommandParameter="Dashboard"/>
                         </StackPanel>
@@ -188,7 +227,7 @@
                               Expanded="Group_Expanded">
                         <StackPanel>
                             <Button Content="Danh sách đơn thuê"
-                                    Style="{StaticResource NavButton}"
+                                    Style="{StaticResource IsBookingsActiveNav}"
                                     Command="{Binding NavigateCommand}"
                                     CommandParameter="Bookings"/>
 
@@ -205,12 +244,12 @@
                               Expanded="Group_Expanded">
                         <StackPanel>
                             <Button Content="Tra cứu xe"
-                                    Style="{StaticResource NavButton}"
+                                    Style="{StaticResource IsVehiclesActiveNav}"
                                     Command="{Binding NavigateCommand}"
                                     CommandParameter="Vehicles"/>
 
                             <Button Content="Tra cứu tài xế"
-                                    Style="{StaticResource NavButton}"
+                                    Style="{StaticResource IsDriversActiveNav}"
                                     Command="{Binding NavigateCommand}"
                                     CommandParameter="Drivers"/>
                         </StackPanel>
@@ -284,17 +323,17 @@
 
             <!-- FOOTER -->
             <Border Grid.Row="2"
-                    BorderBrush="#326052"
+                    BorderBrush="{StaticResource StaffSidebarDivider}"
                     BorderThickness="0,1,0,0"
                     Padding="22,15">
                 <StackPanel>
                     <TextBlock Text="STAFF"
-                               Foreground="White"
+                               Foreground="{StaticResource Surface}"
                                FontWeight="Bold"
                                FontSize="13"/>
 
                     <TextBlock Text="Vận hành thuê xe"
-                               Foreground="#9CD6C5"
+                               Foreground="{StaticResource StaffSidebarText}"
                                FontSize="11"
                                Margin="0,5,0,0"/>
                 </StackPanel>
