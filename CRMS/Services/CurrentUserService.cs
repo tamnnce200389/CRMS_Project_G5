@@ -1,6 +1,7 @@
 ﻿
 using CRMS.Models;
 using CRMS.ViewModels;
+using System.Globalization;
 
 namespace CRMS.Services
 {
@@ -16,6 +17,16 @@ namespace CRMS.Services
         public long? UserId { get; private set; }
 
         public string FullName { get; private set; } = "Guest";
+
+        public string AvatarInitials
+        {
+            get
+            {
+                var words = FullName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                return words.Length == 0 ? "KH" : string.Concat(words.TakeLast(2)
+                    .Select(word => StringInfo.GetNextTextElement(word))).ToUpperInvariant();
+            }
+        }
 
         public string Role { get; private set; } = "Guest";
 
@@ -52,6 +63,7 @@ namespace CRMS.Services
         {
             OnPropertyChanged(nameof(UserId));
             OnPropertyChanged(nameof(FullName));
+            OnPropertyChanged(nameof(AvatarInitials));
             OnPropertyChanged(nameof(Role));
             OnPropertyChanged(nameof(IsLoggedIn));
             OnPropertyChanged(nameof(IsAdmin));

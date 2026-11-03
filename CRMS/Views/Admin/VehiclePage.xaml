@@ -3,6 +3,11 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:vm="clr-namespace:CRMS.ViewModels"
       Title="Quản lý xe">
+    <Page.Resources>
+        <Style TargetType="Button" BasedOn="{StaticResource AdminButtonBase}"/>
+        <Style TargetType="DataGridCell" BasedOn="{StaticResource AdminCell}"/>
+    </Page.Resources>
+
     <Page.DataContext>
         <vm:VehicleViewModel />
     </Page.DataContext>
@@ -24,8 +29,8 @@
                 <Button Content="Kiểm tra lịch trống"
                         Click="OpenAvailability_Click"
                         Background="White"
-                        Foreground="#1D4ED8"
-                        BorderBrush="#BFDBFE"
+                        Foreground="{StaticResource CustomerInk}"
+                        BorderBrush="{StaticResource CustomerLine}"
                         BorderThickness="1"
                         Padding="14,10"
                         Margin="0,0,8,0" />
@@ -89,7 +94,7 @@
             <Border Grid.Column="1" Style="{StaticResource Card}" Padding="20,16" Margin="0,0,14,0">
                 <StackPanel>
                     <TextBlock Text="ĐANG HOẠT ĐỘNG" Foreground="{StaticResource Muted}" FontSize="10" FontWeight="SemiBold" />
-                    <TextBlock Text="{Binding ActiveCount}" FontSize="28" FontWeight="SemiBold" Foreground="#098568" Margin="0,6,0,2" />
+                    <TextBlock Text="{Binding ActiveCount}" FontSize="28" FontWeight="SemiBold" Foreground="{StaticResource CustomerInk}" Margin="0,6,0,2" />
                     <TextBlock Text="Sẵn sàng nhận lịch đặt" Style="{StaticResource Subtitle}" FontSize="12" />
                 </StackPanel>
             </Border>
@@ -102,10 +107,10 @@
                 </StackPanel>
             </Border>
 
-            <Border Grid.Column="3" Background="#EAF1FF" CornerRadius="12" Padding="20,16">
+            <Border Grid.Column="3" Background="{StaticResource CustomerSoft}" CornerRadius="12" Padding="20,16">
                 <StackPanel>
-                    <TextBlock Text="ĐANG HIỂN THỊ" Foreground="#2563EB" FontSize="10" FontWeight="SemiBold" />
-                    <TextBlock Text="{Binding FilteredCount}" FontSize="28" FontWeight="SemiBold" Foreground="{StaticResource Accent}" Margin="0,6,0,2" />
+                    <TextBlock Text="ĐANG HIỂN THỊ" Foreground="{StaticResource CustomerInk}" FontSize="10" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding FilteredCount}" FontSize="28" FontWeight="SemiBold" Foreground="{StaticResource CustomerInk}" Margin="0,6,0,2" />
                     <TextBlock Text="Khớp với điều kiện lọc" Style="{StaticResource Subtitle}" FontSize="12" />
                 </StackPanel>
             </Border>
@@ -259,7 +264,7 @@
                                                 <Setter Property="Background" Value="#FEF3C7" />
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding IsActive}" Value="True">
-                                                        <Setter Property="Background" Value="#E7F6F0" />
+                                                        <Setter Property="Background" Value="{StaticResource CustomerSoft}" />
                                                     </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
@@ -272,7 +277,7 @@
                                                     <Setter Property="Foreground" Value="#B45309" />
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding IsActive}" Value="True">
-                                                            <Setter Property="Foreground" Value="#098568" />
+                                                            <Setter Property="Foreground" Value="{StaticResource CustomerInk}" />
                                                         </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
@@ -302,9 +307,9 @@
                                             <Button.Style>
                                                 <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
                                                     <Setter Property="Content" Value="Kích hoạt" />
-                                                    <Setter Property="Background" Value="#E7F6F0" />
-                                                    <Setter Property="Foreground" Value="#098568" />
-                                                    <Setter Property="BorderBrush" Value="#A7F3D0" />
+                                                    <Setter Property="Background" Value="{StaticResource CustomerSoft}" />
+                                                    <Setter Property="Foreground" Value="{StaticResource CustomerInk}" />
+                                                    <Setter Property="BorderBrush" Value="{StaticResource CustomerLine}" />
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding IsActive}" Value="True">
                                                             <Setter Property="Content" Value="Tạm ngưng" />
@@ -347,7 +352,7 @@
                              IsIndeterminate="True"
                              Visibility="{Binding IsLoading, Converter={StaticResource BoolVisibility}}"
                              BorderThickness="0"
-                             Foreground="{StaticResource Accent}" />
+                             Foreground="{StaticResource CustomerInk}" />
             </Grid>
         </Border>
 

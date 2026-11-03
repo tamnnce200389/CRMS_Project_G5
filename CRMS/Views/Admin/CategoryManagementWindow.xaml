@@ -7,7 +7,12 @@
         MinWidth="780"
         MinHeight="480"
         WindowStartupLocation="CenterOwner"
-        Background="#F4F7FB">
+        Background="{StaticResource CustomerBackground}">
+    <Window.Resources>
+        <Style TargetType="Button" BasedOn="{StaticResource AdminButtonBase}"/>
+        <Style TargetType="DataGridCell" BasedOn="{StaticResource AdminCell}"/>
+    </Window.Resources>
+
 
     <Grid Margin="24,20">
         <Grid.RowDefinitions>
@@ -76,7 +81,7 @@
                                                     <Setter Property="Background" Value="#F1F5F9" />
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding IsActive}" Value="True">
-                                                            <Setter Property="Background" Value="#E7F6F0" />
+                                                            <Setter Property="Background" Value="{StaticResource CustomerSoft}" />
                                                         </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
@@ -89,7 +94,7 @@
                                                         <Style.Triggers>
                                                             <DataTrigger Binding="{Binding IsActive}" Value="True">
                                                                 <Setter Property="Text" Value="Hoạt động" />
-                                                                <Setter Property="Foreground" Value="#098568" />
+                                                                <Setter Property="Foreground" Value="{StaticResource CustomerInk}" />
                                                             </DataTrigger>
                                                         </Style.Triggers>
                                                     </Style>
@@ -150,9 +155,9 @@
 
                         <Button Content="Ngừng / Kích hoạt loại xe"
                                 Command="{Binding ToggleActiveCommand}"
-                                Background="#EFF6FF"
-                                Foreground="#1D4ED8"
-                                BorderBrush="#BFDBFE"
+                                Background="{StaticResource CustomerSoft}"
+                                Foreground="{StaticResource CustomerInk}"
+                                BorderBrush="{StaticResource CustomerLine}"
                                 BorderThickness="1"
                                 Padding="12,9"
                                 Margin="0,0,0,8" />

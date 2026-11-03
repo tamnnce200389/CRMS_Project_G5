@@ -29,7 +29,8 @@ namespace CRMS.ViewModels
         private readonly BookingPage _bookingPage = new();
 
         private readonly ReportPage _reportPage = new();
-        private readonly UserManagementPage _userManagementPage = new();
+        // This page queries users in its constructor; create it only when an admin opens it.
+        private UserManagementPage? _userManagementPage;
 
         // =====================================
         // 3. STAFF PAGES
@@ -86,6 +87,11 @@ namespace CRMS.ViewModels
         // =====================================
         // 6. NAVIGATION STATES
         // =====================================
+        public bool IsCustomerExplore => CurrentPage is HomePage or CarSearchPage or CarDetailsPage;
+        public bool IsCustomerBookings => CurrentPage is MyBookingsPage;
+        public bool IsCustomerPayments => CurrentPage is PaymentSummaryPage;
+        public bool IsCustomerProfile => CurrentPage is ProfilePage;
+
         public bool IsDashboard =>
             CurrentPage == _adminDashboard ||
             CurrentPage == _staffDashboard;
@@ -208,7 +214,7 @@ namespace CRMS.ViewModels
                 case "UserManagement":
                     if (IsAdmin)
                     {
-                        CurrentPage = _userManagementPage;
+                        CurrentPage = _userManagementPage ??= new UserManagementPage();
                     }
                     break;
 
@@ -227,6 +233,9 @@ namespace CRMS.ViewModels
                     break;
                 case "ManualRefund":
                     if (IsManagement) CurrentPage = new ManualRefundPage();
+                    break;
+                case "MyBookings":
+                    if (IsCustomer) CurrentPage = new MyBookingsPage();
                     break;
                 case "PaymentSummary":
                     if (IsLoggedIn) CurrentPage = new PaymentSummaryPage();
@@ -249,6 +258,10 @@ namespace CRMS.ViewModels
         // =====================================
         private void RefreshNavigationStates()
         {
+            OnPropertyChanged(nameof(IsCustomerExplore));
+            OnPropertyChanged(nameof(IsCustomerBookings));
+            OnPropertyChanged(nameof(IsCustomerPayments));
+            OnPropertyChanged(nameof(IsCustomerProfile));
             OnPropertyChanged(nameof(IsDashboard));
             OnPropertyChanged(nameof(IsVehicles));
             OnPropertyChanged(nameof(IsDrivers));

@@ -2,7 +2,7 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Width="250"
-             Background="{StaticResource SidebarBackground}"
+             Background="{StaticResource CustomerInk}"
              FontFamily="Segoe UI">
 
     <UserControl.Resources>
@@ -10,7 +10,7 @@
         <!-- MENU BUTTON -->
         <Style x:Key="NavButton" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="{StaticResource SidebarHeading}"/>
+            <Setter Property="Foreground" Value="{StaticResource CustomerSoft}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="FontWeight" Value="Medium"/>
@@ -35,12 +35,12 @@
 
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="{StaticResource SidebarHover}"/>
+                    <Setter Property="Background" Value="{StaticResource CustomerHover}"/>
                     <Setter Property="Foreground" Value="White"/>
                 </Trigger>
 
                 <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Foreground" Value="{StaticResource SidebarMuted}"/>
+                    <Setter Property="Foreground" Value="{StaticResource AdminSidebarMuted}"/>
                     <Setter Property="Cursor" Value="Arrow"/>
                 </Trigger>
             </Style.Triggers>
@@ -51,8 +51,8 @@
         <Style x:Key="IsDashboardActiveNav" TargetType="Button" BasedOn="{StaticResource NavButton}">
             <Style.Triggers>
                 <DataTrigger Binding="{Binding DataContext.IsDashboard, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
-                    <Setter Property="Background" Value="{StaticResource PrimaryHover}"/>
-                    <Setter Property="Foreground" Value="{StaticResource Surface}"/>
+                    <Setter Property="Background" Value="{StaticResource CustomerAccent}"/>
+                    <Setter Property="Foreground" Value="{StaticResource CustomerInk}"/>
                     <Setter Property="FontWeight" Value="SemiBold"/>
                 </DataTrigger>
             </Style.Triggers>
@@ -60,8 +60,8 @@
         <Style x:Key="IsReportsActiveNav" TargetType="Button" BasedOn="{StaticResource NavButton}">
             <Style.Triggers>
                 <DataTrigger Binding="{Binding DataContext.IsReports, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
-                    <Setter Property="Background" Value="{StaticResource PrimaryHover}"/>
-                    <Setter Property="Foreground" Value="{StaticResource Surface}"/>
+                    <Setter Property="Background" Value="{StaticResource CustomerAccent}"/>
+                    <Setter Property="Foreground" Value="{StaticResource CustomerInk}"/>
                     <Setter Property="FontWeight" Value="SemiBold"/>
                 </DataTrigger>
             </Style.Triggers>
@@ -69,8 +69,8 @@
         <Style x:Key="IsVehiclesActiveNav" TargetType="Button" BasedOn="{StaticResource NavButton}">
             <Style.Triggers>
                 <DataTrigger Binding="{Binding DataContext.IsVehicles, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
-                    <Setter Property="Background" Value="{StaticResource PrimaryHover}"/>
-                    <Setter Property="Foreground" Value="{StaticResource Surface}"/>
+                    <Setter Property="Background" Value="{StaticResource CustomerAccent}"/>
+                    <Setter Property="Foreground" Value="{StaticResource CustomerInk}"/>
                     <Setter Property="FontWeight" Value="SemiBold"/>
                 </DataTrigger>
             </Style.Triggers>
@@ -78,8 +78,8 @@
         <Style x:Key="IsBookingsActiveNav" TargetType="Button" BasedOn="{StaticResource NavButton}">
             <Style.Triggers>
                 <DataTrigger Binding="{Binding DataContext.IsBookings, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
-                    <Setter Property="Background" Value="{StaticResource PrimaryHover}"/>
-                    <Setter Property="Foreground" Value="{StaticResource Surface}"/>
+                    <Setter Property="Background" Value="{StaticResource CustomerAccent}"/>
+                    <Setter Property="Foreground" Value="{StaticResource CustomerInk}"/>
                     <Setter Property="FontWeight" Value="SemiBold"/>
                 </DataTrigger>
             </Style.Triggers>
@@ -87,8 +87,8 @@
         <Style x:Key="IsDriversActiveNav" TargetType="Button" BasedOn="{StaticResource NavButton}">
             <Style.Triggers>
                 <DataTrigger Binding="{Binding DataContext.IsDrivers, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
-                    <Setter Property="Background" Value="{StaticResource PrimaryHover}"/>
-                    <Setter Property="Foreground" Value="{StaticResource Surface}"/>
+                    <Setter Property="Background" Value="{StaticResource CustomerAccent}"/>
+                    <Setter Property="Foreground" Value="{StaticResource CustomerInk}"/>
                     <Setter Property="FontWeight" Value="SemiBold"/>
                 </DataTrigger>
             </Style.Triggers>
@@ -96,8 +96,8 @@
         <Style x:Key="IsUserManagementActiveNav" TargetType="Button" BasedOn="{StaticResource NavButton}">
             <Style.Triggers>
                 <DataTrigger Binding="{Binding DataContext.IsUserManagement, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
-                    <Setter Property="Background" Value="{StaticResource PrimaryHover}"/>
-                    <Setter Property="Foreground" Value="{StaticResource Surface}"/>
+                    <Setter Property="Background" Value="{StaticResource CustomerAccent}"/>
+                    <Setter Property="Foreground" Value="{StaticResource CustomerInk}"/>
                     <Setter Property="FontWeight" Value="SemiBold"/>
                 </DataTrigger>
             </Style.Triggers>
@@ -106,7 +106,7 @@
         <!-- COLLAPSIBLE GROUP -->
         <Style x:Key="MenuGroup" TargetType="Expander">
             <Setter Property="Margin" Value="10,4,10,0"/>
-            <Setter Property="Foreground" Value="{StaticResource SidebarText}"/>
+            <Setter Property="Foreground" Value="{StaticResource AdminSidebarText}"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
 
             <Setter Property="Template">
@@ -119,7 +119,7 @@
                                 IsChecked="{Binding IsExpanded,
                                     RelativeSource={RelativeSource TemplatedParent},
                                     Mode=TwoWay}"
-                                Foreground="{StaticResource SidebarText}"
+                                Foreground="{StaticResource AdminSidebarText}"
                                 Cursor="Hand">
 
                                 <ToggleButton.Template>
@@ -142,7 +142,7 @@
                                                 <TextBlock Grid.Column="1"
                                                            Text="⌄"
                                                            FontSize="16"
-                                                           Foreground="{StaticResource SidebarText}"
+                                                           Foreground="{StaticResource AdminSidebarText}"
                                                            HorizontalAlignment="Center"
                                                            VerticalAlignment="Center"/>
                                             </Grid>
@@ -153,14 +153,14 @@
                                                      Value="True">
                                                 <Setter TargetName="HeaderBackground"
                                                         Property="Background"
-                                                        Value="{StaticResource SidebarHover}"/>
+                                                        Value="{StaticResource CustomerHover}"/>
                                             </Trigger>
 
                                             <Trigger Property="IsChecked"
                                                      Value="True">
                                                 <Setter TargetName="HeaderBackground"
                                                         Property="Background"
-                                                        Value="{StaticResource PrimaryHover}"/>
+                                                        Value="{StaticResource CustomerHover}"/>
                                             </Trigger>
                                         </ControlTemplate.Triggers>
                                     </ControlTemplate>
@@ -187,7 +187,7 @@
 
     </UserControl.Resources>
 
-    <Border Background="{StaticResource SidebarBackground}">
+    <Border Background="{StaticResource CustomerInk}">
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -207,10 +207,10 @@
                 <TextBlock Text="ADMIN CONSOLE"
                            FontSize="12"
                            FontWeight="SemiBold"
-                           Foreground="{StaticResource SidebarText}"
+                           Foreground="{StaticResource AdminSidebarText}"
                            Margin="0,5,0,0"/>
 
-                <Border Background="{StaticResource SidebarPanel}"
+                <Border Background="{StaticResource CustomerHover}"
                         CornerRadius="8"
                         Padding="12,10"
                         Margin="0,18,0,0">
@@ -354,7 +354,7 @@
 
             <!-- FOOTER -->
             <Border Grid.Row="2"
-                    BorderBrush="{StaticResource SidebarDivider}"
+                    BorderBrush="{StaticResource AdminSidebarDivider}"
                     BorderThickness="0,1,0,0"
                     Padding="22,15">
 
@@ -365,7 +365,7 @@
                                FontSize="13"/>
 
                     <TextBlock Text="Quản trị toàn hệ thống"
-                               Foreground="{StaticResource SidebarText}"
+                               Foreground="{StaticResource AdminSidebarText}"
                                FontSize="11"
                                Margin="0,5,0,0"/>
                 </StackPanel>
