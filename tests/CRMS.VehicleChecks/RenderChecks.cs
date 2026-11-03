@@ -113,6 +113,7 @@ internal static class RenderChecks
     private static FrameworkElement DetachRoot(Page page, object dataContext)
     {
         var content = (FrameworkElement)page.Content;
+        content.Resources.MergedDictionaries.Add(page.Resources);
         page.Content = null;
         content.DataContext = dataContext;
         return content;
@@ -121,6 +122,7 @@ internal static class RenderChecks
     private static FrameworkElement DetachRoot(Window window, object dataContext)
     {
         var content = (FrameworkElement)window.Content;
+        content.Resources.MergedDictionaries.Add(window.Resources);
         window.Content = null;
         content.DataContext = dataContext;
         return content;

@@ -162,7 +162,18 @@ namespace CRMS.Views.Guest
         private void About_Click(
             object sender, RoutedEventArgs e)
         {
-            AboutSection.BringIntoView();
+            if (Content is ScrollViewer { Content: UIElement content } scroll)
+                scroll.ScrollToVerticalOffset(AboutSection.TranslatePoint(new Point(), content).Y);
+        }
+
+        private void Service_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button { Tag: string mode } && DataContext is HomeViewModel home)
+            {
+                home.SelectModeCommand.Execute(mode);
+                UpdateLayout();
+                SearchPanel.BringIntoView();
+            }
         }
 
         // =====================================

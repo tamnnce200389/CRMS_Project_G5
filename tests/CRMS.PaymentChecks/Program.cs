@@ -8,6 +8,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
 if (args.Length >= 2 && args[0] == "--render") { RenderChecks.Run(args[1]); return; }
+if (args.Length >= 2 && args[0] == "--customer-ui") { CustomerUiChecks.Run(args[1]); return; }
 var passed = 0;
 void Assert(bool ok, string name)
 {

@@ -3,6 +3,11 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:vm="clr-namespace:CRMS.ViewModels"
       Title="Tài xế">
+    <Page.Resources>
+        <Style TargetType="Button" BasedOn="{StaticResource AdminButtonBase}"/>
+        <Style TargetType="DataGridCell" BasedOn="{StaticResource AdminCell}"/>
+    </Page.Resources>
+
 
     <Page.DataContext>
         <vm:DriverViewModel />
@@ -76,7 +81,7 @@
                     <TextBlock Text="{Binding ActiveDrivers}"
                                FontSize="30"
                                FontWeight="SemiBold"
-                               Foreground="{StaticResource PrimaryHover}"
+                               Foreground="{StaticResource CustomerInk}"
                                Margin="0,7,0,2"/>
 
                     <TextBlock Text="Tài xế có trạng thái hoạt động"
@@ -149,13 +154,13 @@
                                             <Border.Style>
                                                 <Style TargetType="Border">
                                                     <Setter Property="Background"
-                                                            Value="{StaticResource SurfaceMuted}"/>
+                                                            Value="{StaticResource CustomerBackground}"/>
 
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding IsActive}"
                                                                      Value="True">
                                                             <Setter Property="Background"
-                                                                    Value="{StaticResource PrimarySoft}"/>
+                                                                    Value="{StaticResource CustomerSoft}"/>
                                                         </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
@@ -178,7 +183,7 @@
                                                                         Value="Hoạt động"/>
 
                                                                 <Setter Property="Foreground"
-                                                                        Value="{StaticResource PrimaryHover}"/>
+                                                                        Value="{StaticResource CustomerInk}"/>
                                                             </DataTrigger>
                                                         </Style.Triggers>
                                                     </Style>
@@ -233,7 +238,7 @@
                                  Height="3"
                                  IsIndeterminate="True"
                                  Visibility="{Binding IsLoading, Converter={StaticResource BoolVisibility}}"
-                                 Foreground="{StaticResource Accent}"
+                                 Foreground="{StaticResource CustomerInk}"
                                  BorderThickness="0"/>
                 </Grid>
             </Border>

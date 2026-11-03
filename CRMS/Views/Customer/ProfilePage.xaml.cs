@@ -1,4 +1,4 @@
-﻿
+
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -27,8 +27,8 @@ namespace CRMS.Views.Customer
             if (!CurrentUserService.Instance.IsLoggedIn)
             {
                 MessageBox.Show(
-                    "Please log in to view your profile.",
-                    "Access denied",
+                    "Vui lòng đăng nhập để xem hồ sơ.",
+                    "Chưa đăng nhập",
                     MessageBoxButton.OK,
                     MessageBoxImage.Warning);
 
@@ -53,7 +53,7 @@ namespace CRMS.Views.Customer
 
                 if (user == null)
                 {
-                    txtMessage.Text = "Account not found.";
+                    txtMessage.Text = "Không tìm thấy tài khoản.";
                     txtMessage.Foreground = Brushes.Red;
                     return;
                 }
@@ -62,17 +62,17 @@ namespace CRMS.Views.Customer
                 txtFullName.Text = user.FullName;
                 txtEmail.Text = user.Email;
                 txtPhone.Text = user.Phone ?? "";
-                txtRole.Text = user.UserRole;
+                txtRole.Text = user.UserRole switch { "Customer" => "Khách hàng", "Staff" => "Nhân viên", "Admin" => "Quản trị viên", _ => user.UserRole };
                 txtStatus.Text = user.IsActive
-                    ? "Active"
-                    : "Inactive";
+                    ? "Đang hoạt động"
+                    : "Ngừng hoạt động";
 
                 txtMessage.Text = "";
             }
             catch (Exception ex)
             {
                 txtMessage.Text =
-                    "Could not load profile: " + ex.Message;
+                    "Không thể tải hồ sơ: " + ex.Message;
 
                 txtMessage.Foreground = Brushes.Red;
             }
@@ -87,8 +87,8 @@ namespace CRMS.Views.Customer
             if (fullName.Length < 2 || fullName.Length > 120)
             {
                 MessageBox.Show(
-                    "Full name must contain 2-120 characters.",
-                    "Validation",
+                    "Họ tên cần có từ 2 đến 120 ký tự.",
+                    "Kiểm tra thông tin",
                     MessageBoxButton.OK,
                     MessageBoxImage.Warning);
 
@@ -98,8 +98,8 @@ namespace CRMS.Views.Customer
             if (phone.Length > 20)
             {
                 MessageBox.Show(
-                    "Phone number cannot exceed 20 characters.",
-                    "Validation",
+                    "Số điện thoại không được quá 20 ký tự.",
+                    "Kiểm tra thông tin",
                     MessageBoxButton.OK,
                     MessageBoxImage.Warning);
 
@@ -115,7 +115,7 @@ namespace CRMS.Views.Customer
 
                 if (user == null)
                 {
-                    MessageBox.Show("Account not found.");
+                    MessageBox.Show("Không tìm thấy tài khoản.");
                     return;
                 }
 
@@ -127,13 +127,15 @@ namespace CRMS.Views.Customer
                 user.UpdatedAt = DateTime.UtcNow;
 
                 await db.SaveChangesAsync();
+                if (CurrentUserService.Instance.UserId == user.UserId)
+                    CurrentUserService.Instance.SetUser(user);
 
-                txtMessage.Text = "Profile updated successfully!";
+                txtMessage.Text = "Đã lưu thông tin hồ sơ.";
                 txtMessage.Foreground = Brushes.Green;
 
                 MessageBox.Show(
-                    "Your profile has been updated.",
-                    "Success",
+                    "Thông tin của bạn đã được cập nhật.",
+                    "Thành công",
                     MessageBoxButton.OK,
                     MessageBoxImage.Information);
 
@@ -142,13 +144,13 @@ namespace CRMS.Views.Customer
             catch (DbUpdateConcurrencyException)
             {
                 MessageBox.Show(
-                    "Your account was changed elsewhere. Reload the profile and try again.");
+                    "Tài khoản đã được thay đổi ở nơi khác. Vui lòng tải lại hồ sơ và thử lại.");
             }
             catch (Exception ex)
             {
                 MessageBox.Show(
-                    "Could not update profile: " + ex.Message,
-                    "Error",
+                    "Không thể cập nhật hồ sơ: " + ex.Message,
+                    "Lỗi",
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
             }

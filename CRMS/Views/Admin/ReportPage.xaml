@@ -2,10 +2,13 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       Title="Báo cáo doanh thu"
-      Background="{StaticResource PageBackground}"
+      Background="{StaticResource CustomerBackground}"
       FontFamily="Segoe UI">
 
     <Page.Resources>
+        <Style TargetType="Button" BasedOn="{StaticResource AdminButtonBase}"/>
+        <Style TargetType="DataGridCell" BasedOn="{StaticResource AdminCell}"/>
+
 
         <BooleanToVisibilityConverter
             x:Key="BoolToVisibility"/>
@@ -13,16 +16,12 @@
         <!-- CARD STYLE -->
         <Style x:Key="ReportCard" TargetType="Border">
             <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="{StaticResource Line}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource CustomerLine}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="14"/>
             <Setter Property="Padding" Value="20"/>
 
-            <Setter Property="Effect">
-                <Setter.Value>
-                    <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.06" Color="{StaticResource ShadowColor}"/>
-                </Setter.Value>
-            </Setter></Style>
+        </Style>
 
         <!-- KPI CARD -->
         <Style x:Key="KpiCard"
@@ -38,14 +37,14 @@
                TargetType="TextBlock">
             <Setter Property="FontSize" Value="20"/>
             <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="{StaticResource Ink}"/>
+            <Setter Property="Foreground" Value="{StaticResource CustomerInk}"/>
             <Setter Property="Margin" Value="0,0,0,16"/>
         </Style>
 
         <!-- BUTTON -->
         <Style BasedOn="{StaticResource {x:Type Button}}" x:Key="ReportButton"
                TargetType="Button">
-            <Setter Property="Background" Value="{StaticResource PrimaryHover}"/>
+            <Setter Property="Background" Value="{StaticResource CustomerInk}"/>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="Padding" Value="18,11"/>
             <Setter Property="BorderThickness" Value="0"/>
@@ -67,7 +66,7 @@
             <TextBlock Text="Báo cáo doanh thu"
                        FontSize="29"
                        FontWeight="Bold"
-                       Foreground="{StaticResource Ink}"/>
+                       Foreground="{StaticResource CustomerInk}"/>
 
             <TextBlock
                 Text="Theo dõi các khoản thanh toán, hoàn tiền và xuất báo cáo doanh thu."
@@ -87,9 +86,9 @@
                 <Border.Background>
                     <LinearGradientBrush StartPoint="0,0"
                                          EndPoint="1,1">
-                        <GradientStop Color="{StaticResource PrimaryPressedColor}"
+                        <GradientStop Color="{StaticResource AdminPrimaryColor}"
                                       Offset="0"/>
-                        <GradientStop Color="{StaticResource PrimaryColor}"
+                        <GradientStop Color="{StaticResource AdminPrimaryLightColor}"
                                       Offset="1"/>
                     </LinearGradientBrush>
                 </Border.Background>
@@ -162,7 +161,7 @@
                         <!-- EXPORT BUTTON -->
                         <Button Content="Xuất CSV"
                                 Style="{StaticResource ReportButton}"
-                                Background="{StaticResource PrimaryHover}"
+                                Background="{StaticResource CustomerInk}"
                                 Command="{Binding ExportCsvCommand}"
                                 VerticalAlignment="Bottom"
                                 Margin="0,0,0,12"/>
@@ -199,7 +198,7 @@
 
                             <TextBlock
                                 Text="{Binding Report.TotalBookings}"
-                                Foreground="{StaticResource PrimaryHover}"
+                                Foreground="{StaticResource CustomerInk}"
                                 FontWeight="Bold"
                                 FontSize="30"
                                 Margin="0,10,0,5"/>
@@ -219,7 +218,7 @@
 
                             <TextBlock
                                 Text="{Binding Report.TotalTransactions}"
-                                Foreground="{StaticResource Ink}"
+                                Foreground="{StaticResource CustomerInk}"
                                 FontWeight="Bold"
                                 FontSize="30"
                                 Margin="0,10,0,5"/>
@@ -232,7 +231,7 @@
 
                     <!-- TOTAL DEPOSITS -->
                     <Border Style="{StaticResource KpiCard}"
-                            Background="{StaticResource PrimarySoft}">
+                            Background="{StaticResource CustomerSoft}">
                         <StackPanel>
 
                             <TextBlock Text="Tiền cọc đã thu"
@@ -240,7 +239,7 @@
 
                             <TextBlock
                                 Text="{Binding Report.TotalDeposits, StringFormat='{}{0:N0} đ'}"
-                                Foreground="{StaticResource PrimaryHover}"
+                                Foreground="{StaticResource CustomerInk}"
                                 FontWeight="Bold"
                                 FontSize="24"
                                 Margin="0,12,0,5"/>
@@ -253,7 +252,7 @@
 
                     <!-- TOTAL BALANCE -->
                     <Border Style="{StaticResource KpiCard}"
-                            Background="{StaticResource PrimarySoft}">
+                            Background="{StaticResource CustomerSoft}">
                         <StackPanel>
 
                             <TextBlock Text="Tiền còn lại đã thu"
@@ -261,7 +260,7 @@
 
                             <TextBlock
                                 Text="{Binding Report.TotalBalances, StringFormat='{}{0:N0} đ'}"
-                                Foreground="{StaticResource PrimaryHover}"
+                                Foreground="{StaticResource CustomerInk}"
                                 FontWeight="Bold"
                                 FontSize="24"
                                 Margin="0,12,0,5"/>
@@ -297,7 +296,7 @@
 
                 <!-- NET REVENUE -->
 
-                <Border Background="{StaticResource PrimarySoft}"
+                <Border Background="{StaticResource CustomerSoft}"
                         BorderBrush="{StaticResource HeroText}"
                         BorderThickness="1"
                         CornerRadius="12"
@@ -315,7 +314,7 @@
 
                             <TextBlock Text="TỔNG TIỀN THỰC THU"
                                        FontWeight="Bold"
-                                       Foreground="{StaticResource Ink}"
+                                       Foreground="{StaticResource CustomerInk}"
                                        FontSize="15"/>
 
                             <TextBlock
@@ -327,7 +326,7 @@
 
                         <TextBlock Grid.Column="1"
                                    Text="{Binding Report.NetRevenue, StringFormat='{}{0:N0} đ'}"
-                                   Foreground="{StaticResource PrimaryPressed}"
+                                   Foreground="{StaticResource CustomerInk}"
                                    FontSize="25"
                                    FontWeight="Bold"
                                    VerticalAlignment="Center"
@@ -369,8 +368,8 @@
                             ScrollViewer.HorizontalScrollBarVisibility="Auto"
                             ScrollViewer.VerticalScrollBarVisibility="Auto"
                             Background="{StaticResource Surface}"
-                            BorderBrush="{StaticResource Line}"
-                            AlternatingRowBackground="{StaticResource SurfaceMuted}">
+                            BorderBrush="{StaticResource CustomerLine}"
+                            AlternatingRowBackground="{StaticResource CustomerBackground}">
 
                             <DataGrid.Columns>
 

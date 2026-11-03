@@ -1,4 +1,9 @@
 <Page x:Class="CRMS.Views.Admin.BookingPage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Đơn thuê">
+    <Page.Resources>
+        <Style TargetType="Button" BasedOn="{StaticResource AdminButtonBase}"/>
+        <Style TargetType="DataGridCell" BasedOn="{StaticResource AdminCell}"/>
+    </Page.Resources>
+
     <Grid Margin="32,28">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -10,8 +15,8 @@
         </StackPanel>
         <Border Grid.Row="1" Style="{StaticResource Card}">
             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="440" Margin="12,24">
-                <Border Width="80" Height="80" Background="{StaticResource PrimarySoft}" CornerRadius="22" HorizontalAlignment="Center">
-                    <TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="32" Foreground="{StaticResource PrimaryHover}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                <Border Width="80" Height="80" Background="{StaticResource CustomerSoft}" CornerRadius="22" HorizontalAlignment="Center">
+                    <TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="32" Foreground="{StaticResource CustomerInk}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                 </Border>
                 <Border Background="{StaticResource HighlightSoft}" CornerRadius="5" Padding="10,6" HorizontalAlignment="Center" Margin="0,24,0,16">
                     <TextBlock Text="ĐANG PHÁT TRIỂN" Foreground="{StaticResource HighlightInk}" FontSize="10" FontWeight="SemiBold" />
