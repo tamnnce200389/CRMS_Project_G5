@@ -1,4 +1,4 @@
-using System.Windows.Controls.Primitives;
+﻿using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 
 using System;
@@ -7,19 +7,18 @@ using System.Windows.Controls;
 using CRMS.Services;
 using CRMS.ViewModels;
 using CRMS.Views;
+using CRMS.Views.Customer;
 
 namespace CRMS.Views.Guest
 {
     public partial class CarSearchPage : Page
     {
-        private readonly CarSearchViewModel _viewModel = new();
+        private readonly CarSearchViewModel _viewModel;
 
         private bool _isLoaded = false;
+        private DateTime? _beforeHourlyStart, _beforeHourlyEnd;
 
-        private string _rentalMode = "SelfDrive";
 
-        private DateTime? _startAt;
-        private DateTime? _endAt;
 
         // =====================================
         // CONSTRUCTORS
@@ -38,8 +37,10 @@ namespace CRMS.Views.Guest
         public CarSearchPage(
             string rentalMode,
             DateTime? startAt,
-            DateTime? endAt)
+            DateTime? endAt,
+            CarSearchContext? context = null, CarSearchViewModel? viewModel = null)
         {
+            _viewModel = viewModel ?? new CarSearchViewModel();
             InitializeComponent();
 
             if (rentalMode != "SelfDrive" &&
@@ -49,17 +50,14 @@ namespace CRMS.Views.Guest
                 rentalMode = "SelfDrive";
             }
 
-            _rentalMode = rentalMode;
-
-            _startAt = startAt;
-            _endAt = endAt;
-
             _viewModel.RentalMode = rentalMode;
             _viewModel.SetRentalPeriod(startAt, endAt);
 
+            _viewModel.SetSearchContext(context);
             DataContext = _viewModel;
 
             Loaded += CarSearchPage_Loaded;
+            Unloaded += (_, _) => { _viewModel.CancelPendingSearch(); _isLoaded = false; };
         }
 
         // =====================================
@@ -84,11 +82,8 @@ namespace CRMS.Views.Guest
             {
                 _isLoaded = false;
 
-                MessageBox.Show(
-                    ex.Message,
-                    "Lỗi tải danh sách xe",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                _viewModel.Cars.Clear();
+                _viewModel.StatusMessage = "Không thể tải bộ lọc: " + ex.Message;
             }
         }
 
@@ -122,60 +117,152 @@ namespace CRMS.Views.Guest
                 QuickFiltersScroll.HorizontalOffset + 310);
         }
 
-        // Pure UI-preview controls. These never call the search service or modify filters in the VM.
+        // UI events delegate filter state and queries to the existing search ViewModel.
+        private void ChangeRentalTime_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new RentalTimeWindow(_viewModel.IsWithDriver, _viewModel.HourlyOnly) { Owner = Window.GetWindow(this) };
+            if (dialog.ShowDialog() == true)
+            {
+                if (_viewModel.IsSelfDrive) _viewModel.HourlyOnly = dialog.RentalUnit == "Hour";
+                _viewModel.SetRentalPeriod(dialog.StartAt, dialog.EndAt);
+            }
+        }
+
+        private async void QuickOption_Click(object sender, RoutedEventArgs e)
+        {
+            if (_viewModel.IsWithDriver && !_viewModel.HasValidDriverJourney)
+            {
+                new SelfDriveFilterWindow(_viewModel, "Route") { Owner = Window.GetWindow(this) }.ShowDialog();
+                return;
+            }
+            if (_viewModel.IsSelfDrive && sender is ToggleButton toggle && toggle.Content?.ToString() == "Thuê giờ")
+            {
+                if (_viewModel.HourlyOnly)
+                {
+                    _beforeHourlyStart = _viewModel.StartAtLocal; _beforeHourlyEnd = _viewModel.EndAtLocal;
+                    var start = _viewModel.StartAtLocal ?? DateTime.Now.AddHours(1);
+                    if (start <= DateTime.Now) start = DateTime.Now.AddHours(1);
+                    _viewModel.SetRentalPeriod(start, start.AddHours(4));
+                }
+                else if (_beforeHourlyStart.HasValue && _beforeHourlyEnd.HasValue && _beforeHourlyStart > DateTime.Now)
+                    _viewModel.SetRentalPeriod(_beforeHourlyStart, _beforeHourlyEnd);
+            }
+            try { _viewModel.CreateFilter(); }
+            catch (ArgumentException ex)
+            {
+                _viewModel.StatusMessage = ex.Message;
+                VisualFiltersPopup.PlacementTarget = sender as UIElement ?? AdvancedFiltersToggle;
+                VisualFiltersPopup.HorizontalOffset = 0;
+                AdvancedFiltersToggle.IsChecked = true;
+                return;
+            }
+            await _viewModel.SearchAsync();
+        }
+
+        private async void ApplyFilters_Click(object sender, RoutedEventArgs e)
+        {
+            await _viewModel.SearchAsync();
+            if (!_viewModel.IsFilterPending && !_viewModel.StatusMessage.StartsWith("Không thể"))
+                AdvancedFiltersToggle.IsChecked = false;
+        }
+
+        private void QuickFilter_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not ToggleButton button) return;
+            if (button.CommandParameter?.ToString() is "Category" or "Brand" ||
+                (_viewModel.IsLongTerm && button.CommandParameter?.ToString() is "Sort" or "Transmission"))
+            {
+                button.GetBindingExpression(ToggleButton.IsCheckedProperty)?.UpdateTarget();
+                if (_viewModel.IsWithDriver && !_viewModel.HasValidDriverJourney && !ChooseDriverRoute()) return;
+                new SelfDriveFilterWindow(_viewModel, button.CommandParameter.ToString()!) { Owner = Window.GetWindow(this) }.ShowDialog();
+                return;
+            }
+            button.GetBindingExpression(ToggleButton.IsCheckedProperty)?.UpdateTarget();
+            VisualFiltersPopup.PlacementTarget = button;
+            VisualFiltersPopup.HorizontalOffset = 0;
+            AdvancedFiltersToggle.IsChecked = true;
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                ComboBox input = button.CommandParameter?.ToString() switch
+                {
+                    "Category" => CategoryFilterInput, "Brand" => BrandFilterInput,
+                    "Sort" => SortFilterInput, _ => TransmissionFilterInput
+                };
+                input.BringIntoView(); input.Focus(); input.IsDropDownOpen = true;
+            }), System.Windows.Threading.DispatcherPriority.Input);
+        }
+
+        private void FilterHelp_Click(object sender, RoutedEventArgs e)
+        {
+            // A help click must not bubble into the enclosing filter's Click handler.
+            e.Handled = true;
+            if (sender is not Button { Tag: string title } || FilterHelpViewModel.For(title) is not { } explanation) return;
+            FilterHelpBackdrop.Visibility = Visibility.Visible;
+            try { new FilterHelpWindow(explanation) { Owner = Window.GetWindow(this) }.ShowDialog(); }
+            finally { FilterHelpBackdrop.Visibility = Visibility.Collapsed; }
+        }
+
+        private void SelfDriveChildSeat_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is ToggleButton button) button.GetBindingExpression(ToggleButton.IsCheckedProperty)?.UpdateTarget();
+            new SelfDriveFilterWindow(_viewModel, "ChildSeat") { Owner = Window.GetWindow(this) }.ShowDialog();
+        }
+
+        private bool ChooseDriverRoute() => new SelfDriveFilterWindow(_viewModel, "Route") { Owner = Window.GetWindow(this) }.ShowDialog() == true;
+        private void DriverRoute_Click(object sender, RoutedEventArgs e) => ChooseDriverRoute();
+        private async void DriverFreePickup_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is ToggleButton button) button.GetBindingExpression(ToggleButton.IsCheckedProperty)?.UpdateTarget();
+            if (!_viewModel.HasValidDriverJourney && !ChooseDriverRoute()) return;
+            AdvancedFiltersToggle.IsChecked = false;
+            _viewModel.FreeDeliveryOnly = !_viewModel.FreeDeliveryOnly;
+            await _viewModel.SearchAsync();
+        }
+
+        private async void SelfDriveDelivery_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is ToggleButton button) button.GetBindingExpression(ToggleButton.IsCheckedProperty)?.UpdateTarget();
+            if (_viewModel.DeliveryOnly)
+            {
+                _viewModel.DeliveryOnly = false;
+                await _viewModel.SearchAsync();
+                return;
+            }
+            AdvancedFiltersToggle.IsChecked = false;
+            new SelfDriveFilterWindow(_viewModel, "Delivery") { Owner = Window.GetWindow(this) }.ShowDialog();
+        }
+
+        private async void SelfDriveTravel_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is ToggleButton button) button.GetBindingExpression(ToggleButton.IsCheckedProperty)?.UpdateTarget();
+            if (_viewModel.ExtendedTravelOnly)
+            {
+                _viewModel.ExtendedTravelOnly = false;
+                await _viewModel.SearchAsync();
+                return;
+            }
+            AdvancedFiltersToggle.IsChecked = false;
+            new SelfDriveFilterWindow(_viewModel, "Travel") { Owner = Window.GetWindow(this) }.ShowDialog();
+        }
+
         private void OpenShortTermFilters_Click(object sender, RoutedEventArgs e)
         {
             VisualFiltersPopup.PlacementTarget = AdvancedFiltersToggle;
             VisualFiltersPopup.HorizontalOffset = -430;
         }
 
-        private void OpenLongTermFilters_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is ToggleButton button)
-            {
-                button.IsChecked = false;
-                VisualFiltersPopup.PlacementTarget = button;
-                VisualFiltersPopup.HorizontalOffset = 0;
-            }
-            AdvancedFiltersToggle.IsChecked = true;
-        }
 
         private void CloseVisualFilters_Click(object sender, RoutedEventArgs e)
         {
             AdvancedFiltersToggle.IsChecked = false;
         }
 
-        private void ResetVisualFilters_Click(object sender, RoutedEventArgs e)
-        {
-            ClearPreviewSelections(QuickFilterStripRoot);
-            ClearPreviewSelections(LongTermQuickFilters);
-            ClearPreviewSelections(AdvancedFilterPanel);
-        }
 
-        private static void ClearPreviewSelections(DependencyObject root)
-        {
-            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(root); i++)
-            {
-                var child = VisualTreeHelper.GetChild(root, i);
-                if (child is ToggleButton toggle)
-                    toggle.IsChecked = false;
-                ClearPreviewSelections(child);
-            }
-        }
 
         // =====================================
         // MO / DONG BO LOC GIA DAI HAN
         // =====================================
 
-        private void ToggleLongTermFilter_Click(
-            object sender,
-            RoutedEventArgs e)
-        {
-            LongTermPriceFilter.Visibility =
-                LongTermPriceFilter.Visibility == Visibility.Visible
-                    ? Visibility.Collapsed
-                    : Visibility.Visible;
-        }
 
         // =====================================
         // XEM CHI TIET THUE DAI HAN
@@ -191,8 +278,12 @@ namespace CRMS.Views.Guest
                 return;
             }
 
+            if (!_viewModel.CanChooseResults) { _viewModel.StatusMessage = "Vui lòng áp dụng bộ lọc trước khi xem gói thuê."; return; }
+
+            if (!EnsureCustomerLoggedIn()) return;
+
             var detailWindow =
-                new LongTermDetailWindow(car);
+                new LongTermDetailWindow(car, _viewModel.StartAtLocal, _viewModel.SelectedDuration);
 
             Window? mainWindow =
                 Window.GetWindow(this);
@@ -202,7 +293,8 @@ namespace CRMS.Views.Guest
                 detailWindow.Owner = mainWindow;
             }
 
-            detailWindow.ShowDialog();
+            if (detailWindow.ShowDialog() == true && mainWindow?.DataContext is MainViewModel main)
+                main.NavigateCommand.Execute("MyBookings");
         }
 
         // =====================================
@@ -272,12 +364,20 @@ namespace CRMS.Views.Guest
             object sender,
             RoutedEventArgs e)
         {
+            if (!_viewModel.CanChooseResults) { _viewModel.StatusMessage = "Vui lòng áp dụng bộ lọc trước khi chọn xe."; return; }
+
             // Lay xe tu DataContext cua Button
             if (sender is not Button button ||
                 button.DataContext is not CarSearchItem car)
             {
                 MessageBox.Show(
                     "Không xác định được xe đã chọn.");
+                return;
+            }
+
+            if (!car.CanUseLegacyBooking)
+            {
+                MessageBox.Show("Báo giá trọn chuyến này chưa hỗ trợ đặt trực tiếp.", "Báo giá", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
@@ -296,8 +396,8 @@ namespace CRMS.Views.Guest
             // =====================================
 
             // LongTerm do module rieng xu ly
-            if (_rentalMode != "SelfDrive" &&
-                _rentalMode != "WithDriver")
+            if (_viewModel.RentalMode != "SelfDrive" &&
+                _viewModel.RentalMode != "WithDriver")
             {
                 MessageBox.Show(
                     "Loại thuê này chưa được hỗ trợ tại đây.",
@@ -312,8 +412,8 @@ namespace CRMS.Views.Guest
             // 3. KIEM TRA THOI GIAN
             // =====================================
 
-            if (!_startAt.HasValue ||
-                !_endAt.HasValue)
+            if (!_viewModel.StartAtLocal.HasValue ||
+                !_viewModel.EndAtLocal.HasValue)
             {
                 MessageBox.Show(
                     "Vui lòng chọn thời gian nhận và trả xe.",
@@ -324,8 +424,8 @@ namespace CRMS.Views.Guest
                 return;
             }
 
-            if (_startAt.Value <= DateTime.Now ||
-                _endAt.Value <= _startAt.Value)
+            if (_viewModel.StartAtLocal.Value <= DateTime.Now ||
+                _viewModel.EndAtLocal.Value <= _viewModel.StartAtLocal.Value)
             {
                 MessageBox.Show(
                     "Thời gian thuê không hợp lệ.",
@@ -336,49 +436,13 @@ namespace CRMS.Views.Guest
                 return;
             }
 
-            // =====================================
-            // 4. LUU THONG TIN XE DUOC CHON
-            // =====================================
-
-            long customerId =
-                CurrentUserService.Instance.UserId!.Value;
-
             var selection = new BookingSelection(
-                customerId,
-                car.VehicleId,
-                _rentalMode,
-                _startAt.Value,
-                _endAt.Value
-            );
-
-            // Chuyen thong tin cho module Booking
-            BookingSelectionService.SetSelection(selection);
-
-            // =====================================
-            // 5. CHUYEN SANG MODULE BOOKING
-            // =====================================
-
-            Window? mainWindow =
-                Window.GetWindow(this);
-
-            if (mainWindow?.DataContext is MainViewModel vm)
-            {
-                // Chuyen den trang Booking cua nhom
-                // Module Booking se doc BookingSelectionService
-                if (vm.NavigateCommand.CanExecute("Bookings"))
-                {
-                    vm.NavigateCommand.Execute("Bookings");
-                }
-                else
-                {
-                    MessageBox.Show(
-                        "Đã chọn xe thành công.\n" +
-                        "Module Booking chưa sẵn sàng.",
-                        "Thông báo",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Information);
-                }
-            }
+                CurrentUserService.Instance.UserId!.Value, car.VehicleId, _viewModel.RentalMode,
+                _viewModel.StartAtLocal.Value, _viewModel.EndAtLocal.Value,
+                car.QuoteUnit == "Hour" ? "Hour" : "Day", ExpectedTotal: car.EstimatedTripTotal);
+            var dialog = new BookingCheckoutWindow(selection, $"{car.Brand} {car.Model}") { Owner = Window.GetWindow(this) };
+            if (dialog.ShowDialog() == true && Window.GetWindow(this)?.DataContext is MainViewModel main)
+                main.NavigateCommand.Execute("MyBookings");
         }
 
         // =====================================

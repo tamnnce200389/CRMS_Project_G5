@@ -306,6 +306,8 @@
                                     Background="{TemplateBinding Background}" CornerRadius="8" />
                             <ContentPresenter Content="{TemplateBinding SelectionBoxItem}"
                                               ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                              ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                                              ContentStringFormat="{TemplateBinding SelectionBoxItemStringFormat}"
                                               IsHitTestVisible="False" VerticalAlignment="Center"
                                               HorizontalAlignment="Left" Margin="12,0,40,0" />
                             <ToggleButton HorizontalAlignment="Stretch" Focusable="False"

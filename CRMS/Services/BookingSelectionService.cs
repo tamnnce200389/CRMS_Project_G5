@@ -9,7 +9,10 @@ namespace CRMS.Services
         long VehicleId,
         string RentalMode,
         DateTime StartAt,
-        DateTime EndAt
+        DateTime EndAt,
+        string PriceUnit = "Day",
+        int? DurationMonths = null,
+        decimal? ExpectedTotal = null
     );
 
     // Luu tam thong tin de module Booking su dung

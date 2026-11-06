@@ -6,6 +6,7 @@
         Height="720"
         MinWidth="750"
         WindowStartupLocation="CenterOwner"
+        WindowStyle="None"
         ResizeMode="CanResize"
         Background="{StaticResource Surface}">
 
