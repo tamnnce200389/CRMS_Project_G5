@@ -1,4 +1,4 @@
-<Page x:Class="CRMS.Views.Guest.HomePage"
+﻿<Page x:Class="CRMS.Views.Guest.HomePage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:vm="clr-namespace:CRMS.ViewModels"
@@ -154,9 +154,7 @@
                         <Grid>
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="1.45*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                             <StackPanel Margin="0,0,16,0"><TextBlock Text="ĐIỂM ĐÓN" Style="{StaticResource SearchLabel}"/>
-                                <ComboBox x:Name="DriverPickupCombo" Style="{StaticResource RoundedComboBox}" Height="52" FontSize="14" SelectedIndex="0">
-                                    <ComboBoxItem Content="Cần Thơ"/><ComboBoxItem Content="TP. Hồ Chí Minh"/><ComboBoxItem Content="Hà Nội"/><ComboBoxItem Content="Đà Nẵng"/>
-                                </ComboBox>
+                                <ComboBox x:Name="DriverPickupCombo" Style="{StaticResource RoundedComboBox}" Height="52" FontSize="14" SelectedIndex="0" DisplayMemberPath="CityName"/>
                             </StackPanel>
                             <StackPanel Grid.Column="1" Margin="0,0,16,0"><TextBlock Text="THỜI GIAN THUÊ" Style="{StaticResource SearchLabel}"/><Button x:Name="DriverTimeButton" Content="Chọn thời gian thuê" Style="{StaticResource InputButton}" Click="DriverTime_Click"/></StackPanel>
                             <Button Grid.Column="2" Content="Tìm xe  →" Tag="WithDriver" Height="52" MinWidth="140" VerticalAlignment="Bottom" Style="{StaticResource CustomerButton}" Click="SearchCars_Click"/>
@@ -164,15 +162,16 @@
                         <StackPanel Margin="0,18,0,0" HorizontalAlignment="Left" Width="320">
                             <StackPanel.Style><Style TargetType="StackPanel"><Style.Triggers><DataTrigger Binding="{Binding IsChecked, ElementName=InnerCityRadio}" Value="True"><Setter Property="Visibility" Value="Collapsed"/></DataTrigger></Style.Triggers></Style></StackPanel.Style>
                             <TextBlock Text="ĐIỂM ĐẾN" Style="{StaticResource SearchLabel}"/>
-                            <ComboBox x:Name="DriverDestinationCombo" Style="{StaticResource RoundedComboBox}" Height="52" SelectedIndex="0">
-                                <ComboBoxItem Content="Chọn địa điểm đến" IsEnabled="False"/><ComboBoxItem Content="Cần Thơ"/><ComboBoxItem Content="TP. Hồ Chí Minh"/><ComboBoxItem Content="Hà Nội"/><ComboBoxItem Content="Đà Nẵng"/>
-                            </ComboBox>
+                            <ComboBox x:Name="DriverDestinationCombo" Style="{StaticResource RoundedComboBox}" Height="52" SelectedIndex="0" DisplayMemberPath="CityName"/>
                         </StackPanel>
                     </StackPanel>
                     <Grid Visibility="{Binding IsLongTerm, Converter={StaticResource GuestVisibility}}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                        <StackPanel><TextBlock Text="THUÊ DÀI HẠN TẠI CẦN THƠ" Style="{StaticResource SearchLabel}"/><TextBlock Text="Một lựa chọn cho nhu cầu di chuyển mỗi ngày." FontSize="16" Foreground="{StaticResource CustomerInk}" Margin="2,6,0,0"/></StackPanel>
-                        <Button Grid.Column="1" Content="Khám phá xe  →" Tag="LongTerm" Height="52" Style="{StaticResource CustomerButton}" Click="SearchCars_Click"/>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Path Data="{StaticResource LocationIcon}" Style="{StaticResource OutlineIcon}" VerticalAlignment="Top" Margin="0,4,16,0"/>
+                            <StackPanel><TextBlock Text="Địa điểm áp dụng hiện tại" FontSize="16" Foreground="{StaticResource CustomerMuted}"/><TextBlock Text="Cần Thơ" FontSize="22" FontWeight="SemiBold" Foreground="{StaticResource CustomerInk}" Margin="0,10,0,0"/></StackPanel>
+                        </StackPanel>
+                        <Button Grid.Column="1" Content="Tìm xe" Tag="LongTerm" Height="60" MinWidth="112" Style="{StaticResource CustomerButton}" Click="SearchCars_Click"/>
                     </Grid>
                 </StackPanel>
             </Border>

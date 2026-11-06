@@ -32,7 +32,7 @@ public partial class MyBookingsPage : Page
                 .Where(b => b.CustomerId == userId.Value)
                 .OrderByDescending(b => b.CreatedAt)
                 .Select(b => new TripRow(b.BookingCode, b.Vehicle.Brand + " " + b.Vehicle.Model,
-                    b.StartAt, b.EndAt, b.TotalAmount, b.BookingStatus))
+                    b.StartAt, b.EndAt, b.TotalAmount, b.BookingStatus, b.PriceUnit, b.RentalUnits))
                 .ToListAsync(request.Token);
             if (request.IsCancellationRequested || CurrentUserService.Instance.UserId != userId) return;
             BookingsList.ItemsSource = bookings;
@@ -69,8 +69,11 @@ public partial class MyBookingsPage : Page
     }
 
     public sealed record TripRow(string BookingCode, string VehicleName, DateTime StartAt,
-        DateTime EndAt, decimal TotalAmount, string Status)
+        DateTime EndAt, decimal TotalAmount, string Status, string PriceUnit = "Day", decimal? RentalUnits = null)
     {
+        public DateTime StartLocal => CRMS.Services.Vehicles.AvailabilityRules.ToVietnamLocal(StartAt);
+        public DateTime EndLocal => CRMS.Services.Vehicles.AvailabilityRules.ToVietnamLocal(EndAt);
+        public string BillingLabel => PriceUnit switch { "Hour" => $"Thuê theo giờ · {RentalUnits:0.##} giờ", "Month" => $"Thuê dài hạn · {RentalUnits:0} tháng", _ => "Thuê theo ngày" };
         public string StatusLabel => Status switch
         {
             "PendingDeposit" => "Chờ đặt cọc", "Confirmed" => "Đã xác nhận", "InUse" => "Đang thuê",

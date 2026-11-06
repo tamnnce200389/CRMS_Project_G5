@@ -43,7 +43,10 @@ public class VehicleAvailabilityService : IAvailabilityService
                     m.VehicleId == v.VehicleId &&
                     m.StartAt < endUtc &&
                     m.EndAt > startUtc &&
-                    (m.MaintenanceStatus == "Scheduled" || m.MaintenanceStatus == "InProgress")));
+                    (m.MaintenanceStatus == "Scheduled" || m.MaintenanceStatus == "InProgress")))
+            .Where(v => !context.VehicleCalendarBlocks.Any(block =>
+                block.VehicleId == v.VehicleId && block.IsActive &&
+                block.StartAt < endUtc && block.EndAt > startUtc));
     }
 
     public async Task<HashSet<long>> GetAvailableVehicleIdsAsync(DateTime startLocal, DateTime endLocal)
@@ -207,6 +210,14 @@ public class VehicleAvailabilityService : IAvailabilityService
             })
             .ToListAsync();
 
+        var calendarBlocks = await db.VehicleCalendarBlocks.AsNoTracking()
+            .Where(block => targetIds.Contains(block.VehicleId) && block.IsActive &&
+                block.StartAt < endUtc && block.EndAt > startUtc)
+            .OrderBy(block => block.StartAt)
+            .ToListAsync();
+        var blocksByVehicle = calendarBlocks.GroupBy(block => block.VehicleId)
+            .ToDictionary(group => group.Key, group => group.ToList());
+
         var bookingsByVehicle = candidateBookings
             .GroupBy(x => x.VehicleId)
             .ToDictionary(g => g.Key, g => (IEnumerable<BookingConflictSnapshot>)g.Select(x => x.Snapshot).ToList());
@@ -235,7 +246,17 @@ public class VehicleAvailabilityService : IAvailabilityService
                 startUtc,
                 endUtc,
                 nowUtc,
-                includeInternalRefs);
+                includeInternalRefs).ToList();
+
+            if (blocksByVehicle.TryGetValue(v.VehicleId, out var vehicleBlocks))
+                foreach (var block in vehicleBlocks)
+                    conflicts.Add(new AvailabilityConflict(
+                        AvailabilityConflictType.CalendarBlock,
+                        "Xe đã khóa lịch",
+                        includeInternalRefs ? block.Reason : "Xe không nhận đặt trong khoảng thời gian này.",
+                        AvailabilityRules.ToVietnamLocal(block.StartAt),
+                        AvailabilityRules.ToVietnamLocal(block.EndAt),
+                        includeInternalRefs ? $"LOCK-#{block.BlockId}" : null));
 
             results.Add(new VehicleAvailabilityResult
             {

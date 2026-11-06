@@ -18,7 +18,7 @@ namespace CRMS.Views.Guest
                 ? "Hour"
                 : "Day";
 
-        public RentalTimeWindow(bool withDriver = false)
+        public RentalTimeWindow(bool withDriver = false, bool preferHourly = false)
         {
             InitializeComponent();
 
@@ -79,7 +79,7 @@ namespace CRMS.Views.Guest
             }
             else
             {
-                RentalTabs.SelectedItem = DayTab;
+                RentalTabs.SelectedItem = preferHourly ? HourTab : DayTab;
             }
 
             UpdateSummary();

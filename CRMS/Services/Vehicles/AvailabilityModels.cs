@@ -8,7 +8,8 @@ public enum AvailabilityConflictType
     BookingInUse,
     BookingConfirmed,
     BookingPendingDeposit,
-    Maintenance
+    Maintenance,
+    CalendarBlock
 }
 
 public sealed record AvailabilityConflict(

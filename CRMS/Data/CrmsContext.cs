@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using CRMS.Models;
 using Microsoft.EntityFrameworkCore;
@@ -442,9 +442,10 @@ public partial class CrmsContext : DbContext
             entity.Property(e => e.VehicleId)
                 .HasColumnType("bigint");
 
-            // DurationMonths: SQL INT
+            // CRMS_FULL.sql stores DurationMonths as TINYINT; retain the existing int model property.
             entity.Property(e => e.DurationMonths)
-                .HasColumnType("int");
+                .HasConversion<byte>()
+                .HasColumnType("tinyint");
 
             // Gia thang goc
             entity.Property(e => e.BaseMonthlyRate)

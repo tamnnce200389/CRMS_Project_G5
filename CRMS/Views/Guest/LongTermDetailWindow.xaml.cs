@@ -1,5 +1,6 @@
-
+﻿
 using CRMS.Models;
+using CRMS.Views.Customer;
 using CRMS.Services;
 using System;
 using System.Collections.Generic;
@@ -25,11 +26,16 @@ namespace CRMS.Views.Guest
         // So thang dang chon
         private int _selectedMonths = 0;
 
-        public LongTermDetailWindow(CarSearchItem car)
+        private readonly int _initialMonths;
+        private readonly TimeSpan _pickupTime;
+
+        public LongTermDetailWindow(CarSearchItem car, DateTime? initialStart = null, int initialMonths = 1)
         {
             InitializeComponent();
 
             _car = car;
+            _initialMonths = initialMonths;
+            _pickupTime = initialStart?.TimeOfDay ?? TimeSpan.FromHours(9);
 
             // Hien thi thong tin xe tren XAML
             DataContext = _car;
@@ -38,7 +44,7 @@ namespace CRMS.Views.Guest
             PickupDatePicker.DisplayDateStart = DateTime.Today;
 
             PickupDatePicker.SelectedDate =
-                DateTime.Today.AddDays(7);
+                initialStart ?? DateTime.Today.AddDays(7);
 
             // Khoa cac goi khi chua tai bang gia
             foreach (Button button in GetPlanButtons())
@@ -127,10 +133,12 @@ namespace CRMS.Views.Guest
                 }
 
                 // Mac dinh chon goi 1 thang
-                int defaultMonths =
-                    _rates.ContainsKey(1)
-                        ? 1
-                        : _rates.Keys.Min();
+                int defaultMonths = _initialMonths;
+                if (!_rates.ContainsKey(defaultMonths))
+                {
+                    StatusText.Text = "Gói thuê đã chọn không còn khả dụng. Vui lòng tìm kiếm lại.";
+                    return;
+                }
 
                 SelectPlan(defaultMonths);
 
@@ -297,21 +305,19 @@ namespace CRMS.Views.Guest
             decimal total =
                 rate.MonthlyRate * _selectedMonths;
 
-            // Hien tai moi hoan thanh buoc chon goi
-            // Booking se duoc ket noi o buoc tiep theo
-            MessageBox.Show(
-                $"Xe: {_car.Brand} {_car.Model}\n" +
-                $"Gói thuê: {_selectedMonths} tháng\n" +
-                $"Giảm giá: {rate.DiscountPercent:0}%\n" +
-                $"Giá/tháng: {FormatMoney(rate.MonthlyRate)}\n" +
-                $"Tổng tiền: {FormatMoney(total)}\n" +
-                $"Ngày nhận: {pickup:dd/MM/yyyy}\n" +
-                $"Ngày trả dự kiến: {returnDate:dd/MM/yyyy}\n\n" +
-                "Đã chọn thông tin thuê xe. " +
-                "Chức năng tạo Booking sẽ được tích hợp sau.",
-                "Thông tin gói thuê",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information);
+            var session = CurrentUserService.Instance;
+            if (!session.IsCustomer || !session.UserId.HasValue)
+            {
+                MessageBox.Show("Vui lòng đăng nhập tài khoản Customer để đặt xe.");
+                return;
+            }
+            pickup = pickup.Date.Add(_pickupTime);
+            returnDate = pickup.AddMonths(_selectedMonths);
+            if (pickup <= DateTime.Now) { MessageBox.Show("Thời gian nhận xe phải ở tương lai."); return; }
+            var selection = new BookingSelection(session.UserId.Value, _car.VehicleId, "LongTerm",
+                pickup, returnDate, "Month", _selectedMonths, total);
+            var checkout = new BookingCheckoutWindow(selection, $"{_car.Brand} {_car.Model}") { Owner = this };
+            if (checkout.ShowDialog() == true) DialogResult = true;
         }
 
         // =====================================
