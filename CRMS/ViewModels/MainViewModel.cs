@@ -1,4 +1,4 @@
-using CRMS.Views.Customer;
+﻿using CRMS.Views.Customer;
 using CRMS.Helpers;
 using CRMS.Services;
 using CRMS.Views.Admin;
@@ -26,7 +26,7 @@ namespace CRMS.ViewModels
 
         private readonly DriverPage _adminDrivers = new();
 
-        private readonly BookingPage _bookingPage = new();
+        private readonly CRMS.Views.Admin.BookingPage _bookingPage = new();
 
         private readonly ReportPage _reportPage = new();
         // This page queries users in its constructor; create it only when an admin opens it.
@@ -317,3 +317,4 @@ namespace CRMS.ViewModels
         }
     }
 }
+

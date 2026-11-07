@@ -2,7 +2,7 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Width="250"
-             Background="{StaticResource CustomerInk}"
+             Background="#11233D"
              FontFamily="Segoe UI">
 
     <UserControl.Resources>
@@ -10,7 +10,7 @@
         <!-- MENU BUTTON -->
         <Style x:Key="NavButton" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="{StaticResource CustomerSoft}"/>
+            <Setter Property="Foreground" Value="#DCE7F8"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="FontWeight" Value="Medium"/>
@@ -35,78 +35,21 @@
 
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="{StaticResource CustomerHover}"/>
+                    <Setter Property="Background" Value="#284D77"/>
                     <Setter Property="Foreground" Value="White"/>
                 </Trigger>
 
                 <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Foreground" Value="{StaticResource AdminSidebarMuted}"/>
+                    <Setter Property="Foreground" Value="#7D93B2"/>
                     <Setter Property="Cursor" Value="Arrow"/>
                 </Trigger>
-            </Style.Triggers>
-        </Style>
-
-
-        <!-- Active navigation: green primary, based on existing MainViewModel state -->
-        <Style x:Key="IsDashboardActiveNav" TargetType="Button" BasedOn="{StaticResource NavButton}">
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding DataContext.IsDashboard, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
-                    <Setter Property="Background" Value="{StaticResource CustomerAccent}"/>
-                    <Setter Property="Foreground" Value="{StaticResource CustomerInk}"/>
-                    <Setter Property="FontWeight" Value="SemiBold"/>
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
-        <Style x:Key="IsReportsActiveNav" TargetType="Button" BasedOn="{StaticResource NavButton}">
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding DataContext.IsReports, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
-                    <Setter Property="Background" Value="{StaticResource CustomerAccent}"/>
-                    <Setter Property="Foreground" Value="{StaticResource CustomerInk}"/>
-                    <Setter Property="FontWeight" Value="SemiBold"/>
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
-        <Style x:Key="IsVehiclesActiveNav" TargetType="Button" BasedOn="{StaticResource NavButton}">
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding DataContext.IsVehicles, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
-                    <Setter Property="Background" Value="{StaticResource CustomerAccent}"/>
-                    <Setter Property="Foreground" Value="{StaticResource CustomerInk}"/>
-                    <Setter Property="FontWeight" Value="SemiBold"/>
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
-        <Style x:Key="IsBookingsActiveNav" TargetType="Button" BasedOn="{StaticResource NavButton}">
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding DataContext.IsBookings, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
-                    <Setter Property="Background" Value="{StaticResource CustomerAccent}"/>
-                    <Setter Property="Foreground" Value="{StaticResource CustomerInk}"/>
-                    <Setter Property="FontWeight" Value="SemiBold"/>
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
-        <Style x:Key="IsDriversActiveNav" TargetType="Button" BasedOn="{StaticResource NavButton}">
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding DataContext.IsDrivers, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
-                    <Setter Property="Background" Value="{StaticResource CustomerAccent}"/>
-                    <Setter Property="Foreground" Value="{StaticResource CustomerInk}"/>
-                    <Setter Property="FontWeight" Value="SemiBold"/>
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
-        <Style x:Key="IsUserManagementActiveNav" TargetType="Button" BasedOn="{StaticResource NavButton}">
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding DataContext.IsUserManagement, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
-                    <Setter Property="Background" Value="{StaticResource CustomerAccent}"/>
-                    <Setter Property="Foreground" Value="{StaticResource CustomerInk}"/>
-                    <Setter Property="FontWeight" Value="SemiBold"/>
-                </DataTrigger>
             </Style.Triggers>
         </Style>
 
         <!-- COLLAPSIBLE GROUP -->
         <Style x:Key="MenuGroup" TargetType="Expander">
             <Setter Property="Margin" Value="10,4,10,0"/>
-            <Setter Property="Foreground" Value="{StaticResource AdminSidebarText}"/>
+            <Setter Property="Foreground" Value="#A9C5E8"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
 
             <Setter Property="Template">
@@ -119,7 +62,7 @@
                                 IsChecked="{Binding IsExpanded,
                                     RelativeSource={RelativeSource TemplatedParent},
                                     Mode=TwoWay}"
-                                Foreground="{StaticResource AdminSidebarText}"
+                                Foreground="#A9C5E8"
                                 Cursor="Hand">
 
                                 <ToggleButton.Template>
@@ -142,7 +85,7 @@
                                                 <TextBlock Grid.Column="1"
                                                            Text="⌄"
                                                            FontSize="16"
-                                                           Foreground="{StaticResource AdminSidebarText}"
+                                                           Foreground="#A9C5E8"
                                                            HorizontalAlignment="Center"
                                                            VerticalAlignment="Center"/>
                                             </Grid>
@@ -153,14 +96,14 @@
                                                      Value="True">
                                                 <Setter TargetName="HeaderBackground"
                                                         Property="Background"
-                                                        Value="{StaticResource CustomerHover}"/>
+                                                        Value="#203B5B"/>
                                             </Trigger>
 
                                             <Trigger Property="IsChecked"
                                                      Value="True">
                                                 <Setter TargetName="HeaderBackground"
                                                         Property="Background"
-                                                        Value="{StaticResource CustomerHover}"/>
+                                                        Value="#254A78"/>
                                             </Trigger>
                                         </ControlTemplate.Triggers>
                                     </ControlTemplate>
@@ -187,7 +130,7 @@
 
     </UserControl.Resources>
 
-    <Border Background="{StaticResource CustomerInk}">
+    <Border Background="#11233D">
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -202,20 +145,20 @@
                 <TextBlock Text="CRMS"
                            FontSize="30"
                            FontWeight="Bold"
-                           Foreground="{StaticResource Surface}"/>
+                           Foreground="White"/>
 
                 <TextBlock Text="ADMIN CONSOLE"
                            FontSize="12"
                            FontWeight="SemiBold"
-                           Foreground="{StaticResource AdminSidebarText}"
+                           Foreground="#93B8F3"
                            Margin="0,5,0,0"/>
 
-                <Border Background="{StaticResource CustomerHover}"
+                <Border Background="#244265"
                         CornerRadius="8"
                         Padding="12,10"
                         Margin="0,18,0,0">
                     <TextBlock Text="QUẢN TRỊ HỆ THỐNG"
-                               Foreground="{StaticResource Surface}"
+                               Foreground="White"
                                FontSize="11"
                                FontWeight="SemiBold"
                                HorizontalAlignment="Center"/>
@@ -237,12 +180,12 @@
 
                         <StackPanel>
                             <Button Content="Dashboard"
-                                    Style="{StaticResource IsDashboardActiveNav}"
+                                    Style="{StaticResource NavButton}"
                                     Command="{Binding NavigateCommand}"
                                     CommandParameter="Dashboard"/>
 
                             <Button Content="Báo cáo doanh thu"
-                                    Style="{StaticResource IsReportsActiveNav}"
+                                    Style="{StaticResource NavButton}"
                                     Command="{Binding NavigateCommand}"
                                     CommandParameter="Reports"/>
                         </StackPanel>
@@ -256,19 +199,15 @@
 
                         <StackPanel>
                             <Button Content="Quản lý xe"
-                                    Style="{StaticResource IsVehiclesActiveNav}"
+                                    Style="{StaticResource NavButton}"
                                     Command="{Binding NavigateCommand}"
                                     CommandParameter="Vehicles"/>
 
-                            <Button Content="Kiểm tra lịch trống"
-                                    Style="{StaticResource NavButton}"
-                                    Command="{Binding NavigateCommand}"
-                                    CommandParameter="Availability"/>
-
                             <Button Content="Quản lý bảo trì"
                                     Style="{StaticResource NavButton}"
-                                    Command="{Binding NavigateCommand}"
-                                    CommandParameter="Maintenance"/>
+                                    IsEnabled="False"
+                                    ToolTipService.ShowOnDisabled="True"
+                                    ToolTip="Chưa tích hợp MaintenancePage"/>
                         </StackPanel>
                     </Expander>
 
@@ -280,15 +219,14 @@
 
                         <StackPanel>
                             <Button Content="Danh sách đơn thuê"
-                                    Style="{StaticResource IsBookingsActiveNav}"
+                                    Style="{StaticResource NavButton}"
                                     Command="{Binding NavigateCommand}"
                                     CommandParameter="Bookings"/>
 
                             <Button Content="Tổng hợp thanh toán"
                                     Style="{StaticResource NavButton}"
-                                    Command="{Binding NavigateCommand}" CommandParameter="PaymentSummary"/>                            <Button Content="Xác nhận cọc tiền mặt" Style="{StaticResource NavButton}" Command="{Binding NavigateCommand}" CommandParameter="CashDeposit"/>
-                            <Button Content="Thu tiền còn lại" Style="{StaticResource NavButton}" Command="{Binding NavigateCommand}" CommandParameter="OutstandingBalance"/>
-                            <Button Content="Ghi nhận hoàn tiền" Style="{StaticResource NavButton}" Command="{Binding NavigateCommand}" CommandParameter="ManualRefund"/>
+                                    Command="{Binding NavigateCommand}"
+                                    CommandParameter="PaymentSummary"/>
                         </StackPanel>
                     </Expander>
 
@@ -300,7 +238,7 @@
 
                         <StackPanel>
                             <Button Content="Danh sách và quản lý tài xế"
-                                    Style="{StaticResource IsDriversActiveNav}"
+                                    Style="{StaticResource NavButton}"
                                     Command="{Binding NavigateCommand}"
                                     CommandParameter="Drivers"/>
                         </StackPanel>
@@ -313,12 +251,11 @@
                               Expanded="Group_Expanded">
 
                         <StackPanel>
-
                             <Button Content="Khách hàng và phân quyền"
-                                    Style="{StaticResource IsUserManagementActiveNav}"
-                                    Command="{Binding NavigateCommand}"
-                                    CommandParameter="UserManagement"/>
-
+                                    Style="{StaticResource NavButton}"
+                                    IsEnabled="False"
+                                    ToolTipService.ShowOnDisabled="True"
+                                    ToolTip="Chưa tích hợp UserManagementPage"/>
 
                             <Button Content="Quản lý Voucher"
                                     Style="{StaticResource NavButton}"
@@ -354,18 +291,18 @@
 
             <!-- FOOTER -->
             <Border Grid.Row="2"
-                    BorderBrush="{StaticResource AdminSidebarDivider}"
+                    BorderBrush="#304766"
                     BorderThickness="0,1,0,0"
                     Padding="22,15">
 
                 <StackPanel>
                     <TextBlock Text="ADMINISTRATOR"
-                               Foreground="{StaticResource Surface}"
+                               Foreground="White"
                                FontWeight="Bold"
                                FontSize="13"/>
 
                     <TextBlock Text="Quản trị toàn hệ thống"
-                               Foreground="{StaticResource AdminSidebarText}"
+                               Foreground="#A8BEDD"
                                FontSize="11"
                                Margin="0,5,0,0"/>
                 </StackPanel>

@@ -1,30 +1,67 @@
-<Page x:Class="CRMS.Views.Admin.BookingPage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Đơn thuê">
-    <Page.Resources>
-        <Style TargetType="Button" BasedOn="{StaticResource AdminButtonBase}"/>
-        <Style TargetType="DataGridCell" BasedOn="{StaticResource AdminCell}"/>
-    </Page.Resources>
-
-    <Grid Margin="32,28">
+<Page x:Class="CRMS.Views.Admin.BookingPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Title="Quản lý đơn thuê (Admin)" Background="#F4F8F6">
+    <Grid Margin="28">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition />
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <StackPanel Margin="0,0,0,26">
-            <TextBlock Text="Quản lý đơn thuê" Style="{StaticResource PageTitle}" />
-            <TextBlock Text="Theo dõi và quản lý các đơn đặt thuê xe." Style="{StaticResource Subtitle}" />
+        <StackPanel Margin="0,0,0,16">
+            <TextBlock Text="Danh sách &amp; Điều phối đơn thuê" FontSize="28" FontWeight="Bold" Foreground="#173B32"/>
+            <TextBlock Text="Staff/Admin tra cứu đơn theo trạng thái, xác nhận thu cọc tiền mặt, phân công tài xế, hủy đơn chưa bàn giao hoặc xác nhận hoàn tiền cọc."
+                       Margin="0,7,0,0" Foreground="#64748B" TextWrapping="Wrap"/>
         </StackPanel>
-        <Border Grid.Row="1" Style="{StaticResource Card}">
-            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="440" Margin="12,24">
-                <Border Width="80" Height="80" Background="{StaticResource CustomerSoft}" CornerRadius="22" HorizontalAlignment="Center">
-                    <TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="32" Foreground="{StaticResource CustomerInk}" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                </Border>
-                <Border Background="{StaticResource HighlightSoft}" CornerRadius="5" Padding="10,6" HorizontalAlignment="Center" Margin="0,24,0,16">
-                    <TextBlock Text="ĐANG PHÁT TRIỂN" Foreground="{StaticResource HighlightInk}" FontSize="10" FontWeight="SemiBold" />
-                </Border>
-                <TextBlock Text="Chức năng đặt xe đang được phát triển" FontSize="23" FontWeight="SemiBold" TextAlignment="Center" TextWrapping="Wrap" />
-                <TextBlock Text="Chức năng tạo đơn, lên lịch thuê và theo dõi trạng thái đơn sẽ có trong phiên bản tiếp theo." Style="{StaticResource Subtitle}" TextAlignment="Center" Margin="0,14,0,24" />
-                <Button Content="Về tổng quan  →" HorizontalAlignment="Center" Command="{Binding DataContext.NavigateCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="Dashboard" />
-            </StackPanel>
-        </Border>
+        <DockPanel Grid.Row="1" Margin="0,0,0,12">
+            <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <ComboBox x:Name="StatusFilter" Width="155" SelectedIndex="0" Margin="0,0,8,6"
+                          SelectionChanged="StatusFilter_SelectionChanged">
+                    <ComboBoxItem Content="Tất cả"/>
+                    <ComboBoxItem Content="PendingDeposit"/>
+                    <ComboBoxItem Content="Confirmed"/>
+                    <ComboBoxItem Content="InUse"/>
+                    <ComboBoxItem Content="Returned"/>
+                    <ComboBoxItem Content="Completed"/>
+                    <ComboBoxItem Content="Cancelled"/>
+                    <ComboBoxItem Content="Expired"/>
+                </ComboBox>
+                <Button Content="Xác nhận cọc tiền mặt" Padding="13,8" Margin="0,0,8,6"
+                        Background="#15803D" Foreground="White" FontWeight="SemiBold"
+                        Click="ConfirmCashDeposit_Click"/>
+                <ComboBox x:Name="DriversCombo" Width="175" Margin="0,0,8,6"
+                          DisplayMemberPath="FullName" SelectedValuePath="DriverId"
+                          ToolTip="Chọn tài xế đang hoạt động"/>
+                <Button Content="Phân công tài xế" Padding="13,8" Margin="0,0,8,6"
+                        Background="#173B32" Foreground="White" FontWeight="SemiBold"
+                        Click="AssignDriver_Click"/>
+                <Button Content="Hủy đơn đã chọn" Padding="13,8" Margin="0,0,8,6"
+                        Background="#B91C1C" Foreground="White" FontWeight="SemiBold"
+                        Click="CancelBooking_Click"/>
+                <Button Content="Xác nhận hoàn cọc" Padding="13,8" Margin="0,0,8,6"
+                        Background="#D97706" Foreground="White" FontWeight="SemiBold"
+                        Click="ConfirmRefund_Click"/>
+            </WrapPanel>
+            <Button DockPanel.Dock="Right" Content="Làm mới" Padding="18,8" Margin="0,0,0,6" Click="Refresh_Click"/>
+            <TextBlock x:Name="StatusText" Margin="10,0,0,6" VerticalAlignment="Center" Foreground="#475569"/>
+        </DockPanel>
+        <DataGrid x:Name="BookingsGrid" Grid.Row="2" AutoGenerateColumns="False" IsReadOnly="True"
+                  CanUserAddRows="False" SelectionMode="Single" RowHeight="42" Background="White">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Mã đơn" Binding="{Binding BookingCode}" Width="Auto" MinWidth="135"/>
+                <DataGridTextColumn Header="Khách hàng" Binding="{Binding CustomerName}" Width="Auto" MinWidth="145"/>
+                <DataGridTextColumn Header="Xe" Binding="{Binding VehicleName}" Width="Auto" MinWidth="150"/>
+                <DataGridTextColumn Header="Biển số" Binding="{Binding LicensePlate}" Width="Auto" MinWidth="115"/>
+                <DataGridTextColumn Header="Nhận xe" Binding="{Binding StartAt, StringFormat={}{0:dd/MM/yyyy HH:mm}}" Width="Auto" MinWidth="135"/>
+                <DataGridTextColumn Header="Trả xe" Binding="{Binding EndAt, StringFormat={}{0:dd/MM/yyyy HH:mm}}" Width="Auto" MinWidth="135"/>
+                <DataGridTextColumn Header="Tổng tiền" Binding="{Binding TotalAmount, StringFormat={}{0:N0} đ}" Width="Auto" MinWidth="110"/>
+                <DataGridTextColumn Header="Tiền cọc" Binding="{Binding DepositAmount, StringFormat={}{0:N0} đ}" Width="Auto" MinWidth="110"/>
+                <DataGridTextColumn Header="PT Cọc" Binding="{Binding DepositMethodDisplay}" Width="Auto" MinWidth="90"/>
+                <DataGridTextColumn Header="TT Thanh toán" Binding="{Binding PaymentStatus}" Width="Auto" MinWidth="120"/>
+                <DataGridTextColumn Header="Hình thức" Binding="{Binding RentalType}" Width="Auto" MinWidth="105"/>
+                <DataGridTextColumn Header="Tài xế" Binding="{Binding DriverName}" Width="Auto" MinWidth="155"/>
+                <DataGridTextColumn Header="Trạng thái" Binding="{Binding BookingStatus}" Width="Auto" MinWidth="125"/>
+            </DataGrid.Columns>
+        </DataGrid>
     </Grid>
 </Page>

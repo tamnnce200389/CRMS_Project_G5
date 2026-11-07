@@ -1,7 +1,3 @@
-﻿using CRMS.Models;
-using System.Linq;
-using System.Threading.Tasks;
-using CRMS.Services.Vehicles;
 
 using System;
 using System.Collections.Generic;
@@ -19,11 +15,6 @@ namespace CRMS.Views.Guest
         // DIA DIEM VA BO LOC XE TU LAI
         // =====================================
         private string _selectedCity = "Cần Thơ";
-        private int? _selectedCityId;
-        private int? _longTermCityId;
-        private bool _selfDriveHourly;
-        private readonly SearchService _searchService;
-        private Task? _cityLoadTask;
 
         private List<string> _selectedNeeds = new();
         private List<string> _selectedTrends = new();
@@ -41,14 +32,12 @@ namespace CRMS.Views.Guest
         private DateTime? _driverStartAt;
         private DateTime? _driverEndAt;
 
-        public HomePage() : this(new SearchService()) { }
-
-        public HomePage(SearchService searchService)
+        public HomePage()
         {
-            _searchService = searchService;
             InitializeComponent();
-            Loaded += LoadSearchCities;
+            DataContext = new HomeViewModel();
 
+            // Lay moc gio tiep theo tu dong ho may
             DateTime next = DateTime.Now.AddHours(1);
 
             DateTime defaultStart = new DateTime(
@@ -59,18 +48,23 @@ namespace CRMS.Views.Guest
                 0,
                 0);
 
+            // Xe tu lai mac dinh 1 ngay
             _selfDriveStartAt = defaultStart;
             _selfDriveEndAt = defaultStart.AddDays(1);
 
+            // Xe co tai xe mac dinh 4 gio
             _driverStartAt = defaultStart;
             _driverEndAt = defaultStart.AddHours(4);
 
+            // Hien thi dia diem
             SelfDriveLocationButton.Content = _selectedCity;
 
+            // Hien thi thoi gian xe tu lai
             SelfDriveTimeButton.Content =
                 $"{_selfDriveStartAt:HH:mm dd/MM} - " +
                 $"{_selfDriveEndAt:HH:mm dd/MM}";
 
+            // Hien thi thoi gian xe co tai xe
             DriverTimeButton.Content =
                 $"{_driverStartAt:HH:mm dd/MM} - " +
                 $"{_driverEndAt:HH:mm dd/MM}";
@@ -138,59 +132,24 @@ namespace CRMS.Views.Guest
         }
 
         // =====================================
-        // 4. HO SO CA NHAN
+        // 4. LICH SU DAT XE CUSTOMER
         // =====================================
-        private void Profile_Click(
-            object sender, RoutedEventArgs e)
+        private void About_Click(object sender, RoutedEventArgs e) => MyBookings_Click(sender, e);
+
+        private void MyBookings_Click(object sender, RoutedEventArgs e)
         {
-            if (!CurrentUserService.Instance.IsLoggedIn)
+            if (!CurrentUserService.Instance.IsCustomer)
             {
-                MessageBox.Show(
-                    "Vui lòng đăng nhập để xem hồ sơ cá nhân.",
-                    "Thông báo",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
+                MessageBox.Show("Vui lòng đăng nhập bằng tài khoản Customer để xem lịch sử đặt xe.",
+                    "Yêu cầu đăng nhập", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
-
-            Window? mainWindow = Window.GetWindow(this);
-
-            if (mainWindow?.DataContext is MainViewModel vm)
-            {
-                vm.NavigateCommand.Execute("Profile");
-            }
-            else
-            {
-                MessageBox.Show(
-                    "Không thể mở trang hồ sơ lúc này.",
-                    "Thông báo",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
-            }
+            if (Window.GetWindow(this)?.DataContext is MainViewModel vm)
+                vm.CurrentPage = new CRMS.Views.Customer.MyBookingsPage();
         }
 
         // =====================================
-        // 5. VE CHUNG TOI
-        // =====================================
-        private void About_Click(
-            object sender, RoutedEventArgs e)
-        {
-            if (Content is ScrollViewer { Content: UIElement content } scroll)
-                scroll.ScrollToVerticalOffset(AboutSection.TranslatePoint(new Point(), content).Y);
-        }
-
-        private void Service_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is Button { Tag: string mode } && DataContext is HomeViewModel home)
-            {
-                home.SelectModeCommand.Execute(mode);
-                UpdateLayout();
-                SearchPanel.BringIntoView();
-            }
-        }
-
-        // =====================================
-        // 6. DIA DIEM XE TU LAI
+        // 5. DIA DIEM XE TU LAI
         // =====================================
         private void SelfDriveLocation_Click(
             object sender, RoutedEventArgs e)
@@ -198,43 +157,47 @@ namespace CRMS.Views.Guest
             Window? mainWindow = Window.GetWindow(this);
 
             var locationWindow =
-                new LocationSearchWindow(_selectedCity, _selectedTrends, _selectedCityId, _selectedNeeds, _selectedBudgets);
+                new LocationSearchWindow(_selectedCity);
 
             if (mainWindow != null)
                 locationWindow.Owner = mainWindow;
 
             if (locationWindow.ShowDialog() == true)
             {
+                // Luu dia diem da chon
                 _selectedCity = locationWindow.SelectedCity;
-                _selectedCityId = locationWindow.SelectedCityId;
 
+                // Luu cac bo loc
                 _selectedNeeds = locationWindow.SelectedNeeds;
                 _selectedTrends = locationWindow.SelectedTrends;
                 _selectedBudgets = locationWindow.SelectedBudgets;
 
+                // Cap nhat nut dia diem
                 SelfDriveLocationButton.Content = _selectedCity;
             }
         }
 
         // =====================================
-        // 7. THOI GIAN XE TU LAI
+        // 6. THOI GIAN XE TU LAI
         // =====================================
         private void SelfDriveTime_Click(
             object sender, RoutedEventArgs e)
         {
             Window? mainWindow = Window.GetWindow(this);
 
-            var rentalWindow = new RentalTimeWindow(false, _selfDriveHourly);
+            // false: Cho phep thue ngay va thue gio
+            var rentalWindow = new RentalTimeWindow(false);
 
             if (mainWindow != null)
                 rentalWindow.Owner = mainWindow;
 
             if (rentalWindow.ShowDialog() == true)
             {
-                _selfDriveHourly = rentalWindow.RentalUnit == "Hour";
+                // Luu thoi gian
                 _selfDriveStartAt = rentalWindow.StartAt;
                 _selfDriveEndAt = rentalWindow.EndAt;
 
+                // Cap nhat noi dung nut
                 SelfDriveTimeButton.Content =
                     $"{rentalWindow.StartAt:HH:mm dd/MM} - " +
                     $"{rentalWindow.EndAt:HH:mm dd/MM}";
@@ -242,13 +205,15 @@ namespace CRMS.Views.Guest
         }
 
         // =====================================
-        // 8. THOI GIAN XE CO TAI XE
+        // 7. THOI GIAN XE CO TAI XE
         // =====================================
         private void DriverTime_Click(
             object sender, RoutedEventArgs e)
         {
             Window? mainWindow = Window.GetWindow(this);
 
+            // true: Cho ngay bat dau, gio don,
+            // va thoi luong thue
             var rentalWindow = new RentalTimeWindow(true);
 
             if (mainWindow != null)
@@ -256,88 +221,115 @@ namespace CRMS.Views.Guest
 
             if (rentalWindow.ShowDialog() == true)
             {
+                // Luu thoi gian
                 _driverStartAt = rentalWindow.StartAt;
                 _driverEndAt = rentalWindow.EndAt;
 
+                // Cap nhat noi dung nut
                 DriverTimeButton.Content =
                     $"{rentalWindow.StartAt:HH:mm dd/MM} - " +
                     $"{rentalWindow.EndAt:HH:mm dd/MM}";
             }
         }
 
+
         // =====================================
-        // 9. TIM XE - CHUYEN SANG CAR SEARCH
+        // 8. TIM XE - CHUYEN SANG CAR SEARCH
         // =====================================
-        private async void SearchCars_Click(object sender, RoutedEventArgs e)
+        private void SearchCars_Click(
+            object sender, RoutedEventArgs e)
         {
-            if (sender is not Button button) return;
-            var mode = button.Tag?.ToString() ?? "SelfDrive";
-            try
+            // Xac dinh dich vu dang tim
+            if (sender is not Button button)
+                return;
+
+            string rentalMode =
+                button.Tag?.ToString() ?? "SelfDrive";
+
+            // Kiem tra thoi gian xe tu lai
+            if (rentalMode == "SelfDrive")
             {
-                await EnsureSearchCitiesAsync();
-                DateTime? start = mode == "SelfDrive" ? _selfDriveStartAt : mode == "WithDriver" ? _driverStartAt : null;
-                DateTime? end = mode == "SelfDrive" ? _selfDriveEndAt : mode == "WithDriver" ? _driverEndAt : null;
-                if (mode != "LongTerm")
+                if (!_selfDriveStartAt.HasValue ||
+                    !_selfDriveEndAt.HasValue ||
+                    _selfDriveStartAt.Value <= DateTime.Now ||
+                    _selfDriveEndAt <= _selfDriveStartAt)
                 {
-                    if (!start.HasValue || !end.HasValue) throw new ArgumentException("Vui lòng chọn thời gian thuê.");
-                    AvailabilityRules.ValidatePeriod(start.Value, end.Value, DateTime.UtcNow, requireFutureStart: true);
+                    MessageBox.Show(
+                        "Vui lòng chọn lại thời gian thuê hợp lệ.",
+                        "Thông báo",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning);
+                    return;
                 }
-                var context = BuildSearchContext(mode);
-                if (Window.GetWindow(this)?.DataContext is MainViewModel vm)
-                    vm.CurrentPage = new CarSearchPage(mode, start, end, context);
             }
-            catch (Exception ex)
+
+            // Kiem tra xe co tai xe
+            if (rentalMode == "WithDriver")
             {
-                _cityLoadTask = null;
-                MessageBox.Show(ex.Message, "Tìm xe", MessageBoxButton.OK, MessageBoxImage.Information);
+                if (!_driverStartAt.HasValue ||
+                    !_driverEndAt.HasValue ||
+                    _driverStartAt.Value <= DateTime.Now ||
+                    _driverEndAt <= _driverStartAt)
+                {
+                    MessageBox.Show(
+                        "Vui lòng chọn lại thời gian thuê hợp lệ.",
+                        "Thông báo",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning);
+                    return;
+                }
+
+                // Lien tinh phai co diem den
+                bool needsDestination =
+                    InterCityRadio.IsChecked == true ||
+                    OneWayRadio.IsChecked == true;
+
+                if (needsDestination)
+                {
+                    var destination =
+                        DriverDestinationCombo.SelectedItem
+                        as ComboBoxItem;
+
+                    if (destination == null ||
+                        !destination.IsEnabled)
+                    {
+                        MessageBox.Show(
+                            "Vui lòng chọn điểm đến.",
+                            "Thông báo",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Warning);
+                        return;
+                    }
+
+                    var pickup =
+                        DriverPickupCombo.SelectedItem
+                        as ComboBoxItem;
+
+                    if (pickup?.Content?.ToString() ==
+                        destination.Content?.ToString())
+                    {
+                        MessageBox.Show(
+                            "Điểm đến phải khác điểm đón.",
+                            "Thông báo",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Warning);
+                        return;
+                    }
+                }
             }
-        }
-        private Task EnsureSearchCitiesAsync() => _cityLoadTask ??= LoadSearchCitiesCoreAsync();
-        private async void LoadSearchCities(object sender, RoutedEventArgs e)
-        {
-            try { await EnsureSearchCitiesAsync(); }
-            catch (Exception ex) { _cityLoadTask = null; SelfDriveLocationButton.ToolTip = "Không thể tải địa điểm: " + ex.Message; }
-        }
-        private async Task LoadSearchCitiesCoreAsync()
-        {
-            var cities = await _searchService.GetCitiesAsync();
-            var current = cities.FirstOrDefault(c => c.CityId == _selectedCityId)
-                ?? cities.FirstOrDefault(c => c.CityName == _selectedCity);
-            _selectedCityId = current?.CityId;
-            _selectedCity = current?.CityName ?? "Tất cả địa điểm";
-            SelfDriveLocationButton.Content = _selectedCity;
-            _longTermCityId = cities.FirstOrDefault(c => c.CityName == "Cần Thơ")?.CityId;
-            DriverPickupCombo.ItemsSource = new[] { new SearchCity { CityId=0, CityName="Chọn điểm đón" } }.Concat(cities).ToList();
-            DriverDestinationCombo.ItemsSource = new[] { new SearchCity { CityId=0, CityName="Chọn điểm đến" } }.Concat(cities).ToList();
-            DriverPickupCombo.SelectedItem = current ?? DriverPickupCombo.Items[0];
-            DriverDestinationCombo.SelectedIndex = 0;
-        }
-        internal CarSearchContext BuildSearchContext(string mode)
-        {
-            var pickup = DriverPickupCombo.SelectedItem as SearchCity;
-            var destination = DriverDestinationCombo.SelectedItem as SearchCity;
-            var route = OneWayRadio.IsChecked == true ? "InterCityOneWay" : InterCityRadio.IsChecked == true ? "InterCityRoundTrip" : "InnerCity";
-            if (mode == "WithDriver")
+
+            // Lay MainWindow dang chua HomePage
+            Window? mainWindow = Window.GetWindow(this);
+
+            if (mainWindow?.DataContext is MainViewModel vm)
             {
-                if (pickup?.CityId is not > 0) throw new ArgumentException("Vui lòng chọn điểm đón.");
-                if (route != "InnerCity" && destination?.CityId is not > 0) throw new ArgumentException("Vui lòng chọn điểm đến.");
-                if (route != "InnerCity" && pickup.CityId == destination!.CityId) throw new ArgumentException("Điểm đến phải khác điểm đón.");
+                // Tao trang ket qua theo dung loai dich vu
+                CarSearchPage searchPage =
+                    new CarSearchPage(rentalMode);
+
+                // Chuyen sang trang tim xe
+                vm.CurrentPage = searchPage;
             }
-            if (mode == "LongTerm" && !_longTermCityId.HasValue)
-                throw new ArgumentException("Địa điểm Cần Thơ chưa được cấu hình cho trang thuê dài hạn.");
-            return new CarSearchContext
-            {
-                PickupCityId = mode == "WithDriver" ? pickup?.CityId : mode == "LongTerm" ? _longTermCityId : _selectedCityId,
-                DestinationCityId = mode == "WithDriver" ? (route == "InnerCity" ? pickup?.CityId : destination?.CityId) : null,
-                RouteType = route,
-                HourlyOnly = mode == "SelfDrive" && _selfDriveHourly,
-                Fuel = mode == "SelfDrive" ? (_selectedTrends.Contains("Electric") ? "Electric" : _selectedTrends.Contains("Hybrid") ? "Hybrid" : null) : null,
-                PurposeCodes = mode == "SelfDrive" ? _selectedNeeds.Where(n => n != "ChildSeat" && n != "LongDistance").ToArray() : Array.Empty<string>(),
-                ChildSeatOnly = mode == "SelfDrive" && _selectedNeeds.Contains("ChildSeat"),
-                ExtendedTravelOnly = mode == "SelfDrive" && _selectedNeeds.Contains("LongDistance"),
-                SportOnly = mode == "SelfDrive" && _selectedTrends.Contains("Sport"),
-                BudgetCode = mode == "SelfDrive" ? _selectedBudgets.FirstOrDefault() : null
-            };
         }
 
     }
