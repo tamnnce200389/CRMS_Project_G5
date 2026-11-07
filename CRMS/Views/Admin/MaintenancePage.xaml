@@ -1,0 +1,514 @@
+<Page x:Class="CRMS.Views.Admin.MaintenancePage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Title="Quản lý bảo trì phương tiện">
+    <Page.Resources>
+        <Style TargetType="Button" BasedOn="{StaticResource AdminButtonBase}"/>
+        <Style TargetType="DataGridCell" BasedOn="{StaticResource AdminCell}"/>
+    </Page.Resources>
+
+    <Grid Margin="28,18">
+        <Grid.Resources>
+            <Style x:Key="CompactDatePicker" TargetType="DatePicker">
+                <Setter Property="Height" Value="34" />
+                <Setter Property="Background" Value="White" />
+                <Setter Property="BorderBrush" Value="#DCE3ED" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="Padding" Value="8,4" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+            </Style>
+        </Grid.Resources>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- 1. HEADER -->
+        <DockPanel Margin="0,0,0,12" LastChildFill="True">
+            <StackPanel DockPanel.Dock="Right"
+                        Orientation="Horizontal"
+                        VerticalAlignment="Center">
+                <Button Content="+ Tạo lịch bảo trì mới"
+                        Command="{Binding NewScheduleCommand}"
+                        Padding="16,10"
+                        Margin="0,0,10,0" />
+
+                <Button Content="↻  Làm mới"
+                        Command="{Binding RefreshCommand}"
+                        Background="White"
+                        Foreground="#1E293B"
+                        BorderBrush="#CBD5E1"
+                        BorderThickness="1"
+                        Padding="14,10" />
+            </StackPanel>
+
+            <StackPanel>
+                <TextBlock Text="Quản lý bảo trì phương tiện" Style="{StaticResource PageTitle}" Margin="0,0,0,4" />
+                <TextBlock Text="Đặt lịch bảo dưỡng, ghi nhận sửa chữa, cập nhật chi phí và đồng bộ tức thì với kiểm tra lịch xe trống."
+                           Style="{StaticResource Subtitle}" />
+            </StackPanel>
+        </DockPanel>
+
+        <!-- 2. KPI CARDS -->
+        <Grid Grid.Row="1" Margin="0,0,0,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="1.25*" />
+            </Grid.ColumnDefinitions>
+
+            <Border Style="{StaticResource Card}" Padding="16,10" Margin="0,0,12,0">
+                <StackPanel>
+                    <TextBlock Text="ĐANG BẢO TRÌ" Foreground="{StaticResource Muted}" FontSize="10" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding InProgressCount}" FontSize="23" FontWeight="SemiBold" Foreground="#D97706" Margin="0,2,0,1" />
+                    <TextBlock Text="Xe đang khóa lịch trong xưởng" Style="{StaticResource Subtitle}" FontSize="11.5" />
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="1" Style="{StaticResource Card}" Padding="16,10" Margin="0,0,12,0">
+                <StackPanel>
+                    <TextBlock Text="ĐÃ LÊN LỊCH" Foreground="{StaticResource Muted}" FontSize="10" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding ScheduledCount}" FontSize="23" FontWeight="SemiBold" Foreground="{StaticResource CustomerInk}" Margin="0,2,0,1" />
+                    <TextBlock Text="Phiếu đặt trước chống trùng đơn" Style="{StaticResource Subtitle}" FontSize="11.5" />
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="2" Style="{StaticResource Card}" Padding="16,10" Margin="0,0,12,0">
+                <StackPanel>
+                    <TextBlock Text="ĐÃ HOÀN THÀNH" Foreground="{StaticResource Muted}" FontSize="10" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding CompletedCount}" FontSize="23" FontWeight="SemiBold" Foreground="{StaticResource CustomerInk}" Margin="0,2,0,1" />
+                    <TextBlock Text="Đã nghiệm thu &amp; mở lại lịch xe" Style="{StaticResource Subtitle}" FontSize="11.5" />
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="3" Background="{StaticResource CustomerSoft}" CornerRadius="12" Padding="16,10">
+                <StackPanel>
+                    <TextBlock Text="TỔNG CHI PHÍ ĐÃ NGHIỆM THU" Foreground="{StaticResource CustomerInk}" FontSize="10" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding TotalCompletedCost, StringFormat={}{0:N0} VNĐ}"
+                               FontSize="19"
+                               FontWeight="SemiBold"
+                               Foreground="{StaticResource CustomerInk}"
+                               Margin="0,3,0,2"
+                               TextTrimming="CharacterEllipsis" />
+                    <TextBlock Text="{Binding FilteredCount, StringFormat=Đang hiển thị {0} phiếu theo bộ lọc}"
+                               Style="{StaticResource Subtitle}"
+                               FontSize="11.5" />
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- 3. FILTERS -->
+        <Grid Grid.Row="2" Margin="0,0,0,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="260" />
+                <ColumnDefinition Width="205" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Margin="0,0,14,0">
+                <TextBlock Text="Tìm kiếm phiếu bảo trì" FontSize="11.5" FontWeight="SemiBold" Margin="0,0,0,5" />
+                <Grid>
+                    <TextBox Height="38"
+                             Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                             AutomationProperties.Name="Tìm kiếm phiếu bảo trì" />
+                    <TextBlock Text="Nhập mã phiếu, biển số, hãng xe hoặc nội dung hạng mục…"
+                               Margin="14,0"
+                               Foreground="#8B97AA"
+                               VerticalAlignment="Center"
+                               IsHitTestVisible="False">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding SearchText}" Value="">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </Grid>
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Margin="0,0,14,0">
+                <TextBlock Text="Phương tiện" FontSize="11.5" FontWeight="SemiBold" Margin="0,0,0,5" />
+                <ComboBox ItemsSource="{Binding VehicleFilterOptions}"
+                          SelectedItem="{Binding SelectedVehicleFilter, Mode=TwoWay}"
+                          DisplayMemberPath="Label"
+                          Height="38"
+                          AutomationProperties.Name="Lọc theo phương tiện" />
+            </StackPanel>
+
+            <StackPanel Grid.Column="2">
+                <TextBlock Text="Trạng thái bảo trì" FontSize="11.5" FontWeight="SemiBold" Margin="0,0,0,5" />
+                <ComboBox ItemsSource="{Binding StatusFilterOptions}"
+                          SelectedItem="{Binding SelectedStatusFilter, Mode=TwoWay}"
+                          Height="38"
+                          AutomationProperties.Name="Lọc theo trạng thái bảo trì">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Converter={StaticResource VietnameseLabel}}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+            </StackPanel>
+        </Grid>
+
+        <!-- 4. MASTER-DETAIL SPLIT -->
+        <Grid Grid.Row="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1.65*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- LEFT: MAINTENANCE RECORDS DATAGRID -->
+            <Border Style="{StaticResource Card}" Padding="0" Margin="0,0,16,0" ClipToBounds="True">
+                <Grid Margin="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <DockPanel Margin="18,13">
+                        <TextBlock Text="Danh sách lịch &amp; lịch sử bảo trì" FontSize="15" FontWeight="SemiBold" />
+                        <TextBlock Text="Chọn 1 dòng để cập nhật chi phí / chuyển trạng thái bên phải"
+                                   Foreground="{StaticResource Muted}"
+                                   FontSize="11"
+                                   HorizontalAlignment="Right" />
+                    </DockPanel>
+
+                    <DataGrid Grid.Row="1"
+                              ItemsSource="{Binding RecordsView}"
+                              SelectedItem="{Binding SelectedRecord, Mode=TwoWay}"
+                              RowHeight="58"
+                              AutomationProperties.Name="Danh sách phiếu bảo trì">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="MÃ" Binding="{Binding ReferenceCode}" Width="72" />
+
+                            <DataGridTemplateColumn Header="PHƯƠNG TIỆN" SortMemberPath="LicensePlate" Width="136">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding LicensePlate}" FontWeight="SemiBold" />
+                                            <TextBlock Text="{Binding VehicleDisplayName}"
+                                                       Foreground="{StaticResource Muted}"
+                                                       FontSize="11"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       Margin="0,2,0,0" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+
+                            <DataGridTemplateColumn Header="KHUNG GIỜ (GIỜ VN)" SortMemberPath="StartAtLocal" Width="148">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding StartAtLocal, StringFormat=Từ: {0:dd/MM/yyyy HH:mm}}" FontSize="11.5" FontWeight="SemiBold" />
+                                            <TextBlock Text="{Binding EndAtLocal, StringFormat=Đến: {0:dd/MM/yyyy HH:mm}}" Foreground="{StaticResource Muted}" FontSize="11" Margin="0,2,0,0" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+
+                            <DataGridTextColumn Header="CHI PHÍ · VNĐ" Binding="{Binding Cost, StringFormat={}{0:N0}}" Width="104" />
+
+                            <DataGridTemplateColumn Header="TRẠNG THÁI" SortMemberPath="MaintenanceStatus" Width="122">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Border CornerRadius="5" Padding="9,4" HorizontalAlignment="Left">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Background" Value="#F1F5F9" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsScheduled}" Value="True">
+                                                            <Setter Property="Background" Value="{StaticResource CustomerSoft}" />
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding IsInProgress}" Value="True">
+                                                            <Setter Property="Background" Value="#FEF3C7" />
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding IsCompleted}" Value="True">
+                                                            <Setter Property="Background" Value="{StaticResource CustomerSoft}" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                            <TextBlock Text="{Binding MaintenanceStatus, Converter={StaticResource VietnameseLabel}}"
+                                                       FontSize="11"
+                                                       FontWeight="SemiBold">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Foreground" Value="#64748B" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsScheduled}" Value="True">
+                                                                <Setter Property="Foreground" Value="{StaticResource CustomerInk}" />
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding IsInProgress}" Value="True">
+                                                                <Setter Property="Foreground" Value="#B45309" />
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding IsCompleted}" Value="True">
+                                                                <Setter Property="Foreground" Value="{StaticResource CustomerInk}" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </Border>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+
+                            <DataGridTemplateColumn Header="HẠNG MỤC BẢO TRÌ" Width="*" MinWidth="148">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Description}"
+                                                   FontSize="12"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   ToolTip="{Binding Description}" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <!-- Empty State -->
+                    <StackPanel Grid.Row="1"
+                                Margin="0,40,0,0"
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Center"
+                                IsHitTestVisible="False">
+                        <StackPanel.Style>
+                            <Style TargetType="StackPanel">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding FilteredCount}" Value="0">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsLoading}" Value="True">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </StackPanel.Style>
+                        <TextBlock Text="Chưa có phiếu bảo trì phù hợp"
+                                   FontSize="15"
+                                   FontWeight="SemiBold"
+                                   HorizontalAlignment="Center" />
+                        <TextBlock Text="Nhấn + Tạo lịch bảo trì mới hoặc thay đổi điều kiện lọc ở trên."
+                                   Style="{StaticResource Subtitle}"
+                                   FontSize="12"
+                                   Margin="0,6,0,0" />
+                    </StackPanel>
+
+                    <ProgressBar Grid.Row="2"
+                                 Height="3"
+                                 IsIndeterminate="True"
+                                 Visibility="{Binding IsLoading, Converter={StaticResource BoolVisibility}}"
+                                 BorderThickness="0"
+                                 Foreground="{StaticResource CustomerInk}" />
+                </Grid>
+            </Border>
+
+            <!-- RIGHT: SCHEDULE / UPDATE FORM & LIFECYCLE CONTROLS -->
+            <Border Grid.Column="1" Style="{StaticResource Card}" Padding="16,13">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel>
+                        <DockPanel LastChildFill="True" Margin="0,0,0,8">
+                            <Border DockPanel.Dock="Right"
+                                    Background="{StaticResource CustomerSoft}"
+                                    CornerRadius="6"
+                                    Padding="9,3"
+                                    Visibility="{Binding HasSelectedStatusBadge, Converter={StaticResource BoolVisibility}}">
+                                <TextBlock Text="{Binding SelectedStatusText, Converter={StaticResource VietnameseLabel}}"
+                                           FontSize="11"
+                                           FontWeight="SemiBold"
+                                           Foreground="{StaticResource CustomerInk}" />
+                            </Border>
+
+                            <TextBlock Text="{Binding FormTitle}"
+                                       FontSize="15.5"
+                                       FontWeight="SemiBold"
+                                       VerticalAlignment="Center" />
+                        </DockPanel>
+
+                        <TextBlock Text="Phương tiện *" FontSize="11.5" FontWeight="SemiBold" Margin="0,0,0,4" />
+                        <ComboBox ItemsSource="{Binding FormVehicleOptions}"
+                                  SelectedItem="{Binding SelectedFormVehicle, Mode=TwoWay}"
+                                  DisplayMemberPath="Label"
+                                  IsEnabled="{Binding IsCreateMode}"
+                                  Height="34"
+                                  Padding="10,6"
+                                  Margin="0,0,0,7"
+                                  AutomationProperties.Name="Chọn xe cần bảo trì" />
+
+                        <CheckBox Content="Đưa xe vào bảo trì ngay (trạng thái Đang bảo trì)"
+                                  IsChecked="{Binding StartImmediately, Mode=TwoWay}"
+                                  Visibility="{Binding IsCreateMode, Converter={StaticResource BoolVisibility}}"
+                                  FontSize="12"
+                                  Margin="0,0,0,7" />
+
+                        <!-- Start Date & Time -->
+                        <Grid Margin="0,0,0,7" IsEnabled="{Binding IsFormEditable}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="96" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Margin="0,0,8,0">
+                                <TextBlock Text="Ngày bắt đầu *" FontSize="11.5" FontWeight="SemiBold" Margin="0,0,0,4" />
+                                <DatePicker SelectedDate="{Binding StartDate, Mode=TwoWay}"
+                                            Style="{StaticResource CompactDatePicker}" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="Giờ *" FontSize="11.5" FontWeight="SemiBold" Margin="0,0,0,4" />
+                                <ComboBox ItemsSource="{Binding TimeOptions}"
+                                          SelectedItem="{Binding SelectedStartTime, Mode=TwoWay}"
+                                          Height="34"
+                                          Padding="10,6" />
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- End Date & Time -->
+                        <Grid Margin="0,0,0,7" IsEnabled="{Binding IsFormEditable}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="96" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Margin="0,0,8,0">
+                                <TextBlock Text="Ngày kết thúc dự kiến *" FontSize="11.5" FontWeight="SemiBold" Margin="0,0,0,4" />
+                                <DatePicker SelectedDate="{Binding EndDate, Mode=TwoWay}"
+                                            Style="{StaticResource CompactDatePicker}" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="Giờ *" FontSize="11.5" FontWeight="SemiBold" Margin="0,0,0,4" />
+                                <ComboBox ItemsSource="{Binding TimeOptions}"
+                                          SelectedItem="{Binding SelectedEndTime, Mode=TwoWay}"
+                                          Height="34"
+                                          Padding="10,6" />
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBlock Text="Chi phí bảo trì / sửa chữa (VNĐ)" FontSize="11.5" FontWeight="SemiBold" Margin="0,0,0,4" />
+                        <TextBox Text="{Binding CostInput, UpdateSourceTrigger=PropertyChanged}"
+                                 IsEnabled="{Binding IsFormEditable}"
+                                 Height="34"
+                                 Padding="10,6"
+                                 Margin="0,0,0,7"
+                                 AutomationProperties.Name="Chi phí bảo trì" />
+
+                        <TextBlock Text="Mô tả hạng mục công việc *" FontSize="11.5" FontWeight="SemiBold" Margin="0,0,0,4" />
+                        <TextBox Text="{Binding DescriptionInput, UpdateSourceTrigger=PropertyChanged}"
+                                 IsEnabled="{Binding IsFormEditable}"
+                                 Height="42"
+                                 AcceptsReturn="True"
+                                 TextWrapping="Wrap"
+                                 VerticalContentAlignment="Top"
+                                 Padding="10,5"
+                                 Margin="0,0,0,7"
+                                 AutomationProperties.Name="Mô tả hạng mục bảo trì" />
+
+                        <!-- Validation Error -->
+                        <Border Background="#FEF2F2"
+                                BorderBrush="#FECACA"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Padding="10,7"
+                                Margin="0,0,0,8"
+                                Visibility="{Binding HasError, Converter={StaticResource BoolVisibility}}">
+                            <TextBlock Text="{Binding ErrorMessage}"
+                                       Foreground="#DC2626"
+                                       FontSize="12"
+                                       TextWrapping="Wrap" />
+                        </Border>
+
+                        <!-- Terminal State Info Banner -->
+                        <Border Background="{StaticResource CustomerBackground}"
+                                BorderBrush="#E2E8F0"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Padding="10,7"
+                                Margin="0,0,0,8"
+                                Visibility="{Binding IsFormLocked, Converter={StaticResource BoolVisibility}}">
+                            <TextBlock Text="Phiếu bảo trì này đã đóng (Hoàn thành / Đã hủy) và phương tiện đã được giải phóng lịch trống. Nhấn '+ Tạo lịch bảo trì mới' ở góc trên để lập phiếu khác."
+                                       Foreground="#475569"
+                                       FontSize="11.5"
+                                       TextWrapping="Wrap"
+                                       LineHeight="17" />
+                        </Border>
+
+                        <!-- Primary Save/Update Button -->
+                        <Button Content="{Binding PrimaryButtonText}"
+                                Command="{Binding SaveCommand}"
+                                Visibility="{Binding IsFormEditable, Converter={StaticResource BoolVisibility}}"
+                                Height="36"
+                                Padding="16,0"
+                                Margin="0,0,0,8" />
+
+                        <!-- Quick Status Transition Actions -->
+                        <StackPanel Visibility="{Binding ShowLifecycleActions, Converter={StaticResource BoolVisibility}}">
+                            <TextBlock Text="CHUYỂN TRẠNG THÁI NHANH"
+                                       FontSize="10"
+                                       FontWeight="SemiBold"
+                                       Foreground="{StaticResource Muted}"
+                                       Margin="0,0,0,5" />
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <Button Content="▶ Bắt đầu"
+                                        Command="{Binding StartMaintenanceCommand}"
+                                        Visibility="{Binding CanStartSelected, Converter={StaticResource BoolVisibility}}"
+                                        Background="#FEF3C7"
+                                        Foreground="#92400E"
+                                        BorderBrush="#FCD34D"
+                                        BorderThickness="1"
+                                        Height="34"
+                                        Padding="11,0"
+                                        Margin="0,0,6,0" />
+
+                                <Button Grid.Column="1"
+                                        Content="✓ Hoàn tất &amp; Mở xe"
+                                        Command="{Binding CompleteMaintenanceCommand}"
+                                        Background="{StaticResource CustomerInk}"
+                                        Foreground="White"
+                                        Height="34"
+                                        Padding="11,0"
+                                        Margin="0,0,6,0" />
+
+                                <Button Grid.Column="2"
+                                        Content="✕ Hủy"
+                                        Command="{Binding CancelMaintenanceCommand}"
+                                        Background="#FFF1F2"
+                                        Foreground="#BE123C"
+                                        BorderBrush="#FECDD3"
+                                        BorderThickness="1"
+                                        Height="34"
+                                        Padding="11,0" />
+                            </Grid>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+
+        <!-- 5. STATUS FOOTER -->
+        <TextBlock Grid.Row="4"
+                   Text="{Binding StatusMessage}"
+                   Style="{StaticResource Subtitle}"
+                   FontSize="11"
+                   Margin="2,9,0,0" />
+    </Grid>
+</Page>

@@ -1,0 +1,180 @@
+<Page x:Class="CRMS.Views.Admin.UserManagementPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Title="Quản lý người dùng"
+      Background="{StaticResource CustomerBackground}">
+    <Page.Resources>
+        <Style TargetType="Button" BasedOn="{StaticResource AdminButtonBase}"/>
+        <Style TargetType="DataGridCell" BasedOn="{StaticResource AdminCell}"/>
+    </Page.Resources>
+
+
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- HEADER -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock Text="Quản lý người dùng"
+                       FontSize="28"
+                       FontWeight="Bold"
+                       Foreground="{StaticResource CustomerInk}"/>
+
+            <TextBlock Text="Xem tài khoản, khóa/mở khóa và phân quyền."
+                       Margin="0,6,0,0"
+                       Foreground="{StaticResource MutedReadable}"/>
+        </StackPanel>
+
+        <!-- SEARCH -->
+        <Grid Grid.Row="1" Margin="0,0,0,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBox x:Name="SearchBox"
+                     Height="38"
+                     Padding="10,7"
+                     FontSize="14"
+                     VerticalContentAlignment="Center"
+                     ToolTip="Tìm theo ID, họ tên, email hoặc số điện thoại"
+                     TextChanged="SearchBox_TextChanged"/>
+
+            <Button Grid.Column="1"
+                    Content="Tải lại"
+                    Width="100"
+                    Height="38"
+                    Margin="10,0,0,0"
+                    Click="Reload_Click"/>
+        </Grid>
+
+        <!-- USER TABLE -->
+        <DataGrid x:Name="UsersGrid"
+                  Grid.Row="2"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  CanUserAddRows="False"
+                  SelectionMode="Single"
+                  SelectionUnit="FullRow"
+                  HeadersVisibility="Column"
+                  GridLinesVisibility="Horizontal"
+                  Background="{StaticResource Surface}"
+                  BorderBrush="{StaticResource CustomerLine}"
+                  RowBackground="{StaticResource Surface}"
+                  AlternatingRowBackground="{StaticResource CustomerBackground}"
+                  SelectionChanged="UsersGrid_SelectionChanged">
+
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="ID"
+                                    Binding="{Binding UserId}"
+                                    Width="55"/>
+
+                <DataGridTextColumn Header="Họ tên"
+                                    Binding="{Binding FullName}"
+                                    Width="*"/>
+
+                <DataGridTextColumn Header="Email"
+                                    Binding="{Binding Email}"
+                                    Width="1.5*"/>
+
+                <DataGridTextColumn Header="Điện thoại"
+                                    Binding="{Binding Phone}"
+                                    Width="110"/>
+
+                <DataGridTextColumn Header="Vai trò"
+                                    Binding="{Binding UserRole}"
+                                    Width="100"/>
+
+                <DataGridCheckBoxColumn Header="Hoạt động"
+                                        Binding="{Binding IsActive}"
+                                        Width="90"/>
+
+                <DataGridTextColumn Header="Ngày tạo"
+                                    Binding="{Binding CreatedAt,
+                                        StringFormat={}{0:dd/MM/yyyy}}"
+                                    Width="105"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- ACTIONS -->
+        <Border Grid.Row="3"
+                Margin="0,16,0,0"
+                Padding="16"
+                Background="{StaticResource Surface}"
+                BorderBrush="{StaticResource CustomerLine}"
+                BorderThickness="1"
+                CornerRadius="8">
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0"
+                            VerticalAlignment="Center">
+                    <TextBlock x:Name="SelectedUserText"
+                               Text="Chọn một tài khoản trong danh sách."
+                               FontWeight="SemiBold"
+                               Foreground="{StaticResource CustomerInk}"
+                               TextWrapping="Wrap"/>
+
+                    <TextBlock Text="Không thể tự khóa hoặc tự đổi vai trò tài khoản đang đăng nhập."
+                               Margin="0,5,10,0"
+                               FontSize="11"
+                               Foreground="{StaticResource MutedReadable}"
+                               TextWrapping="Wrap"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1"
+                            Orientation="Horizontal"
+                            VerticalAlignment="Center"
+                            Margin="8,0">
+
+                    <TextBlock Text="Vai trò:"
+                               VerticalAlignment="Center"
+                               Margin="0,0,8,0"/>
+
+                    <ComboBox Style="{StaticResource RoundedComboBox}" x:Name="RoleComboBox"
+                              Width="120"
+                              Height="34"
+                              VerticalContentAlignment="Center">
+                        <ComboBoxItem Content="Customer"/>
+                        <ComboBoxItem Content="Staff"/>
+                        <ComboBoxItem Content="Admin"/>
+                    </ComboBox>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2"
+                            Orientation="Horizontal"
+                            VerticalAlignment="Center">
+
+                    <Button Content="Đổi vai trò"
+                            Height="36"
+                            Padding="12,5"
+                            Margin="4,0"
+                            Background="{StaticResource CustomerInk}"
+                            Foreground="{StaticResource Surface}"
+                            BorderThickness="0"
+                            Click="ChangeRole_Click"/>
+
+                    <Button x:Name="ToggleStatusButton"
+                            Content="Khóa / Mở khóa"
+                            Height="36"
+                            Padding="12,5"
+                            Margin="4,0"
+                            Background="{StaticResource Danger}"
+                            Foreground="{StaticResource Surface}"
+                            BorderThickness="0"
+                            Click="ToggleStatus_Click"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+    </Grid>
+</Page>

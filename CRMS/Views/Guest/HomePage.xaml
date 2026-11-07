@@ -1,0 +1,219 @@
+﻿<Page x:Class="CRMS.Views.Guest.HomePage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:vm="clr-namespace:CRMS.ViewModels"
+      xmlns:services="clr-namespace:CRMS.Services"
+      Title="Khám phá hành trình" Language="vi-VN" FontSize="14"
+      Background="{StaticResource CustomerBackground}">
+    <Page.Resources>
+        <BooleanToVisibilityConverter x:Key="GuestVisibility"/>
+        <PathGeometry x:Key="CarIcon" Figures="M3,17 L3,10 L6,5 L18,5 L21,10 L21,17 Z M3,10 L21,10 M6,14 L8,14 M16,14 L18,14 M6,17 L6,20 M18,17 L18,20"/>
+        <PathGeometry x:Key="LocationIcon" Figures="M12,22 C9,18 4,13 4,9 A8,8 0 1 1 20,9 C20,13 15,18 12,22 M12,6 A3,3 0 1 1 12,12 A3,3 0 1 1 12,6"/>
+        <PathGeometry x:Key="CalendarIcon" Figures="M4,5 L20,5 L20,21 L4,21 Z M4,10 L20,10 M8,2 L8,7 M16,2 L16,7 M8,14 L11,14 M8,17 L16,17"/>
+        <PathGeometry x:Key="DriverIcon" Figures="M12,2 A4,4 0 1 1 12,10 A4,4 0 1 1 12,2 M3,22 L3,19 C3,10 21,10 21,19 L21,22 M12,13 L12,20 M10,17 L14,17"/>
+        <Style x:Key="OutlineIcon" TargetType="Path">
+            <Setter Property="Width" Value="20"/><Setter Property="Height" Value="20"/>
+            <Setter Property="Stretch" Value="Uniform"/><Setter Property="Stroke" Value="{StaticResource CustomerInk}"/>
+            <Setter Property="StrokeThickness" Value="1.6"/><Setter Property="StrokeStartLineCap" Value="Round"/><Setter Property="StrokeEndLineCap" Value="Round"/>
+        </Style>
+        <Style x:Key="TopMenuButton" TargetType="Button" BasedOn="{StaticResource GhostButton}">
+            <Setter Property="Foreground" Value="{StaticResource CustomerInk}"/><Setter Property="Padding" Value="18,10"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+        <Style x:Key="ServiceTabButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/><Setter Property="Foreground" Value="{StaticResource CustomerMuted}"/>
+            <Setter Property="BorderBrush" Value="Transparent"/><Setter Property="Padding" Value="6,8,18,16"/>
+            <Setter Property="FontSize" Value="14"/><Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
+                <Border x:Name="TabBorder" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0,0,0,3" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                    <StackPanel Orientation="Horizontal">
+                        <Path Data="{TemplateBinding Tag}" Style="{StaticResource OutlineIcon}" Margin="0,0,10,0"/>
+                        <ContentPresenter VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="TabBorder" Property="Background" Value="{StaticResource CustomerBackground}"/></Trigger>
+                    <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="TabBorder" Property="Background" Value="{StaticResource CustomerSoft}"/></Trigger>
+                </ControlTemplate.Triggers>
+            </ControlTemplate></Setter.Value></Setter>
+        </Style>
+        <Style x:Key="SelfDriveTabStyle" TargetType="Button" BasedOn="{StaticResource ServiceTabButton}"><Style.Triggers><DataTrigger Binding="{Binding IsSelfDrive}" Value="True"><Setter Property="BorderBrush" Value="{StaticResource CustomerInk}"/><Setter Property="Foreground" Value="{StaticResource CustomerInk}"/></DataTrigger></Style.Triggers></Style>
+        <Style x:Key="WithDriverTabStyle" TargetType="Button" BasedOn="{StaticResource ServiceTabButton}"><Style.Triggers><DataTrigger Binding="{Binding IsWithDriver}" Value="True"><Setter Property="BorderBrush" Value="{StaticResource CustomerInk}"/><Setter Property="Foreground" Value="{StaticResource CustomerInk}"/></DataTrigger></Style.Triggers></Style>
+        <Style x:Key="LongTermTabStyle" TargetType="Button" BasedOn="{StaticResource ServiceTabButton}"><Style.Triggers><DataTrigger Binding="{Binding IsLongTerm}" Value="True"><Setter Property="BorderBrush" Value="{StaticResource CustomerInk}"/><Setter Property="Foreground" Value="{StaticResource CustomerInk}"/></DataTrigger></Style.Triggers></Style>
+        <Style x:Key="SearchLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11"/><Setter Property="Foreground" Value="{StaticResource CustomerMuted}"/>
+            <Setter Property="FontWeight" Value="SemiBold"/><Setter Property="Margin" Value="2,0,0,8"/>
+        </Style>
+        <Style x:Key="RouteChoice" TargetType="RadioButton">
+            <Setter Property="Foreground" Value="{StaticResource CustomerMuted}"/><Setter Property="Padding" Value="16,10"/>
+            <Setter Property="FontSize" Value="13"/><Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="RadioButton">
+                <Border x:Name="RouteSurface" Background="White" BorderBrush="{StaticResource CustomerLine}" BorderThickness="1" CornerRadius="10" Padding="{TemplateBinding Padding}"><ContentPresenter/></Border>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsChecked" Value="True"><Setter TargetName="RouteSurface" Property="Background" Value="{StaticResource CustomerSoft}"/><Setter TargetName="RouteSurface" Property="BorderBrush" Value="{StaticResource CustomerInk}"/><Setter Property="Foreground" Value="{StaticResource CustomerInk}"/><Setter Property="FontWeight" Value="SemiBold"/></Trigger>
+                    <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="RouteSurface" Property="BorderBrush" Value="{StaticResource CustomerMuted}"/></Trigger>
+                    <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="RouteSurface" Property="BorderThickness" Value="2"/></Trigger>
+                </ControlTemplate.Triggers>
+            </ControlTemplate></Setter.Value></Setter>
+        </Style>
+        <Style x:Key="InputButton" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource CustomerBackground}"/><Setter Property="Foreground" Value="{StaticResource CustomerInk}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource CustomerLine}"/><Setter Property="Height" Value="52"/>
+            <Setter Property="FontSize" Value="14"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Tag" Value="{StaticResource CalendarIcon}"/>
+            <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
+                <Border x:Name="InputSurface" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="12" Padding="14,0">
+                    <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="26"/><ColumnDefinition Width="*"/><ColumnDefinition Width="16"/></Grid.ColumnDefinitions>
+                        <Path Style="{StaticResource OutlineIcon}" Data="{TemplateBinding Tag}" HorizontalAlignment="Left"/>
+                        <ContentPresenter Grid.Column="1" VerticalAlignment="Center" Margin="8,0,4,0"/>
+                        <Path Grid.Column="2" Data="M1,1 L5,5 L9,1" Stroke="{StaticResource CustomerMuted}" StrokeThickness="1.5" Width="9" Height="5" Stretch="Uniform"/>
+                    </Grid>
+                </Border>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="InputSurface" Property="BorderBrush" Value="{StaticResource CustomerInk}"/></Trigger>
+                    <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="InputSurface" Property="BorderBrush" Value="{StaticResource CustomerInk}"/><Setter TargetName="InputSurface" Property="BorderThickness" Value="2"/></Trigger>
+                </ControlTemplate.Triggers>
+            </ControlTemplate></Setter.Value></Setter>
+        </Style>
+        <Style x:Key="ServiceCard" TargetType="Button">
+            <Setter Property="Background" Value="White"/><Setter Property="BorderBrush" Value="{StaticResource CustomerLine}"/>
+            <Setter Property="Foreground" Value="{StaticResource CustomerInk}"/><Setter Property="Padding" Value="24"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/><Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
+                <Border x:Name="CardSurface" CornerRadius="18" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" Padding="{TemplateBinding Padding}"><ContentPresenter/></Border>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="CardSurface" Property="Background" Value="{StaticResource CustomerSoft}"/><Setter TargetName="CardSurface" Property="BorderBrush" Value="{StaticResource CustomerInk}"/></Trigger>
+                    <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="CardSurface" Property="BorderBrush" Value="{StaticResource CustomerInk}"/><Setter TargetName="CardSurface" Property="BorderThickness" Value="2"/></Trigger>
+                </ControlTemplate.Triggers>
+            </ControlTemplate></Setter.Value></Setter>
+        </Style>
+    </Page.Resources>
+    <Page.DataContext><vm:HomeViewModel/></Page.DataContext>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="32,22,32,30" MaxWidth="1320">
+            <Grid Margin="4,0,4,24" Visibility="{Binding IsGuest, Source={x:Static services:CurrentUserService.Instance}, Converter={StaticResource GuestVisibility}}">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Background="{StaticResource CustomerInk}" CornerRadius="14" Width="44" Height="44"><Path Data="{StaticResource CarIcon}" Style="{StaticResource OutlineIcon}" Stroke="{StaticResource CustomerAccent}" Width="25" Height="25"/></Border>
+                    <StackPanel Margin="12,0,0,0"><TextBlock Text="CRMS" FontSize="25" FontWeight="Bold" Foreground="{StaticResource CustomerInk}"/><TextBlock Text="Mở lối hành trình" FontSize="11" Foreground="{StaticResource CustomerMuted}"/></StackPanel>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button Content="Về CRMS" Style="{StaticResource TopMenuButton}" Click="About_Click" Margin="0,0,18,0"/>
+                    <Button Content="Đăng ký" Style="{StaticResource TopMenuButton}" Click="Register_Click" Margin="0,0,10,0"/>
+                    <Button Content="Đăng nhập  →" Style="{StaticResource CustomerButton}" Click="Login_Click"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- ImageBrush respects the rounded border; all copy remains selectable WPF text. -->
+            <Border Height="400" CornerRadius="24">
+                <Border.Background><ImageBrush ImageSource="pack://application:,,,/CRMS;component/Assets/coastal-drive-hero.png" Stretch="UniformToFill" Viewbox="0,0.18,1,0.78" ViewboxUnits="RelativeToBoundingBox"/></Border.Background>
+                <Border CornerRadius="24" Padding="40,32">
+                    <Border.Background><LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5"><GradientStop Color="#EE102C24" Offset="0"/><GradientStop Color="#CD102C24" Offset="0.35"/><GradientStop Color="#30102C24" Offset="0.65"/><GradientStop Color="#00102C24" Offset="1"/></LinearGradientBrush></Border.Background>
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="1.15*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,0,20">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,18"><Border Width="22" Height="2" Background="{StaticResource CustomerAccent}" VerticalAlignment="Center" Margin="0,0,10,0"/><TextBlock Text="ĐI THEO CÁCH CỦA BẠN" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource CustomerAccent}"/></StackPanel>
+                            <TextBlock Text="Tự do khám phá." FontSize="42" FontWeight="Bold" Foreground="White"/>
+                            <TextBlock Text="Trọn vẹn hành trình." FontSize="42" FontWeight="Bold" Foreground="{StaticResource CustomerAccent}" Margin="0,0,0,18"/>
+                            <TextBlock Text="Một chiếc xe phù hợp. Ngàn trải nghiệm đáng nhớ.&#10;Chọn hành trình của bạn, bắt đầu cùng CRMS." Foreground="#E2EAE2" FontSize="14" TextWrapping="Wrap" LineHeight="23"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,22,0,0"><TextBlock Text="TỰ LÁI" Foreground="White" FontSize="10" FontWeight="SemiBold"/><TextBlock Text="  /  CÓ TÀI XẾ  /  DÀI HẠN" Foreground="#C6D4CA" FontSize="10"/></StackPanel>
+                        </StackPanel>
+                        <Border Grid.Column="1" Background="#CCFFFFFF" CornerRadius="18" Padding="13,7" HorizontalAlignment="Right" VerticalAlignment="Top">
+                            <StackPanel Orientation="Horizontal"><Path Data="{StaticResource LocationIcon}" Style="{StaticResource OutlineIcon}" Width="13" Height="13" Margin="0,0,6,0"/><TextBlock Text="Cảm hứng cho chuyến đi mới" FontSize="11" Foreground="{StaticResource CustomerInk}"/></StackPanel>
+                        </Border>
+                    </Grid>
+                </Border>
+            </Border>
+
+            <!-- Booking panel overlaps the photograph without hiding its car. -->
+            <Border x:Name="SearchPanel" Background="White" BorderBrush="{StaticResource CustomerLine}" BorderThickness="1" CornerRadius="20" Padding="26,18,26,24" Margin="24,-24,24,28" Panel.ZIndex="1">
+                <Border.Effect><DropShadowEffect Color="#183B2D" BlurRadius="24" ShadowDepth="6" Opacity="0.07"/></Border.Effect>
+                <StackPanel>
+                    <Border BorderBrush="{StaticResource CustomerLine}" BorderThickness="0,0,0,1" Margin="0,0,0,20">
+                        <StackPanel Orientation="Horizontal">
+                            <Button Content="Xe tự lái" Tag="{StaticResource CarIcon}" Style="{StaticResource SelfDriveTabStyle}" Command="{Binding SelectModeCommand}" CommandParameter="SelfDrive" Margin="0,0,22,0"/>
+                            <Button Content="Xe có tài xế" Tag="{StaticResource DriverIcon}" Style="{StaticResource WithDriverTabStyle}" Command="{Binding SelectModeCommand}" CommandParameter="WithDriver" Margin="0,0,22,0"/>
+                            <Button Content="Thuê dài hạn" Tag="{StaticResource CalendarIcon}" Style="{StaticResource LongTermTabStyle}" Command="{Binding SelectModeCommand}" CommandParameter="LongTerm"/>
+                        </StackPanel>
+                    </Border>
+                    <Grid Visibility="{Binding IsSelfDrive, Converter={StaticResource GuestVisibility}}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="1.45*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <StackPanel Margin="0,0,16,0"><TextBlock Text="ĐỊA ĐIỂM NHẬN XE" Style="{StaticResource SearchLabel}"/><Button x:Name="SelfDriveLocationButton" Content="Cần Thơ" Tag="{StaticResource LocationIcon}" Style="{StaticResource InputButton}" Click="SelfDriveLocation_Click"/></StackPanel>
+                        <StackPanel Grid.Column="1" Margin="0,0,16,0"><TextBlock Text="THỜI GIAN THUÊ" Style="{StaticResource SearchLabel}"/><Button x:Name="SelfDriveTimeButton" Content="Chọn thời gian thuê" Style="{StaticResource InputButton}" Click="SelfDriveTime_Click"/></StackPanel>
+                        <Button Grid.Column="2" Content="Tìm xe  →" Tag="SelfDrive" Height="52" MinWidth="140" VerticalAlignment="Bottom" Style="{StaticResource CustomerButton}" Click="SearchCars_Click"/>
+                    </Grid>
+                    <StackPanel Visibility="{Binding IsWithDriver, Converter={StaticResource GuestVisibility}}">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,18">
+                            <TextBlock Text="Lộ trình" VerticalAlignment="Center" Foreground="{StaticResource CustomerMuted}" Margin="0,0,20,0"/>
+                            <RadioButton x:Name="InnerCityRadio" Style="{StaticResource RouteChoice}" Content="Nội thành" GroupName="DriverRoute" IsChecked="True" Margin="0,0,10,0"/>
+                            <RadioButton x:Name="InterCityRadio" Style="{StaticResource RouteChoice}" Content="Liên tỉnh" GroupName="DriverRoute" Margin="0,0,10,0"/>
+                            <RadioButton x:Name="OneWayRadio" Style="{StaticResource RouteChoice}" Content="Liên tỉnh (1 chiều)" GroupName="DriverRoute"/>
+                        </StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="1.45*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <StackPanel Margin="0,0,16,0"><TextBlock Text="ĐIỂM ĐÓN" Style="{StaticResource SearchLabel}"/>
+                                <ComboBox x:Name="DriverPickupCombo" Style="{StaticResource RoundedComboBox}" Height="52" FontSize="14" SelectedIndex="0" DisplayMemberPath="CityName"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Margin="0,0,16,0"><TextBlock Text="THỜI GIAN THUÊ" Style="{StaticResource SearchLabel}"/><Button x:Name="DriverTimeButton" Content="Chọn thời gian thuê" Style="{StaticResource InputButton}" Click="DriverTime_Click"/></StackPanel>
+                            <Button Grid.Column="2" Content="Tìm xe  →" Tag="WithDriver" Height="52" MinWidth="140" VerticalAlignment="Bottom" Style="{StaticResource CustomerButton}" Click="SearchCars_Click"/>
+                        </Grid>
+                        <StackPanel Margin="0,18,0,0" HorizontalAlignment="Left" Width="320">
+                            <StackPanel.Style><Style TargetType="StackPanel"><Style.Triggers><DataTrigger Binding="{Binding IsChecked, ElementName=InnerCityRadio}" Value="True"><Setter Property="Visibility" Value="Collapsed"/></DataTrigger></Style.Triggers></Style></StackPanel.Style>
+                            <TextBlock Text="ĐIỂM ĐẾN" Style="{StaticResource SearchLabel}"/>
+                            <ComboBox x:Name="DriverDestinationCombo" Style="{StaticResource RoundedComboBox}" Height="52" SelectedIndex="0" DisplayMemberPath="CityName"/>
+                        </StackPanel>
+                    </StackPanel>
+                    <Grid Visibility="{Binding IsLongTerm, Converter={StaticResource GuestVisibility}}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Path Data="{StaticResource LocationIcon}" Style="{StaticResource OutlineIcon}" VerticalAlignment="Top" Margin="0,4,16,0"/>
+                            <StackPanel><TextBlock Text="Địa điểm áp dụng hiện tại" FontSize="16" Foreground="{StaticResource CustomerMuted}"/><TextBlock Text="Cần Thơ" FontSize="22" FontWeight="SemiBold" Foreground="{StaticResource CustomerInk}" Margin="0,10,0,0"/></StackPanel>
+                        </StackPanel>
+                        <Button Grid.Column="1" Content="Tìm xe" Tag="LongTerm" Height="60" MinWidth="112" Style="{StaticResource CustomerButton}" Click="SearchCars_Click"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <Grid Margin="30,0,30,32">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                <StackPanel Orientation="Horizontal"><Path Data="{StaticResource CarIcon}" Style="{StaticResource OutlineIcon}" Margin="0,0,10,0"/><TextBlock Text="Đa dạng hình thức thuê" Foreground="{StaticResource CustomerMuted}" FontSize="12" VerticalAlignment="Center"/></StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center"><Path Data="{StaticResource CalendarIcon}" Style="{StaticResource OutlineIcon}" Margin="0,0,10,0"/><TextBlock Text="Chủ động lịch trình" Foreground="{StaticResource CustomerMuted}" FontSize="12" VerticalAlignment="Center"/></StackPanel>
+                <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right"><Path Data="M4,3 L20,3 L20,21 L4,21 Z M8,8 L16,8 M8,12 L16,12 M8,16 L12,16" Style="{StaticResource OutlineIcon}" Margin="0,0,10,0"/><TextBlock Text="Theo dõi chi phí dễ dàng" Foreground="{StaticResource CustomerMuted}" FontSize="12" VerticalAlignment="Center"/></StackPanel>
+            </Grid>
+
+            <StackPanel x:Name="AboutSection" Margin="4,0,4,22">
+                <TextBlock Text="MỖI NHU CẦU, MỘT LỰA CHỌN" Foreground="{StaticResource CustomerMuted}" FontSize="10" FontWeight="SemiBold"/>
+                <TextBlock Text="Hành trình của bạn. Lựa chọn của bạn." FontSize="27" FontWeight="SemiBold" Foreground="{StaticResource CustomerInk}" Margin="0,8,0,0"/>
+            </StackPanel>
+            <Grid Margin="4,0">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                <Button Style="{StaticResource ServiceCard}" Tag="SelfDrive" Click="Service_Click" AutomationProperties.Name="Chọn xe tự lái" Margin="0,0,16,0">
+                    <StackPanel><DockPanel Margin="0,0,0,24"><TextBlock DockPanel.Dock="Right" Text="01" FontSize="12" Foreground="{StaticResource CustomerMuted}"/><Path Data="{StaticResource CarIcon}" Style="{StaticResource OutlineIcon}" Width="30" Height="30" HorizontalAlignment="Left"/></DockPanel>
+                        <TextBlock Text="Tự lái, tự do khám phá" FontSize="19" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                        <TextBlock Text="Chủ động sau tay lái, tận hưởng từng điểm dừng cùng gia đình và bạn bè." Foreground="{StaticResource CustomerMuted}" FontSize="13" TextWrapping="Wrap" LineHeight="22" Margin="0,10,0,24"/>
+                        <TextBlock Text="Chọn xe tự lái  ↗" FontWeight="SemiBold" FontSize="12"/>
+                    </StackPanel>
+                </Button>
+                <Button Grid.Column="1" Style="{StaticResource ServiceCard}" Tag="WithDriver" Click="Service_Click" AutomationProperties.Name="Chọn xe có tài xế" Background="{StaticResource CustomerSoft}" Margin="0,0,16,0">
+                    <StackPanel><DockPanel Margin="0,0,0,24"><TextBlock DockPanel.Dock="Right" Text="02" FontSize="12" Foreground="{StaticResource CustomerMuted}"/><Path Data="{StaticResource DriverIcon}" Style="{StaticResource OutlineIcon}" Width="30" Height="30" HorizontalAlignment="Left"/></DockPanel>
+                        <TextBlock Text="Thư thả trên mọi nẻo đường" FontSize="19" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                        <TextBlock Text="Để tài xế đồng hành, dành thời gian cho những điều quan trọng hơn." Foreground="{StaticResource CustomerMuted}" FontSize="13" TextWrapping="Wrap" LineHeight="22" Margin="0,10,0,24"/>
+                        <TextBlock Text="Chọn xe có tài xế  ↗" FontWeight="SemiBold" FontSize="12"/>
+                    </StackPanel>
+                </Button>
+                <Button Grid.Column="2" Style="{StaticResource ServiceCard}" Tag="LongTerm" Click="Service_Click" AutomationProperties.Name="Chọn thuê dài hạn">
+                    <StackPanel><DockPanel Margin="0,0,0,24"><TextBlock DockPanel.Dock="Right" Text="03" FontSize="12" Foreground="{StaticResource CustomerMuted}"/><Path Data="{StaticResource CalendarIcon}" Style="{StaticResource OutlineIcon}" Width="30" Height="30" HorizontalAlignment="Left"/></DockPanel>
+                        <TextBlock Text="Đồng hành cùng kế hoạch dài" FontSize="19" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                        <TextBlock Text="Giải pháp thuê dài hạn cho công việc và nhu cầu di chuyển thường xuyên." Foreground="{StaticResource CustomerMuted}" FontSize="13" TextWrapping="Wrap" LineHeight="22" Margin="0,10,0,24"/>
+                        <TextBlock Text="Khám phá thuê dài hạn  ↗" FontWeight="SemiBold" FontSize="12"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
+            <Border BorderBrush="{StaticResource CustomerLine}" BorderThickness="0,1,0,0" Margin="4,32,4,0" Padding="0,20,0,0">
+                <DockPanel><TextBlock Text="CRMS / Mở lối hành trình" Foreground="{StaticResource CustomerInk}" FontSize="12" FontWeight="SemiBold"/><TextBlock Text="Xe trong ảnh dùng để minh họa." Foreground="{StaticResource CustomerMuted}" FontSize="11" TextAlignment="Right"/></DockPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

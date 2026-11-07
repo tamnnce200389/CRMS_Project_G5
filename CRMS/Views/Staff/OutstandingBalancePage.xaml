@@ -1,0 +1,3 @@
+<Page x:Class="CRMS.Views.Staff.OutstandingBalancePage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:shared="clr-namespace:CRMS.Views.Shared" Title="Thu tiền còn lại" Background="{StaticResource PageBackground}">
+    <shared:PaymentWorkspace/>
+</Page>

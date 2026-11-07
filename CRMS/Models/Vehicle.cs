@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace CRMS.Models;
@@ -41,5 +41,5 @@ public partial class Vehicle
 
     public virtual ICollection<MaintenanceRecord> MaintenanceRecords { get; set; } = new List<MaintenanceRecord>();
 
-    public virtual VehicleImage? VehicleImage { get; set; }
+    public virtual ICollection<VehicleImage> VehicleImages { get; set; } = new List<VehicleImage>();
 }
