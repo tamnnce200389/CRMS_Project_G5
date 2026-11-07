@@ -344,6 +344,7 @@ public partial class CrmsContext : DbContext
 
         modelBuilder.Entity<VehicleHandover>(entity =>
         {
+            entity.Ignore(e => e.FuelPercentOut);
             entity.HasKey(e => e.HandoverId).HasName("PK__VehicleH__DB2A1F816305B0E0");
 
             entity.HasIndex(e => e.BookingId, "UX_Handover_Booking").IsUnique();
@@ -485,3 +486,4 @@ public partial class CrmsContext : DbContext
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }
+

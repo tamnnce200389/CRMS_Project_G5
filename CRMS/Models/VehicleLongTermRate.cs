@@ -1,4 +1,4 @@
-﻿
+
 using System;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -9,8 +9,8 @@ namespace CRMS.Models
         // Khoa ngoai den Vehicles
         public long VehicleId { get; set; }
 
-        // SQL INT -> C# int
-        public int DurationMonths { get; set; }
+        // SQL TINYINT -> C# byte (matches dbo.VehicleLongTermRates)
+        public byte DurationMonths { get; set; }
 
         // Gia thang goc
         public decimal BaseMonthlyRate { get; set; }

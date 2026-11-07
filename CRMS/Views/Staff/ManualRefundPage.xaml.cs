@@ -1,11 +1,13 @@
-using CRMS.ViewModels;
 using System.Windows.Controls;
-namespace CRMS.Views.Staff;
-public partial class ManualRefundPage : Page
+
+namespace CRMS.Views.Staff
 {
-    public ManualRefundPage()
+    public partial class ManualRefundPage : Page
     {
-        InitializeComponent();
-        DataContext = new PaymentWorkspaceViewModel("Refund");
+        public ManualRefundPage()
+        {
+            InitializeComponent();
+            RefundQueueFrame.Content = new BookingQueuePage();
+        }
     }
 }

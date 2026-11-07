@@ -1,5 +1,5 @@
-﻿
 using CRMS.Helpers;
+using CRMS.Services;
 using System.Windows.Input;
 
 namespace CRMS.ViewModels
@@ -34,10 +34,26 @@ namespace CRMS.ViewModels
         public bool IsLongTerm =>
             SelectedMode == "LongTerm";
 
+        public bool IsGuest =>
+            CurrentUserService.Instance.IsGuest;
+
+        public bool IsLoggedIn =>
+            CurrentUserService.Instance.IsLoggedIn;
+
+        public bool IsCustomer =>
+            CurrentUserService.Instance.IsCustomer;
+
         public ICommand SelectModeCommand { get; }
 
         public HomeViewModel()
         {
+            CurrentUserService.Instance.PropertyChanged += (_, _) =>
+            {
+                OnPropertyChanged(nameof(IsGuest));
+                OnPropertyChanged(nameof(IsLoggedIn));
+                OnPropertyChanged(nameof(IsCustomer));
+            };
+
             SelectModeCommand = new RelayCommand(parameter =>
             {
                 string? mode = parameter?.ToString();

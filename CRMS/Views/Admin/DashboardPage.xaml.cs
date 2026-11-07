@@ -1,28 +1,26 @@
-﻿
+using CRMS.ViewModels;
 using System.Windows;
 using System.Windows.Controls;
-using CRMS.ViewModels;
 
 namespace CRMS.Views.Admin
 {
     public partial class DashboardPage : Page
     {
-        private readonly AdminDashboardViewModel _viewModel = new();
-
         public DashboardPage()
         {
             InitializeComponent();
-
-            DataContext = _viewModel;
-
-            Loaded += DashboardPage_Loaded;
         }
 
-        private async void DashboardPage_Loaded(
-            object sender,
-            RoutedEventArgs e)
+        private void NavigateButton_Click(object sender, RoutedEventArgs e)
         {
-            await _viewModel.LoadAsync();
+            if (sender is not Button btn || btn.Tag is not string target)
+                return;
+
+            var win = Window.GetWindow(this) ?? Application.Current?.MainWindow;
+            if (win?.DataContext is MainViewModel vm && vm.NavigateCommand.CanExecute(target))
+            {
+                vm.NavigateCommand.Execute(target);
+            }
         }
     }
 }
