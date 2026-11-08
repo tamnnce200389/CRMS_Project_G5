@@ -1,10 +1,10 @@
-﻿using System.Linq;
-using Microsoft.EntityFrameworkCore;
+﻿
 using System;
 using System.Configuration;
 using System.IO;
+using System.Linq;
 using System.Xml.Linq;
-
+using Microsoft.EntityFrameworkCore;
 
 namespace CRMS.Data
 {
@@ -16,17 +16,18 @@ namespace CRMS.Data
                 ConfigurationManager.ConnectionStrings["CRMS"]
                     ?.ConnectionString;
 
-            // Doc App.config tu thu muc chua project khi
-            // ConfigurationManager khong tim thay cau hinh.
+            // Doc App.config neu khong tim thay cau hinh
             if (string.IsNullOrWhiteSpace(connectionString))
             {
                 string[] possiblePaths =
                 {
                     Path.Combine(
-                        AppContext.BaseDirectory, "CRMS.dll.config"),
+                        AppContext.BaseDirectory,
+                        "CRMS.dll.config"),
 
                     Path.Combine(
-                        AppContext.BaseDirectory, "CRMS.exe.config"),
+                        AppContext.BaseDirectory,
+                        "CRMS.exe.config"),
 
                     Path.GetFullPath(
                         Path.Combine(
@@ -58,8 +59,8 @@ namespace CRMS.Data
             if (string.IsNullOrWhiteSpace(connectionString))
             {
                 throw new InvalidOperationException(
-                    "Không tìm thấy connection string CRMS. "
-                    + "Hãy kiểm tra App.config và cấu hình build.");
+                    "Khong tim thay connection string CRMS. " +
+                    "Hay kiem tra App.config va cau hinh build.");
             }
 
             var options =

@@ -46,56 +46,106 @@
             </Style.Triggers>
         </Style>
 
+        <!-- ACTIVE NAVIGATION -->
+        <Style x:Key="IsDashboardActiveNav"
+               TargetType="Button"
+               BasedOn="{StaticResource NavButton}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding DataContext.IsDashboard, RelativeSource={RelativeSource AncestorType=Window}}"
+                             Value="True">
+                    <Setter Property="Background" Value="{StaticResource CustomerAccent}"/>
+                    <Setter Property="Foreground" Value="{StaticResource CustomerInk}"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
 
-        <!-- Active navigation: green primary, based on existing MainViewModel state -->
-        <Style x:Key="IsDashboardActiveNav" TargetType="Button" BasedOn="{StaticResource NavButton}">
+        <Style x:Key="IsReportsActiveNav"
+               TargetType="Button"
+               BasedOn="{StaticResource NavButton}">
             <Style.Triggers>
-                <DataTrigger Binding="{Binding DataContext.IsDashboard, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
+                <DataTrigger Binding="{Binding DataContext.IsReports, RelativeSource={RelativeSource AncestorType=Window}}"
+                             Value="True">
                     <Setter Property="Background" Value="{StaticResource CustomerAccent}"/>
                     <Setter Property="Foreground" Value="{StaticResource CustomerInk}"/>
                     <Setter Property="FontWeight" Value="SemiBold"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
-        <Style x:Key="IsReportsActiveNav" TargetType="Button" BasedOn="{StaticResource NavButton}">
+
+        <Style x:Key="IsVehiclesActiveNav"
+               TargetType="Button"
+               BasedOn="{StaticResource NavButton}">
             <Style.Triggers>
-                <DataTrigger Binding="{Binding DataContext.IsReports, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
+                <DataTrigger Binding="{Binding DataContext.IsVehicles, RelativeSource={RelativeSource AncestorType=Window}}"
+                             Value="True">
                     <Setter Property="Background" Value="{StaticResource CustomerAccent}"/>
                     <Setter Property="Foreground" Value="{StaticResource CustomerInk}"/>
                     <Setter Property="FontWeight" Value="SemiBold"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
-        <Style x:Key="IsVehiclesActiveNav" TargetType="Button" BasedOn="{StaticResource NavButton}">
+
+        <Style x:Key="IsBookingsActiveNav"
+               TargetType="Button"
+               BasedOn="{StaticResource NavButton}">
             <Style.Triggers>
-                <DataTrigger Binding="{Binding DataContext.IsVehicles, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
+                <DataTrigger Binding="{Binding DataContext.IsBookings, RelativeSource={RelativeSource AncestorType=Window}}"
+                             Value="True">
                     <Setter Property="Background" Value="{StaticResource CustomerAccent}"/>
                     <Setter Property="Foreground" Value="{StaticResource CustomerInk}"/>
                     <Setter Property="FontWeight" Value="SemiBold"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
-        <Style x:Key="IsBookingsActiveNav" TargetType="Button" BasedOn="{StaticResource NavButton}">
+
+        <Style x:Key="IsDriversActiveNav"
+               TargetType="Button"
+               BasedOn="{StaticResource NavButton}">
             <Style.Triggers>
-                <DataTrigger Binding="{Binding DataContext.IsBookings, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
+                <DataTrigger Binding="{Binding DataContext.IsDrivers, RelativeSource={RelativeSource AncestorType=Window}}"
+                             Value="True">
                     <Setter Property="Background" Value="{StaticResource CustomerAccent}"/>
                     <Setter Property="Foreground" Value="{StaticResource CustomerInk}"/>
                     <Setter Property="FontWeight" Value="SemiBold"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
-        <Style x:Key="IsDriversActiveNav" TargetType="Button" BasedOn="{StaticResource NavButton}">
+
+        <Style x:Key="IsUserManagementActiveNav"
+               TargetType="Button"
+               BasedOn="{StaticResource NavButton}">
             <Style.Triggers>
-                <DataTrigger Binding="{Binding DataContext.IsDrivers, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
+                <DataTrigger Binding="{Binding DataContext.IsUserManagement, RelativeSource={RelativeSource AncestorType=Window}}"
+                             Value="True">
                     <Setter Property="Background" Value="{StaticResource CustomerAccent}"/>
                     <Setter Property="Foreground" Value="{StaticResource CustomerInk}"/>
                     <Setter Property="FontWeight" Value="SemiBold"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
-        <Style x:Key="IsUserManagementActiveNav" TargetType="Button" BasedOn="{StaticResource NavButton}">
+
+        <!-- TV7 - F20 -->
+        <Style x:Key="IsVoucherManagementActiveNav"
+               TargetType="Button"
+               BasedOn="{StaticResource NavButton}">
             <Style.Triggers>
-                <DataTrigger Binding="{Binding DataContext.IsUserManagement, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
+                <DataTrigger Binding="{Binding DataContext.IsVoucherManagement, RelativeSource={RelativeSource AncestorType=Window}}"
+                             Value="True">
+                    <Setter Property="Background" Value="{StaticResource CustomerAccent}"/>
+                    <Setter Property="Foreground" Value="{StaticResource CustomerInk}"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- TV7 - F23 -->
+        <Style x:Key="IsReviewModerationActiveNav"
+               TargetType="Button"
+               BasedOn="{StaticResource NavButton}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding DataContext.IsReviewModeration, RelativeSource={RelativeSource AncestorType=Window}}"
+                             Value="True">
                     <Setter Property="Background" Value="{StaticResource CustomerAccent}"/>
                     <Setter Property="Foreground" Value="{StaticResource CustomerInk}"/>
                     <Setter Property="FontWeight" Value="SemiBold"/>
@@ -222,7 +272,7 @@
                 </Border>
             </StackPanel>
 
-            <!-- MENU: AN THANH CUON NHUNG VAN CUON DUOC -->
+            <!-- MENU -->
             <ScrollViewer Grid.Row="1"
                           VerticalScrollBarVisibility="Hidden"
                           HorizontalScrollBarVisibility="Disabled">
@@ -286,9 +336,23 @@
 
                             <Button Content="Tổng hợp thanh toán"
                                     Style="{StaticResource NavButton}"
-                                    Command="{Binding NavigateCommand}" CommandParameter="PaymentSummary"/>                            <Button Content="Xác nhận cọc tiền mặt" Style="{StaticResource NavButton}" Command="{Binding NavigateCommand}" CommandParameter="CashDeposit"/>
-                            <Button Content="Thu tiền còn lại" Style="{StaticResource NavButton}" Command="{Binding NavigateCommand}" CommandParameter="OutstandingBalance"/>
-                            <Button Content="Ghi nhận hoàn tiền" Style="{StaticResource NavButton}" Command="{Binding NavigateCommand}" CommandParameter="ManualRefund"/>
+                                    Command="{Binding NavigateCommand}"
+                                    CommandParameter="PaymentSummary"/>
+
+                            <Button Content="Xác nhận cọc tiền mặt"
+                                    Style="{StaticResource NavButton}"
+                                    Command="{Binding NavigateCommand}"
+                                    CommandParameter="CashDeposit"/>
+
+                            <Button Content="Thu tiền còn lại"
+                                    Style="{StaticResource NavButton}"
+                                    Command="{Binding NavigateCommand}"
+                                    CommandParameter="OutstandingBalance"/>
+
+                            <Button Content="Ghi nhận hoàn tiền"
+                                    Style="{StaticResource NavButton}"
+                                    Command="{Binding NavigateCommand}"
+                                    CommandParameter="ManualRefund"/>
                         </StackPanel>
                     </Expander>
 
@@ -319,18 +383,16 @@
                                     Command="{Binding NavigateCommand}"
                                     CommandParameter="UserManagement"/>
 
-
                             <Button Content="Quản lý Voucher"
-                                    Style="{StaticResource NavButton}"
-                                    IsEnabled="False"
-                                    ToolTipService.ShowOnDisabled="True"
-                                    ToolTip="Chưa tích hợp VoucherManagementPage"/>
+                                    Style="{StaticResource IsVoucherManagementActiveNav}"
+                                    Command="{Binding NavigateCommand}"
+                                    CommandParameter="VoucherManagement"/>
 
+                            <!-- TV7 - F23: ENABLED -->
                             <Button Content="Kiểm duyệt đánh giá"
-                                    Style="{StaticResource NavButton}"
-                                    IsEnabled="False"
-                                    ToolTipService.ShowOnDisabled="True"
-                                    ToolTip="Chưa tích hợp ReviewModerationPage"/>
+                                    Style="{StaticResource IsReviewModerationActiveNav}"
+                                    Command="{Binding NavigateCommand}"
+                                    CommandParameter="ReviewModeration"/>
                         </StackPanel>
                     </Expander>
 
