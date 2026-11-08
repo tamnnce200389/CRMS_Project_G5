@@ -51,8 +51,8 @@
         <Style x:Key="IsDashboardActiveNav" TargetType="Button" BasedOn="{StaticResource NavButton}">
             <Style.Triggers>
                 <DataTrigger Binding="{Binding DataContext.IsDashboard, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
-                    <Setter Property="Background" Value="{StaticResource PrimaryHover}"/>
-                    <Setter Property="Foreground" Value="{StaticResource Surface}"/>
+                    <Setter Property="Background" Value="{StaticResource CustomerAccent}"/>
+                    <Setter Property="Foreground" Value="{StaticResource CustomerInk}"/>
                     <Setter Property="FontWeight" Value="SemiBold"/>
                 </DataTrigger>
             </Style.Triggers>
@@ -60,8 +60,8 @@
         <Style x:Key="IsBookingsActiveNav" TargetType="Button" BasedOn="{StaticResource NavButton}">
             <Style.Triggers>
                 <DataTrigger Binding="{Binding DataContext.IsBookings, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
-                    <Setter Property="Background" Value="{StaticResource PrimaryHover}"/>
-                    <Setter Property="Foreground" Value="{StaticResource Surface}"/>
+                    <Setter Property="Background" Value="{StaticResource CustomerAccent}"/>
+                    <Setter Property="Foreground" Value="{StaticResource CustomerInk}"/>
                     <Setter Property="FontWeight" Value="SemiBold"/>
                 </DataTrigger>
             </Style.Triggers>
@@ -69,8 +69,8 @@
         <Style x:Key="IsVehiclesActiveNav" TargetType="Button" BasedOn="{StaticResource NavButton}">
             <Style.Triggers>
                 <DataTrigger Binding="{Binding DataContext.IsVehicles, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
-                    <Setter Property="Background" Value="{StaticResource PrimaryHover}"/>
-                    <Setter Property="Foreground" Value="{StaticResource Surface}"/>
+                    <Setter Property="Background" Value="{StaticResource CustomerAccent}"/>
+                    <Setter Property="Foreground" Value="{StaticResource CustomerInk}"/>
                     <Setter Property="FontWeight" Value="SemiBold"/>
                 </DataTrigger>
             </Style.Triggers>
@@ -78,8 +78,8 @@
         <Style x:Key="IsDriversActiveNav" TargetType="Button" BasedOn="{StaticResource NavButton}">
             <Style.Triggers>
                 <DataTrigger Binding="{Binding DataContext.IsDrivers, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
-                    <Setter Property="Background" Value="{StaticResource PrimaryHover}"/>
-                    <Setter Property="Foreground" Value="{StaticResource Surface}"/>
+                    <Setter Property="Background" Value="{StaticResource CustomerAccent}"/>
+                    <Setter Property="Foreground" Value="{StaticResource CustomerInk}"/>
                     <Setter Property="FontWeight" Value="SemiBold"/>
                 </DataTrigger>
             </Style.Triggers>
@@ -140,7 +140,7 @@
                                                      Value="True">
                                                 <Setter TargetName="HeaderBackground"
                                                         Property="Background"
-                                                        Value="{StaticResource PrimaryHover}"/>
+                                                        Value="{StaticResource CustomerHover}"/>
                                             </Trigger>
                                         </ControlTemplate.Triggers>
                                     </ControlTemplate>

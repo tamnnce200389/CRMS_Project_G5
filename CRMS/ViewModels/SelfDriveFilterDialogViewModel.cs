@@ -9,7 +9,11 @@ public sealed class SelfDriveFilterDialogViewModel : BaseViewModel
 {
     private readonly CarSearchViewModel _parent;
     public string Kind { get; }
-    public string Title => Kind switch { "Category" => "Loại xe", "Brand" => "Hãng xe", "Sort" => "Sắp xếp", "Transmission" => "Truyền động", "Delivery" => "Giao nhận tận nơi", "Pickup" => "Miễn phí đưa đón", "Route" => "Hành trình có tài xế", "Travel" => "Di chuyển mở rộng", _ => "Ghế trẻ em" };
+    public string Title => Kind switch { "Price" => "Khoảng giá thuê", "Category" => "Loại xe", "Brand" => "Hãng xe", "Sort" => "Sắp xếp", "Transmission" => "Truyền động", "Delivery" => "Giao nhận tận nơi", "Pickup" => "Miễn phí đưa đón", "Route" => "Hành trình có tài xế", "Travel" => "Di chuyển mở rộng", _ => "Ghế trẻ em" };
+    public bool IsPrice => Kind == "Price";
+    public string PriceUnit => _parent.IsLongTerm ? "đ/tháng" : _parent.IsWithDriver ? "đ/chuyến" : _parent.HourlyOnly ? "đ/giờ" : "đ/ngày";
+    public string PriceFrom { get; set; }
+    public string PriceTo { get; set; }
     public bool IsChoice => Kind is "Sort" or "Transmission";
     public int ChoiceColumns => Kind == "Sort" ? 2 : 1;
     public ObservableCollection<SearchDialogChoice> Choices { get; } = new();
@@ -75,6 +79,7 @@ public sealed class SelfDriveFilterDialogViewModel : BaseViewModel
     public SelfDriveFilterDialogViewModel(CarSearchViewModel parent, string kind)
     {
         _parent = parent; Kind = kind;
+        PriceFrom = parent.MinPrice; PriceTo = parent.MaxPrice;
         _route = parent.SelectedRoute; _pickup = parent.SelectedCity?.CityId > 0 ? parent.SelectedCity : null;
         _routeDestination = IsInterCity ? parent.DestinationCity : _pickup;
         StartAt = parent.StartAtLocal; EndAt = parent.EndAtLocal;
@@ -86,6 +91,7 @@ public sealed class SelfDriveFilterDialogViewModel : BaseViewModel
         _busy = true; OnPropertyChanged(nameof(IsReady)); CommandManager.InvalidateRequerySuggested();
         try
         {
+            if (IsPrice) { Status = "Để trống mức giá nếu bạn không muốn giới hạn."; _loaded = true; return; }
             if (IsChoice)
             {
                 Choices.Clear();
@@ -137,10 +143,11 @@ public sealed class SelfDriveFilterDialogViewModel : BaseViewModel
             Types.Clear(); Types.Add(new(null, null, "Tất cả", facets.Types.Sum(t => t.Count)));
             foreach (var type in facets.Types) Types.Add(type);
             SelectedType = _parent.HasCategoryFilter ? Types.FirstOrDefault(t => t.CategoryId == _parent.SelectedCategory?.CategoryId &&
-                (!byte.TryParse(_parent.SelectedSeats, out var selectedSeats) || t.Seats == selectedSeats)) : null;
+                (!byte.TryParse(_parent.SelectedSeats, out var selectedSeats) || t.Seats == selectedSeats))
+                : byte.TryParse(_parent.SelectedSeats, out _) ? null : Types[0];
             Brands.Clear(); Brands.Add(new("Tất cả hãng xe", facets.Brands.Sum(b => b.Count)));
             foreach (var brand in facets.Brands) Brands.Add(brand);
-            SelectedBrand = _parent.HasBrandFilter ? Brands.FirstOrDefault(b => b.Name == _parent.SelectedBrand) : null;
+            SelectedBrand = _parent.HasBrandFilter ? Brands.FirstOrDefault(b => b.Name == _parent.SelectedBrand) : Brands[0];
             Ages.Clear();
             foreach (var pair in new[]{("0-12","Từ 0–12 tuổi (Ghế đa năng)"),("0-1","Từ 0–1 tuổi"),("1-4","Từ 1–4 tuổi"),("4-7","Từ 4–7 tuổi"),("7-12","Từ 7–12 tuổi")})
             {
@@ -160,6 +167,23 @@ public sealed class SelfDriveFilterDialogViewModel : BaseViewModel
     public async Task ApplyAsync()
     {
         if (!IsReady) return;
+        if (IsPrice)
+        {
+            try
+            {
+                var minimum = CarSearchViewModel.ParsePrice(PriceFrom);
+                var maximum = CarSearchViewModel.ParsePrice(PriceTo);
+                if (minimum > maximum) throw new ArgumentException("Giá tối đa phải bằng hoặc cao hơn giá tối thiểu.");
+            }
+            catch (ArgumentException ex)
+            {
+                Status = ex.Message;
+                OnPropertyChanged(nameof(Status));
+                return;
+            }
+            _parent.MinPrice = PriceFrom;
+            _parent.MaxPrice = PriceTo;
+        }
         if (IsChoice && SelectedChoice != null)
         {
             if (Kind == "Sort") _parent.SelectedSort = SelectedChoice.Value;

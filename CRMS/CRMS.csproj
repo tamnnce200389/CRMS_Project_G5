@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
@@ -10,6 +10,9 @@
 
 	<ItemGroup>
 		<Resource Include="Assets\coastal-drive-hero.png" />
+		<Resource Include="Assets\seasonal-destinations.png" />
+		<Resource Include="Assets\Vehicles\*.jpg" />
+		<Resource Include="Assets\Vehicles\*.png" />
 	</ItemGroup>
 
 	<ItemGroup>

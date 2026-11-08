@@ -3,8 +3,13 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:vm="clr-namespace:CRMS.ViewModels"
       Title="Tra cứu tài xế"
-      Background="{StaticResource PageBackground}"
+      Background="{StaticResource CustomerBackground}"
       FontFamily="Segoe UI">
+    <Page.Resources>
+        <Style TargetType="Button" BasedOn="{StaticResource StaffButton}"/>
+        <Style TargetType="DataGridCell" BasedOn="{StaticResource AdminCell}"/>
+    </Page.Resources>
+
 
     <Page.DataContext>
         <vm:DriverViewModel/>
@@ -18,7 +23,7 @@
             <TextBlock Text="Danh sách tài xế"
                        FontSize="28"
                        FontWeight="Bold"
-                       Foreground="{StaticResource Ink}"/>
+                       Foreground="{StaticResource CustomerInk}"/>
 
             <TextBlock Text="Tra cứu tài xế phục vụ việc phân công cho các đơn thuê có tài xế."
                        Foreground="{StaticResource MutedReadable}"
@@ -34,7 +39,7 @@
 
                 <Border Grid.Column="0"
                         Background="{StaticResource Surface}"
-                        BorderBrush="{StaticResource Line}"
+                        BorderBrush="{StaticResource CustomerLine}"
                         BorderThickness="1"
                         CornerRadius="14"
                         Padding="22"
@@ -46,7 +51,7 @@
                                    FontSize="12"/>
 
                         <TextBlock Text="{Binding TotalDrivers}"
-                                   Foreground="{StaticResource Ink}"
+                                   Foreground="{StaticResource CustomerInk}"
                                    FontSize="32"
                                    FontWeight="Bold"
                                    Margin="0,10,0,0"/>
@@ -55,7 +60,7 @@
 
                 <Border Grid.Column="1"
                         Background="{StaticResource Surface}"
-                        BorderBrush="{StaticResource Line}"
+                        BorderBrush="{StaticResource CustomerLine}"
                         BorderThickness="1"
                         CornerRadius="14"
                         Padding="22">
@@ -66,7 +71,7 @@
                                    FontSize="12"/>
 
                         <TextBlock Text="{Binding ActiveDrivers}"
-                                   Foreground="{StaticResource PrimaryHover}"
+                                   Foreground="{StaticResource CustomerInk}"
                                    FontSize="32"
                                    FontWeight="Bold"
                                    Margin="0,10,0,0"/>
@@ -76,7 +81,7 @@
 
             <!-- TABLE -->
             <Border Background="{StaticResource Surface}"
-                    BorderBrush="{StaticResource Line}"
+                    BorderBrush="{StaticResource CustomerLine}"
                     BorderThickness="1"
                     CornerRadius="14"
                     Padding="18">
@@ -92,13 +97,13 @@
                         <TextBlock Text="Thông tin tài xế"
                                    FontSize="20"
                                    FontWeight="Bold"
-                                   Foreground="{StaticResource Ink}"/>
+                                   Foreground="{StaticResource CustomerInk}"/>
 
                         <Button Grid.Column="1"
                                 Content="Làm mới"
                                 Width="105"
                                 Height="38"
-                                Background="{StaticResource PrimaryHover}"
+                                Background="{StaticResource CustomerInk}"
                                 Foreground="{StaticResource Surface}"
                                 FontWeight="SemiBold"
                                 BorderThickness="0"
@@ -150,7 +155,7 @@
                                Margin="0,12,0,0"/>
 
                     <TextBlock Text="Nhân viên chỉ được xem thông tin tài xế. Chức năng phân công tài xế sẽ được tích hợp riêng."
-                               Foreground="{StaticResource Muted}"
+                               Foreground="{StaticResource MutedReadable}"
                                FontSize="12"
                                FontStyle="Italic"
                                TextWrapping="Wrap"

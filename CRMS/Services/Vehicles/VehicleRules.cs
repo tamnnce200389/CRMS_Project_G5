@@ -167,6 +167,25 @@ public static class VehicleRules
         if (text.Length > 1000)
             throw new InvalidOperationException("Đường dẫn ảnh xe tối đa 1000 ký tự.");
 
+        const string bundledPrefix = "pack://application:,,,/CRMS;component/Assets/Vehicles/";
+        if (text.StartsWith(bundledPrefix, StringComparison.Ordinal))
+        {
+            var name = text[bundledPrefix.Length..];
+            if (!Regex.IsMatch(name, @"^vehicle-\d{2}-(exterior|interior)\.(jpg|png)$"))
+                throw new InvalidOperationException("Đường dẫn ảnh đi kèm ứng dụng không hợp lệ.");
+
+            using var resources = typeof(VehicleRules).Assembly.GetManifestResourceStream("CRMS.g.resources");
+            if (resources is not null)
+            {
+                using var reader = new System.Resources.ResourceReader(resources);
+                var entries = reader.GetEnumerator();
+                while (entries.MoveNext())
+                    if (string.Equals(entries.Key as string, "assets/vehicles/" + name, StringComparison.Ordinal))
+                        return text;
+            }
+            throw new InvalidOperationException("Ảnh chưa được đóng gói trong ứng dụng.");
+        }
+
         if (Path.IsPathRooted(text) && !text.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
             && !text.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
         {
