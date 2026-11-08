@@ -3,6 +3,8 @@
    Default: upgrade schema/procedures, preserve existing data; do NOT insert demo data.
    For a DEMO database only: change @IncludeDemoData from 0 to 1 below.
    Demo mode includes the original 29 cars + search metadata + synthetic QA financial history.
+   The final section assigns the bundled exterior/interior photos to those 29 cars.
+   On a new DEMO database, set @IncludeDemoData=1 to create the matching vehicles.
    Existing synthetic data is preserved, not automatically removed from reports.
    No login/password changes; no GRANT/db_owner requirement is introduced.
    For existing CRMS, migration identity needs ALTER/CREATE objects, DML and EXECUTE rights.
@@ -1429,7 +1431,7 @@ BEGIN
 EXEC(N'-- OPTIONAL DEVELOPMENT DATA. Run after CRMS.sql in the selected test database.
 -- 03. DU LIEU MAU (SEED DATA) - CHI THEM BAN GHI CON THIEU
 -- Khong DROP / DELETE / TRUNCATE / UPDATE du lieu cu.
--- Demo data is fictional. Images are placeholders, not real car photos.
+-- Demo records are fictional. Vehicle photos use the user-supplied bundled assets.
 -- All times stored as UTC, rental prices in VND.
 -- ================================================================
 
@@ -1604,239 +1606,7 @@ WHERE NOT EXISTS (
     SELECT 1 FROM dbo.VehicleLongTermRates r
     WHERE r.VehicleId = v.VehicleId AND r.DurationMonths = p.DurationMonths
 );');
-EXEC(N'-- 58 illustrative image URLs, 2 per vehicle (NOT real car photos)
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''65A-12345'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=Toyota+Vios+Front'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=Toyota+Vios+Front'', 1, 0
-    FROM dbo.Vehicles WHERE LicensePlate=''65A-12345'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''65A-12345'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=Toyota+Vios+Side'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=Toyota+Vios+Side'', 0, 1
-    FROM dbo.Vehicles WHERE LicensePlate=''65A-12345'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''65A-67890'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=Ford+Everest+Front'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=Ford+Everest+Front'', 1, 0
-    FROM dbo.Vehicles WHERE LicensePlate=''65A-67890'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''65A-67890'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=Ford+Everest+Side'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=Ford+Everest+Side'', 0, 1
-    FROM dbo.Vehicles WHERE LicensePlate=''65A-67890'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''65A-24680'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=Toyota+Innova+Front'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=Toyota+Innova+Front'', 1, 0
-    FROM dbo.Vehicles WHERE LicensePlate=''65A-24680'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''65A-24680'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=Toyota+Innova+Side'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=Toyota+Innova+Side'', 0, 1
-    FROM dbo.Vehicles WHERE LicensePlate=''65A-24680'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-001'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=Toyota+Vios+Front'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=Toyota+Vios+Front'', 1, 0
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-001'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-001'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=Toyota+Vios+Side'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=Toyota+Vios+Side'', 0, 1
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-001'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-002'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=Honda+City+Front'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=Honda+City+Front'', 1, 0
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-002'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-002'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=Honda+City+Side'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=Honda+City+Side'', 0, 1
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-002'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-003'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=Hyundai+Accent+Front'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=Hyundai+Accent+Front'', 1, 0
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-003'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-003'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=Hyundai+Accent+Side'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=Hyundai+Accent+Side'', 0, 1
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-003'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-004'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=Mazda+Mazda+3+Front'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=Mazda+Mazda+3+Front'', 1, 0
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-004'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-004'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=Mazda+Mazda+3+Side'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=Mazda+Mazda+3+Side'', 0, 1
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-004'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-005'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=Kia+K3+Front'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=Kia+K3+Front'', 1, 0
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-005'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-005'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=Kia+K3+Side'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=Kia+K3+Side'', 0, 1
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-005'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-006'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=Mazda+CX5+Front'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=Mazda+CX5+Front'', 1, 0
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-006'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-006'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=Mazda+CX5+Side'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=Mazda+CX5+Side'', 0, 1
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-006'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-007'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=Ford+Everest+Front'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=Ford+Everest+Front'', 1, 0
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-007'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-007'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=Ford+Everest+Side'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=Ford+Everest+Side'', 0, 1
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-007'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-008'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=Hyundai+Santa+Fe+Front'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=Hyundai+Santa+Fe+Front'', 1, 0
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-008'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-008'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=Hyundai+Santa+Fe+Side'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=Hyundai+Santa+Fe+Side'', 0, 1
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-008'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-009'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=Toyota+Fortuner+Front'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=Toyota+Fortuner+Front'', 1, 0
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-009'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-009'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=Toyota+Fortuner+Side'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=Toyota+Fortuner+Side'', 0, 1
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-009'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-010'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=Kia+Seltos+Front'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=Kia+Seltos+Front'', 1, 0
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-010'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-010'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=Kia+Seltos+Side'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=Kia+Seltos+Side'', 0, 1
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-010'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-011'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=Mitsubishi+Xpander+Front'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=Mitsubishi+Xpander+Front'', 1, 0
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-011'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-011'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=Mitsubishi+Xpander+Side'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=Mitsubishi+Xpander+Side'', 0, 1
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-011'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-012'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=Toyota+Innova+Front'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=Toyota+Innova+Front'', 1, 0
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-012'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-012'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=Toyota+Innova+Side'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=Toyota+Innova+Side'', 0, 1
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-012'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-013'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=Toyota+Veloz+Cross+Front'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=Toyota+Veloz+Cross+Front'', 1, 0
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-013'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-013'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=Toyota+Veloz+Cross+Side'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=Toyota+Veloz+Cross+Side'', 0, 1
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-013'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-014'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=Kia+Carnival+Front'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=Kia+Carnival+Front'', 1, 0
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-014'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-014'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=Kia+Carnival+Side'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=Kia+Carnival+Side'', 0, 1
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-014'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-015'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=Hyundai+Grand+i10+Front'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=Hyundai+Grand+i10+Front'', 1, 0
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-015'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-015'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=Hyundai+Grand+i10+Side'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=Hyundai+Grand+i10+Side'', 0, 1
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-015'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-016'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=Toyota+Wigo+Front'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=Toyota+Wigo+Front'', 1, 0
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-016'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-016'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=Toyota+Wigo+Side'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=Toyota+Wigo+Side'', 0, 1
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-016'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-017'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=Suzuki+Swift+Front'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=Suzuki+Swift+Front'', 1, 0
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-017'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-017'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=Suzuki+Swift+Side'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=Suzuki+Swift+Side'', 0, 1
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-017'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-018'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=Ford+Ranger+Front'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=Ford+Ranger+Front'', 1, 0
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-018'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-018'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=Ford+Ranger+Side'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=Ford+Ranger+Side'', 0, 1
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-018'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-019'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=Mitsubishi+Triton+Front'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=Mitsubishi+Triton+Front'', 1, 0
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-019'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-019'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=Mitsubishi+Triton+Side'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=Mitsubishi+Triton+Side'', 0, 1
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-019'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-020'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=MercedesBenz+C+200+Front'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=MercedesBenz+C+200+Front'', 1, 0
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-020'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-020'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=MercedesBenz+C+200+Side'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=MercedesBenz+C+200+Side'', 0, 1
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-020'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-021'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=BMW+320i+Front'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=BMW+320i+Front'', 1, 0
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-021'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-021'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=BMW+320i+Side'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=BMW+320i+Side'', 0, 1
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-021'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-022'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=Lexus+ES+250+Front'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=Lexus+ES+250+Front'', 1, 0
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-022'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-022'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=Lexus+ES+250+Side'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=Lexus+ES+250+Side'', 0, 1
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-022'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-023'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=VinFast+VF+5+Front'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=VinFast+VF+5+Front'', 1, 0
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-023'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-023'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=VinFast+VF+5+Side'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=VinFast+VF+5+Side'', 0, 1
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-023'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-024'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=VinFast+VF+8+Front'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=VinFast+VF+8+Front'', 1, 0
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-024'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-024'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=VinFast+VF+8+Side'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=VinFast+VF+8+Side'', 0, 1
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-024'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-025'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=VinFast+VF+9+Front'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=VinFast+VF+9+Front'', 1, 0
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-025'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-025'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=VinFast+VF+9+Side'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=VinFast+VF+9+Side'', 0, 1
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-025'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-026'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=Toyota+Camry+Hybrid+Front'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=Toyota+Camry+Hybrid+Front'', 1, 0
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-026'';
-IF NOT EXISTS (SELECT 1 FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON im.VehicleId = v.VehicleId WHERE v.LicensePlate=''DEMO-CRMS-026'' AND im.ImageUrl=N''https://placehold.co/960x540/png?text=Toyota+Camry+Hybrid+Side'')
-    INSERT INTO dbo.VehicleImages(VehicleId, ImageUrl, IsPrimary, SortOrder)
-    SELECT VehicleId, N''https://placehold.co/960x540/png?text=Toyota+Camry+Hybrid+Side'', 0, 1
-    FROM dbo.Vehicles WHERE LicensePlate=''DEMO-CRMS-026'';');
+-- Vehicle photos are assigned by the final bundled-photo section.
 EXEC(N'-- Eight fictional drivers
 IF NOT EXISTS (SELECT 1 FROM dbo.Drivers WHERE LicenseNumber=N''DEMO-DL-001'')
     INSERT INTO dbo.Drivers(FullName, Phone, LicenseNumber, IsActive, Notes)
@@ -2547,5 +2317,115 @@ BEGIN CATCH
     IF XACT_STATE() <> 0
         ROLLBACK TRANSACTION;
     THROW;
+END CATCH;
+GO
+
+-- BUNDLED VEHICLE PHOTOS
+-- User-supplied exterior/interior images packaged in CRMS/Assets/Vehicles.
+-- Match by plate, brand, model and year. Re-running does not duplicate images.
+SET NOCOUNT ON;
+SET XACT_ABORT ON;
+SET QUOTED_IDENTIFIER ON;
+SET ANSI_NULLS ON;
+SET ANSI_PADDING ON;
+SET ANSI_WARNINGS ON;
+SET CONCAT_NULL_YIELDS_NULL ON;
+SET ARITHABORT ON;
+SET NUMERIC_ROUNDABORT OFF;
+SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+BEGIN TRY
+ BEGIN TRANSACTION;
+ DECLARE @photos TABLE(Plate varchar(20), Brand nvarchar(80), Model nvarchar(100), Year smallint, ImageUrl nvarchar(1000), SortOrder int);
+ INSERT @photos VALUES
+(N'65A-67890',N'Ford',N'Everest',2024,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-02-exterior.jpg',0),
+(N'DEMO-CRMS-007',N'Ford',N'Everest',2024,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-02-exterior.jpg',0),
+(N'65A-67890',N'Ford',N'Everest',2024,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-02-interior.jpg',1),
+(N'DEMO-CRMS-007',N'Ford',N'Everest',2024,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-02-interior.jpg',1),
+(N'DEMO-CRMS-021',N'BMW',N'320i',2023,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-24-exterior.jpg',0),
+(N'DEMO-CRMS-021',N'BMW',N'320i',2023,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-24-interior.jpg',1),
+(N'65A-12345',N'Toyota',N'Vios',2023,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-01-exterior.jpg',0),
+(N'DEMO-CRMS-001',N'Toyota',N'Vios',2023,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-01-exterior.jpg',0),
+(N'65A-12345',N'Toyota',N'Vios',2023,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-01-interior.jpg',1),
+(N'DEMO-CRMS-001',N'Toyota',N'Vios',2023,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-01-interior.jpg',1),
+(N'65A-24680',N'Toyota',N'Innova',2022,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-03-exterior.png',0),
+(N'DEMO-CRMS-012',N'Toyota',N'Innova',2022,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-03-exterior.png',0),
+(N'65A-24680',N'Toyota',N'Innova',2022,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-03-interior.jpg',1),
+(N'DEMO-CRMS-012',N'Toyota',N'Innova',2022,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-03-interior.jpg',1),
+(N'DEMO-CRMS-002',N'Honda',N'City',2024,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-05-exterior.jpg',0),
+(N'DEMO-CRMS-002',N'Honda',N'City',2024,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-05-interior.jpg',1),
+(N'DEMO-CRMS-003',N'Hyundai',N'Accent',2022,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-06-exterior.jpg',0),
+(N'DEMO-CRMS-003',N'Hyundai',N'Accent',2022,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-06-interior.jpg',1),
+(N'DEMO-CRMS-004',N'Mazda',N'Mazda 3',2023,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-07-exterior.png',0),
+(N'DEMO-CRMS-004',N'Mazda',N'Mazda 3',2023,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-07-interior.jpg',1),
+(N'DEMO-CRMS-005',N'Kia',N'K3',2024,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-08-exterior.jpg',0),
+(N'DEMO-CRMS-005',N'Kia',N'K3',2024,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-08-interior.jpg',1),
+(N'DEMO-CRMS-006',N'Mazda',N'CX-5',2023,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-09-exterior.jpg',0),
+(N'DEMO-CRMS-006',N'Mazda',N'CX-5',2023,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-09-interior.jpg',1),
+(N'DEMO-CRMS-008',N'Hyundai',N'Santa Fe',2023,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-11-exterior.jpg',0),
+(N'DEMO-CRMS-008',N'Hyundai',N'Santa Fe',2023,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-11-interior.jpg',1),
+(N'DEMO-CRMS-009',N'Toyota',N'Fortuner',2022,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-12-exterior.jpg',0),
+(N'DEMO-CRMS-009',N'Toyota',N'Fortuner',2022,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-12-interior.jpg',1),
+(N'DEMO-CRMS-010',N'Kia',N'Seltos',2024,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-13-exterior.jpg',0),
+(N'DEMO-CRMS-010',N'Kia',N'Seltos',2024,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-13-interior.jpg',1),
+(N'DEMO-CRMS-011',N'Mitsubishi',N'Xpander',2023,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-14-exterior.jpg',0),
+(N'DEMO-CRMS-011',N'Mitsubishi',N'Xpander',2023,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-14-interior.jpg',1),
+(N'DEMO-CRMS-013',N'Toyota',N'Veloz Cross',2024,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-16-exterior.jpg',0),
+(N'DEMO-CRMS-013',N'Toyota',N'Veloz Cross',2024,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-16-interior.jpg',1),
+(N'DEMO-CRMS-014',N'Kia',N'Carnival',2024,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-17-exterior.jpg',0),
+(N'DEMO-CRMS-014',N'Kia',N'Carnival',2024,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-17-interior.jpg',1),
+(N'DEMO-CRMS-015',N'Hyundai',N'Grand i10',2022,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-18-exterior.jpg',0),
+(N'DEMO-CRMS-015',N'Hyundai',N'Grand i10',2022,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-18-interior.jpg',1),
+(N'DEMO-CRMS-016',N'Toyota',N'Wigo',2023,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-19-exterior.jpg',0),
+(N'DEMO-CRMS-016',N'Toyota',N'Wigo',2023,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-19-interior.jpg',1),
+(N'DEMO-CRMS-017',N'Suzuki',N'Swift',2024,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-20-exterior.jpg',0),
+(N'DEMO-CRMS-017',N'Suzuki',N'Swift',2024,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-20-interior.jpg',1),
+(N'DEMO-CRMS-018',N'Ford',N'Ranger',2023,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-21-exterior.jpg',0),
+(N'DEMO-CRMS-018',N'Ford',N'Ranger',2023,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-21-interior.jpg',1),
+(N'DEMO-CRMS-019',N'Mitsubishi',N'Triton',2022,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-22-exterior.jpg',0),
+(N'DEMO-CRMS-019',N'Mitsubishi',N'Triton',2022,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-22-interior.jpg',1),
+(N'DEMO-CRMS-020',N'Mercedes-Benz',N'C 200',2024,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-23-exterior.jpg',0),
+(N'DEMO-CRMS-020',N'Mercedes-Benz',N'C 200',2024,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-23-interior.jpg',1),
+(N'DEMO-CRMS-022',N'Lexus',N'ES 250',2024,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-25-exterior.jpg',0),
+(N'DEMO-CRMS-022',N'Lexus',N'ES 250',2024,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-25-interior.jpg',1),
+(N'DEMO-CRMS-023',N'VinFast',N'VF 5',2024,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-26-exterior.jpg',0),
+(N'DEMO-CRMS-023',N'VinFast',N'VF 5',2024,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-26-interior.jpg',1),
+(N'DEMO-CRMS-024',N'VinFast',N'VF 8',2025,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-27-exterior.jpg',0),
+(N'DEMO-CRMS-024',N'VinFast',N'VF 8',2025,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-27-interior.jpg',1),
+(N'DEMO-CRMS-025',N'VinFast',N'VF 9',2025,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-28-exterior.jpg',0),
+(N'DEMO-CRMS-025',N'VinFast',N'VF 9',2025,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-28-interior.jpg',1),
+(N'DEMO-CRMS-026',N'Toyota',N'Camry Hybrid',2024,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-29-exterior.jpg',0),
+(N'DEMO-CRMS-026',N'Toyota',N'Camry Hybrid',2024,N'pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-29-interior.jpg',1);
+ IF EXISTS(SELECT 1 FROM @photos p WHERE NOT EXISTS(
+  SELECT 1 FROM dbo.Vehicles v WHERE v.LicensePlate=p.Plate AND v.Brand=p.Brand AND v.Model=p.Model AND v.ManufactureYear=p.Year))
+  THROW 54001,'Photo import stopped: missing vehicle or mismatched brand/model/year. No changes saved.',1;
+
+ -- Lock the affected images until this entire import commits.
+ SELECT ImageId INTO #existing FROM dbo.VehicleImages WITH(UPDLOCK,HOLDLOCK)
+ WHERE VehicleId IN(SELECT v.VehicleId FROM dbo.Vehicles v JOIN @photos p ON p.Plate=v.LicensePlate);
+ UPDATE dbo.VehicleImages SET IsPrimary=0
+ WHERE VehicleId IN(SELECT v.VehicleId FROM dbo.Vehicles v JOIN @photos p ON p.Plate=v.LicensePlate) AND IsPrimary=1;
+ DELETE im FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON v.VehicleId=im.VehicleId
+ WHERE EXISTS(SELECT 1 FROM @photos p WHERE p.Plate=v.LicensePlate)
+   AND im.ImageUrl LIKE N'https://placehold.co/%';
+
+ INSERT dbo.VehicleImages(VehicleId,ImageUrl,IsPrimary,SortOrder)
+ SELECT v.VehicleId,p.ImageUrl,0,p.SortOrder FROM @photos p JOIN dbo.Vehicles v ON v.LicensePlate=p.Plate
+ WHERE NOT EXISTS(SELECT 1 FROM dbo.VehicleImages im WHERE im.VehicleId=v.VehicleId AND im.ImageUrl=p.ImageUrl);
+
+ UPDATE im SET IsPrimary=CASE WHEN p.SortOrder=0 THEN 1 ELSE 0 END, SortOrder=p.SortOrder
+ FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON v.VehicleId=im.VehicleId
+ JOIN @photos p ON p.Plate=v.LicensePlate AND p.ImageUrl=im.ImageUrl;
+ DROP TABLE #existing;
+ COMMIT;
+ SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+ SELECT COUNT(*) AS ImportedPhotos,COUNT(DISTINCT v.VehicleId) AS Vehicles,
+ SUM(CASE WHEN im.IsPrimary=1 THEN 1 ELSE 0 END) AS PrimaryPhotos
+ FROM dbo.VehicleImages im JOIN dbo.Vehicles v ON v.VehicleId=im.VehicleId
+ JOIN @photos p ON p.Plate=v.LicensePlate AND p.ImageUrl=im.ImageUrl;
+END TRY
+BEGIN CATCH
+ IF XACT_STATE()<>0 ROLLBACK;
+ SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+ THROW;
 END CATCH;
 GO

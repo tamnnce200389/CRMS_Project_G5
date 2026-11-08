@@ -86,17 +86,17 @@
         <SolidColorBrush x:Key="SidebarHeading" Color="{StaticResource SidebarHeadingColor}" />
         <Color x:Key="SidebarMutedColor">#A8BAD2</Color>
         <SolidColorBrush x:Key="SidebarMuted" Color="{StaticResource SidebarMutedColor}" />
-        <Color x:Key="StaffSidebarBackgroundColor">#103B34</Color>
+        <Color x:Key="StaffSidebarBackgroundColor">#193D33</Color>
         <SolidColorBrush x:Key="StaffSidebarBackground" Color="{StaticResource StaffSidebarBackgroundColor}" />
-        <Color x:Key="StaffSidebarHoverColor">#176453</Color>
+        <Color x:Key="StaffSidebarHoverColor">#2E5748</Color>
         <SolidColorBrush x:Key="StaffSidebarHover" Color="{StaticResource StaffSidebarHoverColor}" />
-        <Color x:Key="StaffSidebarPanelColor">#1D594D</Color>
+        <Color x:Key="StaffSidebarPanelColor">#2E5748</Color>
         <SolidColorBrush x:Key="StaffSidebarPanel" Color="{StaticResource StaffSidebarPanelColor}" />
-        <Color x:Key="StaffSidebarDividerColor">#326052</Color>
+        <Color x:Key="StaffSidebarDividerColor">#456455</Color>
         <SolidColorBrush x:Key="StaffSidebarDivider" Color="{StaticResource StaffSidebarDividerColor}" />
-        <Color x:Key="StaffSidebarTextColor">#D7F4EA</Color>
+        <Color x:Key="StaffSidebarTextColor">#EDF2E8</Color>
         <SolidColorBrush x:Key="StaffSidebarText" Color="{StaticResource StaffSidebarTextColor}" />
-        <Color x:Key="StaffSidebarMutedColor">#ACD2C4</Color>
+        <Color x:Key="StaffSidebarMutedColor">#B2C5B8</Color>
         <SolidColorBrush x:Key="StaffSidebarMuted" Color="{StaticResource StaffSidebarMutedColor}" />
         <!-- Compatibility: existing bindings using Accent remain valid. -->
         <SolidColorBrush x:Key="Accent" Color="{StaticResource PrimaryColor}" />
@@ -541,6 +541,50 @@
                 <Setter Property="Background" Value="{StaticResource CustomerSoft}"/>
                 <Setter Property="Foreground" Value="{StaticResource CustomerInk}"/>
             </Trigger></Style.Triggers>
+        </Style>
+        <!-- Staff actions keep text opaque in hover, focus and unavailable states. -->
+        <Style x:Key="StaffButton" TargetType="Button" BasedOn="{StaticResource AdminButtonBase}">
+            <Setter Property="MinHeight" Value="42"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{StaticResource CustomerInk}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonSurface" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="10" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter x:Name="ButtonContent" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                              RecognizesAccessKey="True"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonSurface" Property="Background" Value="{StaticResource CustomerHover}"/>
+                                <Setter TargetName="ButtonContent" Property="TextElement.Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ButtonSurface" Property="Background" Value="{StaticResource CustomerInk}"/>
+                                <Setter TargetName="ButtonContent" Property="TextElement.Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="ButtonSurface" Property="BorderBrush" Value="{StaticResource CustomerAccent}"/>
+                                <Setter TargetName="ButtonSurface" Property="BorderThickness" Value="2"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="ButtonSurface" Property="Background" Value="{StaticResource CustomerSoft}"/>
+                                <Setter TargetName="ButtonSurface" Property="BorderBrush" Value="{StaticResource CustomerLine}"/>
+                                <Setter TargetName="ButtonContent" Property="TextElement.Foreground" Value="{StaticResource MutedReadable}"/>
+                                <Setter Property="Cursor" Value="Arrow"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="StaffSecondaryButton" TargetType="Button" BasedOn="{StaticResource StaffButton}">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="{StaticResource CustomerInk}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource CustomerLine}"/>
         </Style>
     </Application.Resources>
 </Application>

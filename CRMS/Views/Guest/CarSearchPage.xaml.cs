@@ -1,4 +1,4 @@
-﻿using System.Windows.Controls.Primitives;
+using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 
 using System;
@@ -132,7 +132,7 @@ namespace CRMS.Views.Guest
         {
             if (_viewModel.IsWithDriver && !_viewModel.HasValidDriverJourney)
             {
-                new SelfDriveFilterWindow(_viewModel, "Route") { Owner = Window.GetWindow(this) }.ShowDialog();
+                ShowFilterDialog("Route");
                 return;
             }
             if (_viewModel.IsSelfDrive && sender is ToggleButton toggle && toggle.Content?.ToString() == "Thuê giờ")
@@ -169,12 +169,12 @@ namespace CRMS.Views.Guest
         private void QuickFilter_Click(object sender, RoutedEventArgs e)
         {
             if (sender is not ToggleButton button) return;
-            if (button.CommandParameter?.ToString() is "Category" or "Brand" ||
+            if (button.CommandParameter?.ToString() is "Category" or "Brand" or "Price" ||
                 (_viewModel.IsLongTerm && button.CommandParameter?.ToString() is "Sort" or "Transmission"))
             {
                 button.GetBindingExpression(ToggleButton.IsCheckedProperty)?.UpdateTarget();
                 if (_viewModel.IsWithDriver && !_viewModel.HasValidDriverJourney && !ChooseDriverRoute()) return;
-                new SelfDriveFilterWindow(_viewModel, button.CommandParameter.ToString()!) { Owner = Window.GetWindow(this) }.ShowDialog();
+                ShowFilterDialog(button.CommandParameter.ToString()!);
                 return;
             }
             button.GetBindingExpression(ToggleButton.IsCheckedProperty)?.UpdateTarget();
@@ -192,6 +192,22 @@ namespace CRMS.Views.Guest
             }), System.Windows.Threading.DispatcherPriority.Input);
         }
 
+        private void ViewVehiclePhotos_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button { DataContext: CarSearchItem vehicle })
+                new VehiclePhotosWindow(vehicle) { Owner = Window.GetWindow(this) }.ShowDialog();
+        }
+
+        private async void RemoveCriterion_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not Button { DataContext: AppliedCriterion { Remove: { } remove } } || _viewModel.IsLoading) return;
+            var wasHourly = _viewModel.HourlyOnly;
+            remove();
+            if (wasHourly && !_viewModel.HourlyOnly && _beforeHourlyStart > DateTime.Now && _beforeHourlyEnd.HasValue)
+                _viewModel.SetRentalPeriod(_beforeHourlyStart, _beforeHourlyEnd);
+            await _viewModel.SearchAsync();
+        }
+
         private void FilterHelp_Click(object sender, RoutedEventArgs e)
         {
             // A help click must not bubble into the enclosing filter's Click handler.
@@ -202,13 +218,27 @@ namespace CRMS.Views.Guest
             finally { FilterHelpBackdrop.Visibility = Visibility.Collapsed; }
         }
 
-        private void SelfDriveChildSeat_Click(object sender, RoutedEventArgs e)
+        private void OpenDetailFilter_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is ToggleButton button) button.GetBindingExpression(ToggleButton.IsCheckedProperty)?.UpdateTarget();
-            new SelfDriveFilterWindow(_viewModel, "ChildSeat") { Owner = Window.GetWindow(this) }.ShowDialog();
+            if (sender is not Button { Tag: string kind }) return;
+            AdvancedFiltersToggle.IsChecked = false;
+            ShowFilterDialog(kind);
         }
 
-        private bool ChooseDriverRoute() => new SelfDriveFilterWindow(_viewModel, "Route") { Owner = Window.GetWindow(this) }.ShowDialog() == true;
+        private bool? ShowFilterDialog(string kind)
+        {
+            FilterHelpBackdrop.Visibility = Visibility.Visible;
+            try
+            {
+                return new SelfDriveFilterWindow(_viewModel, kind) { Owner = Window.GetWindow(this) }.ShowDialog();
+            }
+            finally
+            {
+                FilterHelpBackdrop.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private bool ChooseDriverRoute() => ShowFilterDialog("Route") == true;
         private void DriverRoute_Click(object sender, RoutedEventArgs e) => ChooseDriverRoute();
         private async void DriverFreePickup_Click(object sender, RoutedEventArgs e)
         {
@@ -229,20 +259,7 @@ namespace CRMS.Views.Guest
                 return;
             }
             AdvancedFiltersToggle.IsChecked = false;
-            new SelfDriveFilterWindow(_viewModel, "Delivery") { Owner = Window.GetWindow(this) }.ShowDialog();
-        }
-
-        private async void SelfDriveTravel_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is ToggleButton button) button.GetBindingExpression(ToggleButton.IsCheckedProperty)?.UpdateTarget();
-            if (_viewModel.ExtendedTravelOnly)
-            {
-                _viewModel.ExtendedTravelOnly = false;
-                await _viewModel.SearchAsync();
-                return;
-            }
-            AdvancedFiltersToggle.IsChecked = false;
-            new SelfDriveFilterWindow(_viewModel, "Travel") { Owner = Window.GetWindow(this) }.ShowDialog();
+            ShowFilterDialog("Delivery");
         }
 
         private void OpenShortTermFilters_Click(object sender, RoutedEventArgs e)

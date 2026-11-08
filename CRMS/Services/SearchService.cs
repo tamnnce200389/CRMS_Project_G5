@@ -30,6 +30,9 @@ public sealed class CarSearchItem
     public string FuelType { get; set; } = "";
     public decimal DailyRate { get; set; }
     public string? ImageUrl { get; set; }
+    public string? DisplayPhotoUrl => Uri.TryCreate(ImageUrl, UriKind.Absolute, out var uri)
+        && string.Equals(uri.Host, "placehold.co", StringComparison.OrdinalIgnoreCase) ? null : ImageUrl;
+
     public decimal LongTermBaseMonthlyRate { get; set; }
     public decimal LongTermMonthlyRate { get; set; }
     public decimal LongTermDiscountPercent { get; set; }

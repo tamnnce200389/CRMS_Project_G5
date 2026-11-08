@@ -9,12 +9,7 @@ public partial class SelfDriveFilterWindow : Window
     {
         InitializeComponent();
         ViewModel = new(parent,kind); DataContext = ViewModel;
-        if (kind == "ChildSeat") { Width = 600; Height = 590; }
-        if (kind == "Sort") { Width = 820; Height = 285; }
-        if (kind == "Transmission") { Width = 820; Height = 370; }
-        if (kind is "Delivery" or "Pickup") { Width = 620; Height = 520; }
-        if (kind == "Route") { Width = 660; Height = 650; }
-        if (kind == "Travel") { Width = 620; Height = 520; }
+        Width = kind is "Delivery" or "Pickup" or "Travel" or "ChildSeat" or "Transmission" ? 540 : 720;
         MaxWidth = SystemParameters.WorkArea.Width - 40; MaxHeight = SystemParameters.WorkArea.Height - 40;
         Loaded += async (_, _) => await ViewModel.LoadAsync();
         ViewModel.Applied += () => { _closingAfterApply = true; DialogResult = true; };

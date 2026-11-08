@@ -1,4 +1,4 @@
-﻿using CRMS.Models;
+using CRMS.Models;
 using System.Linq;
 using System.Threading.Tasks;
 using CRMS.Services.Vehicles;
@@ -64,6 +64,14 @@ namespace CRMS.Views.Guest
 
             _driverStartAt = defaultStart;
             _driverEndAt = defaultStart.AddHours(4);
+
+            var home = (HomeViewModel)DataContext;
+            home.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(HomeViewModel.SelectedMode))
+                    SuggestSeasonForPickup(home);
+            };
+            SuggestSeasonForPickup(home);
 
             SelfDriveLocationButton.Content = _selectedCity;
 
@@ -179,13 +187,39 @@ namespace CRMS.Views.Guest
                 scroll.ScrollToVerticalOffset(AboutSection.TranslatePoint(new Point(), content).Y);
         }
 
-        private void Service_Click(object sender, RoutedEventArgs e)
+        private void SuggestSeasonForPickup(HomeViewModel home)
         {
-            if (sender is Button { Tag: string mode } && DataContext is HomeViewModel home)
+            DateTime? pickup = home.IsSelfDrive ? _selfDriveStartAt : home.IsWithDriver ? _driverStartAt : null;
+            if (pickup.HasValue)
+                home.SelectedSeason = HomeViewModel.SeasonForMonth(pickup.Value.Month);
+        }
+
+        private void Destination_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button { DataContext: SeasonalDestination destination } && DataContext is HomeViewModel home)
             {
-                home.SelectModeCommand.Execute(mode);
+                home.SelectedDestination = destination;
                 UpdateLayout();
-                SearchPanel.BringIntoView();
+                DestinationPlan.BringIntoView();
+            }
+        }
+
+        private void PlanPickup_Click(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is not HomeViewModel home) return;
+            SearchPanel.BringIntoView();
+            if (home.IsWithDriver)
+            {
+                DriverPickupCombo.Focus();
+                DriverPickupCombo.IsDropDownOpen = true;
+            }
+            else if (home.IsLongTerm)
+            {
+                SearchCars_Click(LongTermSearchButton, e);
+            }
+            else
+            {
+                SelfDriveLocation_Click(sender, e);
             }
         }
 
@@ -234,6 +268,7 @@ namespace CRMS.Views.Guest
                 _selfDriveHourly = rentalWindow.RentalUnit == "Hour";
                 _selfDriveStartAt = rentalWindow.StartAt;
                 _selfDriveEndAt = rentalWindow.EndAt;
+                SuggestSeasonForPickup((HomeViewModel)DataContext);
 
                 SelfDriveTimeButton.Content =
                     $"{rentalWindow.StartAt:HH:mm dd/MM} - " +
@@ -258,6 +293,7 @@ namespace CRMS.Views.Guest
             {
                 _driverStartAt = rentalWindow.StartAt;
                 _driverEndAt = rentalWindow.EndAt;
+                SuggestSeasonForPickup((HomeViewModel)DataContext);
 
                 DriverTimeButton.Content =
                     $"{rentalWindow.StartAt:HH:mm dd/MM} - " +

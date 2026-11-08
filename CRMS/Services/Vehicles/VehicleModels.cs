@@ -1,3 +1,5 @@
+using System.IO;
+
 namespace CRMS.Services.Vehicles;
 
 public sealed record VehicleFilter(
@@ -12,7 +14,18 @@ public sealed record VehicleImageDto(
     long ImageId,
     string ImageUrl,
     bool IsPrimary,
-    int SortOrder);
+    int SortOrder)
+{
+    public string Caption
+    {
+        get
+        {
+            if (ImageUrl.StartsWith("pack://application:,,,/CRMS;component/Assets/Vehicles/", StringComparison.Ordinal))
+                return Path.GetFileNameWithoutExtension(ImageUrl).EndsWith("-interior", StringComparison.Ordinal) ? "Nội thất" : "Ngoại thất";
+            return IsPrimary ? "Ảnh đại diện" : "Ảnh chi tiết";
+        }
+    }
+}
 
 public sealed class VehicleListItem
 {

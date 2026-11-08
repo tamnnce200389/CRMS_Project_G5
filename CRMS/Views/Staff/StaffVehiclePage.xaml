@@ -3,8 +3,13 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:vm="clr-namespace:CRMS.ViewModels"
       Title="Tra cứu xe"
-      Background="{StaticResource PageBackground}"
+      Background="{StaticResource CustomerBackground}"
       FontFamily="Segoe UI">
+    <Page.Resources>
+        <Style TargetType="Button" BasedOn="{StaticResource StaffButton}"/>
+        <Style TargetType="DataGridCell" BasedOn="{StaticResource AdminCell}"/>
+    </Page.Resources>
+
 
     <Page.DataContext>
         <vm:VehicleViewModel/>
@@ -18,7 +23,7 @@
             <TextBlock Text="Tra cứu phương tiện"
                        FontSize="28"
                        FontWeight="Bold"
-                       Foreground="{StaticResource Ink}"/>
+                       Foreground="{StaticResource CustomerInk}"/>
 
             <TextBlock Text="Xem thông tin và tình trạng các xe trong hệ thống."
                        Foreground="{StaticResource MutedReadable}"
@@ -27,7 +32,7 @@
             <!-- SEARCH -->
             <Border Background="{StaticResource Surface}"
                     CornerRadius="14"
-                    BorderBrush="{StaticResource Line}"
+                    BorderBrush="{StaticResource CustomerLine}"
                     BorderThickness="1"
                     Padding="20"
                     Margin="0,0,0,20">
@@ -69,7 +74,7 @@
                             Width="110"
                             Height="42"
                             VerticalAlignment="Bottom"
-                            Background="{StaticResource PrimaryHover}"
+                            Background="{StaticResource CustomerInk}"
                             Foreground="{StaticResource Surface}"
                             BorderThickness="0"
                             FontWeight="SemiBold"
@@ -81,7 +86,7 @@
             <!-- VEHICLE TABLE -->
             <Border Background="{StaticResource Surface}"
                     CornerRadius="14"
-                    BorderBrush="{StaticResource Line}"
+                    BorderBrush="{StaticResource CustomerLine}"
                     BorderThickness="1"
                     Padding="18">
 
@@ -96,12 +101,12 @@
                         <TextBlock Text="Danh sách phương tiện"
                                    FontSize="20"
                                    FontWeight="Bold"
-                                   Foreground="{StaticResource Ink}"/>
+                                   Foreground="{StaticResource CustomerInk}"/>
 
                         <TextBlock Grid.Column="1"
                                    Text="{Binding FilteredCount,
                                        StringFormat={}{0} xe}"
-                                   Foreground="{StaticResource PrimaryHover}"
+                                   Foreground="{StaticResource CustomerInk}"
                                    FontWeight="SemiBold"
                                    VerticalAlignment="Center"/>
                     </Grid>
@@ -160,7 +165,7 @@
                                Margin="0,13,0,0"/>
 
                     <TextBlock Text="Nhân viên chỉ được tra cứu. Thay đổi giá và thông tin phương tiện thuộc quyền quản trị."
-                               Foreground="{StaticResource Muted}"
+                               Foreground="{StaticResource MutedReadable}"
                                FontStyle="Italic"
                                FontSize="12"
                                TextWrapping="Wrap"

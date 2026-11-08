@@ -1,4 +1,4 @@
-﻿using CRMS.Helpers;
+using CRMS.Helpers;
 using CRMS.Models;
 using CRMS.Services;
 using System.Collections.ObjectModel;
@@ -35,6 +35,7 @@ namespace CRMS.ViewModels
                 ResetFilterValues();
                 SetRentalPeriod(null, null);
                 Cars.Clear();
+                SetAppliedCriteria([]);
                 OnPropertyChanged(); OnPropertyChanged(nameof(IsShortTerm)); OnPropertyChanged(nameof(IsLongTerm));
                 OnPropertyChanged(nameof(ResultCount)); OnPropertyChanged(nameof(IsWithDriver)); OnPropertyChanged(nameof(IsSelfDrive)); OnPropertyChanged(nameof(ContextNotice));
             }
@@ -120,7 +121,7 @@ namespace CRMS.ViewModels
         {
             ++_filterRevision; OnPropertyChanged(name); IsFilterPending = true; OnPropertyChanged(nameof(HasAnySelfDriveFilter)); OnPropertyChanged(nameof(HasChildSeatFilter)); OnPropertyChanged(nameof(DriverJourneySummary));
             OnPropertyChanged(nameof(HasCategoryFilter)); OnPropertyChanged(nameof(HasBrandFilter));
-            OnPropertyChanged(nameof(HasSortFilter)); OnPropertyChanged(nameof(HasTransmissionFilter));
+            OnPropertyChanged(nameof(HasSortFilter)); OnPropertyChanged(nameof(HasTransmissionFilter)); OnPropertyChanged(nameof(HasPriceFilter));
             OnPropertyChanged(nameof(IsElectricFilter)); OnPropertyChanged(nameof(IsHybridFilter));
         }
         private string _searchText = "";
@@ -167,6 +168,13 @@ namespace CRMS.ViewModels
         public bool SportOnly { get => _sportOnly; set { if (_sportOnly == value) return; _sportOnly = value; Changed(nameof(SportOnly)); } }
         public bool IsElectricFilter { get => SelectedFuel == "Điện"; set { if (value) SelectedFuel = "Điện"; else if (IsElectricFilter) SelectedFuel = "Tất cả nhiên liệu"; } }
         public bool IsHybridFilter { get => SelectedFuel == "Hybrid"; set { if (value) SelectedFuel = "Hybrid"; else if (IsHybridFilter) SelectedFuel = "Tất cả nhiên liệu"; } }
+        public bool HasPriceFilter => !string.IsNullOrWhiteSpace(MinPrice) || !string.IsNullOrWhiteSpace(MaxPrice);
+        public IReadOnlyList<AppliedCriterion> AppliedCriteria { get; private set; } = [];
+        private void SetAppliedCriteria(IReadOnlyList<AppliedCriterion> criteria)
+        {
+            AppliedCriteria = criteria;
+            OnPropertyChanged(nameof(AppliedCriteria));
+        }
         public bool HasCategoryFilter => SelectedCategory?.CategoryId > 0;
         public bool HasBrandFilter => SelectedBrand != "Tất cả hãng xe";
         public bool HasSortFilter => SelectedSort != "Mặc định";
@@ -210,6 +218,17 @@ namespace CRMS.ViewModels
         public bool CanChooseResults => !IsLoading && !IsFilterPending;
         private string _statusMessage = "";
         public string StatusMessage { get => _statusMessage; set { _statusMessage = value; OnPropertyChanged(); } }
+        private bool _hasEmptyResults;
+        public bool HasEmptyResults
+        {
+            get => _hasEmptyResults;
+            private set
+            {
+                if (_hasEmptyResults == value) return;
+                _hasEmptyResults = value;
+                OnPropertyChanged();
+            }
+        }
         public int ResultCount => Cars.Count;
         public ICommand SearchCommand { get; }
         public ICommand ClearFilterCommand { get; }
@@ -255,7 +274,7 @@ namespace CRMS.ViewModels
             foreach (var b in brands) Brands.Add(b);
             SelectedBrand = Brands.Contains(brand) ? brand : Brands[0];
         }
-        private static decimal? ParsePrice(string text)
+        internal static decimal? ParsePrice(string text)
         {
             if (string.IsNullOrWhiteSpace(text)) return null;
             if (!decimal.TryParse(text.Trim(), NumberStyles.Number, CultureInfo.GetCultureInfo("vi-VN"), out var result) || result < 0)
@@ -294,10 +313,12 @@ namespace CRMS.ViewModels
         }
         public void CancelPendingSearch()
         {
+            HasEmptyResults = false;
             ++_requestVersion; _searchCancellation?.Cancel(); _searchCancellation = null; IsLoading = false;
         }
         public async Task SearchAsync()
         {
+            HasEmptyResults = false;
             var version = ++_requestVersion;
             var revision = _filterRevision;
             _searchCancellation?.Cancel();
@@ -308,27 +329,27 @@ namespace CRMS.ViewModels
             try
             {
                 filter = CreateFilter();
-                var parts = new List<string>();
-                if (!string.IsNullOrWhiteSpace(filter.Keyword)) parts.Add($"Từ khóa: {filter.Keyword}");
-                if (HasCategoryFilter) parts.Add(SelectedCategory!.CategoryName);
-                if (HasBrandFilter) parts.Add(SelectedBrand);
-                if (HasTransmissionFilter) parts.Add(SelectedTransmission);
-                if (filter.FuelType != null) parts.Add(SelectedFuel);
-                if (filter.Seats.HasValue) parts.Add($"{filter.Seats} chỗ");
-                if (filter.MinYear.HasValue) parts.Add($"Từ năm {filter.MinYear}");
-                if (filter.MinPrice.HasValue) parts.Add($"Giá từ {filter.MinPrice:N0} ₫");
-                if (filter.MaxPrice.HasValue) parts.Add($"Giá đến {filter.MaxPrice:N0} ₫");
-                if (filter.DiscountOnly) parts.Add("Có ưu đãi");
-                if (IsLongTerm && SelectedCity?.CityId > 0) parts.Add(SelectedCity.CityName);
-                if (ExtendedTravelOnly && DestinationCity?.CityId > 0) parts.Add("Đến " + DestinationCity.CityName);
-                if (HourlyOnly) parts.Add("Thuê giờ");
-                if (filter.DeliveryOnly) parts.Add(SelectedDeliveryLocation != null ? $"Giao nhận tận nơi: {SelectedDeliveryLocation.DisplayName}" : "Giao nhận tận nơi");
-                if (FreeDeliveryOnly) parts.Add(IsWithDriver ? $"Miễn phí đưa đón nội thành: {LocationSummary}" : SelectedDeliveryLocation != null ? $"Miễn phí đưa đón: {SelectedDeliveryLocation.DisplayName}" : "Miễn phí đưa đón");
-                if (HighlyRatedOnly) parts.Add("Chủ xe uy tín");
-                if (InstantOnly) parts.Add("Hỗ trợ đặt nhanh");
-                if (NoCollateralOnly) parts.Add("Miễn thế chấp");
+                var parts = new List<AppliedCriterion>();
+                if (!string.IsNullOrWhiteSpace(filter.Keyword)) parts.Add(new($"Từ khóa: {filter.Keyword}", () => SearchText = ""));
+                if (HasCategoryFilter) parts.Add(new(SelectedCategory!.CategoryName, () => SelectedCategory = Categories.FirstOrDefault(c => c.CategoryId == 0)));
+                if (HasBrandFilter) parts.Add(new(SelectedBrand, () => SelectedBrand = "Tất cả hãng xe"));
+                if (HasTransmissionFilter) parts.Add(new(SelectedTransmission, () => SelectedTransmission = "Tất cả hộp số"));
+                if (filter.FuelType != null) parts.Add(new(SelectedFuel, () => SelectedFuel = "Tất cả nhiên liệu"));
+                if (filter.Seats.HasValue) parts.Add(new($"{filter.Seats} chỗ", () => SelectedSeats = "Tất cả số chỗ"));
+                if (filter.MinYear.HasValue) parts.Add(new($"Từ năm {filter.MinYear}", () => SelectedYear = "Tất cả năm"));
+                if (filter.MinPrice.HasValue) parts.Add(new($"Giá từ {filter.MinPrice:N0} ₫", () => MinPrice = ""));
+                if (filter.MaxPrice.HasValue) parts.Add(new($"Giá đến {filter.MaxPrice:N0} ₫", () => MaxPrice = ""));
+                if (filter.DiscountOnly) parts.Add(new("Có ưu đãi", () => DiscountOnly = false));
+                if (IsLongTerm && SelectedCity?.CityId > 0) parts.Add(new(SelectedCity.CityName));
+                if (ExtendedTravelOnly && DestinationCity?.CityId > 0) parts.Add(new("Đến " + DestinationCity.CityName, () => ExtendedTravelOnly = false));
+                if (HourlyOnly) parts.Add(new("Thuê giờ", () => HourlyOnly = false));
+                if (filter.DeliveryOnly) parts.Add(new(SelectedDeliveryLocation != null ? $"Giao nhận tận nơi: {SelectedDeliveryLocation.DisplayName}" : "Giao nhận tận nơi", () => DeliveryOnly = false));
+                if (FreeDeliveryOnly) parts.Add(new(IsWithDriver ? $"Miễn phí đưa đón nội thành: {LocationSummary}" : SelectedDeliveryLocation != null ? $"Miễn phí đưa đón: {SelectedDeliveryLocation.DisplayName}" : "Miễn phí đưa đón", () => FreeDeliveryOnly = false));
+                if (HighlyRatedOnly) parts.Add(new("Chủ xe uy tín", () => HighlyRatedOnly = false));
+                if (InstantOnly) parts.Add(new("Hỗ trợ đặt nhanh", () => InstantOnly = false));
+                if (NoCollateralOnly) parts.Add(new("Miễn thế chấp", () => NoCollateralOnly = false));
                 if (filter.ChildSeatAgeCodes.Length > 0)
-                    parts.Add("Ghế trẻ em: " + string.Join(" / ", filter.ChildSeatAgeCodes.Distinct().Select(code => code switch
+                    parts.Add(new("Ghế trẻ em: " + string.Join(" / ", filter.ChildSeatAgeCodes.Distinct().Select(code => code switch
                     {
                         "ChildSeat:0-12" => "0–12 tuổi (đa năng)",
                         "ChildSeat:0-1" => "0–1 tuổi",
@@ -336,20 +357,22 @@ namespace CRMS.ViewModels
                         "ChildSeat:4-7" => "4–7 tuổi",
                         "ChildSeat:7-12" => "7–12 tuổi",
                         _ => code
-                    })));
-                else if (filter.ChildSeatOnly) parts.Add("Ghế trẻ em (không yêu cầu độ tuổi)");
-                if (ExtendedTravelOnly) parts.Add("Di chuyển mở rộng");
-                if (UnlimitedMileageOnly) parts.Add("Không giới hạn km");
-                if (SportOnly) parts.Add("Xe thể thao đã xác minh");
-                if (IsLongTerm) parts.Add($"Gói {SelectedDuration} tháng");
-                parts.AddRange(Purposes.Where(p => p.IsSelected).Select(p => p.Name));
-                if (HasSortFilter) parts.Add(SelectedSort);
-                summary = parts.Count > 0 ? "Đang áp dụng: " + string.Join(" · ", parts) : "";
+                    })), () => ChildSeatOnly = false));
+                else if (filter.ChildSeatOnly) parts.Add(new("Ghế trẻ em (không yêu cầu độ tuổi)", () => ChildSeatOnly = false));
+                if (ExtendedTravelOnly && DestinationCity?.CityId is not > 0) parts.Add(new("Di chuyển mở rộng", () => ExtendedTravelOnly = false));
+                if (UnlimitedMileageOnly) parts.Add(new("Không giới hạn km", () => UnlimitedMileageOnly = false));
+                if (SportOnly) parts.Add(new("Xe thể thao đã xác minh", () => SportOnly = false));
+                if (IsLongTerm) parts.Add(new($"Gói {SelectedDuration} tháng"));
+                parts.AddRange(Purposes.Where(p => p.IsSelected).Select(p => new AppliedCriterion(p.Name, () => p.IsSelected = false)));
+                if (HasSortFilter) parts.Add(new(SelectedSort, () => SelectedSort = "Mặc định"));
+                summary = parts.Count > 0 ? "Đang áp dụng: " + string.Join(" · ", parts.Select(p => p.Label)) : "";
                 IsLoading = true; StatusMessage = "Đang tìm kiếm xe...";
                 var results = await _searchService.SearchAsync(filter, cancellation.Token);
                 if (version != _requestVersion) return;
                 Cars.Clear(); foreach (var car in results) Cars.Add(car);
+                SetAppliedCriteria(parts);
                 OnPropertyChanged(nameof(ResultCount)); AppliedFiltersSummary = summary; IsFilterPending = revision != _filterRevision;
+                HasEmptyResults = results.Count == 0;
                 StatusMessage = results.Count == 0 ? "Không có xe phù hợp. Hãy thay đổi hoặc đặt lại bộ lọc." : $"Tìm thấy {results.Count} xe phù hợp.";
                 StatusMessage += filter.StartAtLocal.HasValue ? " Đã kiểm tra trùng lịch thuê/bảo trì." : " Chưa kiểm tra lịch trống vì chưa chọn thời gian thuê.";
             }
@@ -359,6 +382,7 @@ namespace CRMS.ViewModels
                 if (version == _requestVersion)
                 {
                     Cars.Clear(); OnPropertyChanged(nameof(ResultCount));
+                    SetAppliedCriteria([]);
                     AppliedFiltersSummary = "Chưa áp dụng thành công";
                     StatusMessage = "Không thể tìm xe: " + ex.Message;
                 }
@@ -390,6 +414,10 @@ namespace CRMS.ViewModels
 
 namespace CRMS.ViewModels
 {
+public sealed record AppliedCriterion(string Label, Action? Remove = null)
+{
+    public bool CanRemove => Remove != null;
+}
 public sealed class SearchPurposeChoice : CRMS.ViewModels.BaseViewModel
 {
     public string Code { get; }
