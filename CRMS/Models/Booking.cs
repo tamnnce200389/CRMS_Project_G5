@@ -1,4 +1,5 @@
-﻿using System;
+using System.ComponentModel.DataAnnotations.Schema;
+using System;
 using System.Collections.Generic;
 
 namespace CRMS.Models;
@@ -75,4 +76,9 @@ public partial class Booking
     public virtual VehicleHandover? VehicleHandover { get; set; }
 
     public virtual VehicleReturn? VehicleReturn { get; set; }
+
+    public string PriceUnit { get; set; } = "Day";
+    public decimal? RentalUnits { get; set; }
+    public decimal? UnitRate { get; set; }
+    [NotMapped] public string BillingLabel => PriceUnit switch { "Hour" => "Theo giờ", "Month" => "Theo tháng", _ => "Theo ngày" };
 }
