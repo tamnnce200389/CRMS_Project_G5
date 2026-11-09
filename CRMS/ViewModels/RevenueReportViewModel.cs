@@ -1,19 +1,20 @@
 ﻿
 using System;
 using System.Collections.ObjectModel;
-using System.IO;
-using System.Text;
+
+
 using System.Threading.Tasks;
 using System.Windows.Input;
 using CRMS.Helpers;
 using CRMS.Services;
-using Microsoft.Win32;
+
 
 namespace CRMS.ViewModels
 {
     public class RevenueReportViewModel : BaseViewModel
     {
         private readonly ReportService _service = new();
+        private readonly IFileExportService? _files;
 
         // ======================================
         // NGAY HIEN TAI TAI VIET NAM
@@ -150,13 +151,15 @@ namespace CRMS.ViewModels
 
         public ICommand ExportCsvCommand { get; }
 
-        public RevenueReportViewModel()
+        public RevenueReportViewModel() : this(ApplicationServices.FileExport) { }
+        public RevenueReportViewModel(IFileExportService? files)
         {
-            FilterByDateCommand = new RelayCommand(
+            _files = files;
+            FilterByDateCommand = new AsyncRelayCommand(
                 async _ => await LoadAsync(),
                 _ => !IsBusy);
 
-            ExportCsvCommand = new RelayCommand(
+            ExportCsvCommand = new AsyncRelayCommand(
                 async _ => await ExportCsvAsync(),
                 _ => !IsBusy &&
                      HasData &&
@@ -307,26 +310,8 @@ namespace CRMS.ViewModels
                 $"Revenue_{report.FromDateVN:yyyyMMdd}_" +
                 $"{report.ToDateVN:yyyyMMdd}.csv";
 
-            var dialog = new SaveFileDialog
-            {
-                Title = "Xuất báo cáo doanh thu",
-
-                Filter =
-                    "CSV files (*.csv)|*.csv",
-
-                DefaultExt = ".csv",
-
-                AddExtension = true,
-
-                OverwritePrompt = true,
-
-                FileName = fileName
-            };
-
-            bool? selected = dialog.ShowDialog();
-
-            if (selected != true)
-                return;
+            var path = _files?.ChooseCsvPath(fileName);
+            if (path == null) return;
 
             // Khong xuat neu phien da thay doi
             if (session.UserId != adminId ||
@@ -347,14 +332,11 @@ namespace CRMS.ViewModels
                 string csv = _service.BuildCsv(report);
 
                 // UTF-8 BOM giup Excel doc tieng Viet
-                await File.WriteAllTextAsync(
-                    dialog.FileName,
-                    csv,
-                    new UTF8Encoding(true));
+                await _files!.WriteCsvAsync(path, csv);
 
                 StatusMessage =
                     "Đã xuất báo cáo CSV thành công: " +
-                    dialog.FileName;
+                    path;
             }
             catch (Exception ex)
             {

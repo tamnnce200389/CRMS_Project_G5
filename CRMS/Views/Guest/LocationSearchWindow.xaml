@@ -1,4 +1,4 @@
-<Window x:Class="CRMS.Views.Guest.LocationSearchWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+﻿<Window x:Class="CRMS.Views.Guest.LocationSearchWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Địa điểm và bộ lọc" Width="740" SizeToContent="Height" Language="vi-VN"
         MaxHeight="{Binding Height, Source={x:Static SystemParameters.WorkArea}}"
@@ -24,39 +24,23 @@
             <StackPanel Margin="24,18">
                 <Border Style="{StaticResource PickerCard}" Margin="0,0,0,12"><StackPanel>
                     <TextBlock Text="Địa điểm nhận xe" Style="{StaticResource FieldTitle}"/>
-                    <ComboBox x:Name="CityCombo" Style="{StaticResource RoundedComboBox}" Height="44" DisplayMemberPath="CityName"/>
+                    <ComboBox x:Name="CityCombo" ItemsSource="{Binding Cities}" SelectedItem="{Binding SelectedCity}" Style="{StaticResource RoundedComboBox}" Height="44" DisplayMemberPath="CityName"/>
                 </StackPanel></Border>
                 <Border Style="{StaticResource PickerCard}"><StackPanel>
                 <StackPanel><TextBlock Text="Nhu cầu chuyến đi" Style="{StaticResource FieldTitle}"/>
-                    <WrapPanel x:Name="NeedsPanel">
-                        <ToggleButton Content="Ghế trẻ em" Tag="ChildSeat" Style="{StaticResource FilterChoice}"/>
-                        <ToggleButton Content="Di chuyển mở rộng" Tag="LongDistance" Style="{StaticResource FilterChoice}"/>
-                        <ToggleButton Content="Lái mới" Tag="NewDriver" Style="{StaticResource FilterChoice}"/>
-                        <ToggleButton Content="Công việc, đi lại" Tag="Business" Style="{StaticResource FilterChoice}"/>
-                        <ToggleButton Content="Gia đình" Tag="Family" Style="{StaticResource FilterChoice}"/>
-                        <ToggleButton Content="Cắm trại, chở đồ" Tag="Camping" Style="{StaticResource FilterChoice}"/>
-                        <ToggleButton Content="Nhóm bạn" Tag="Friends" Style="{StaticResource FilterChoice}"/>
-                        <ToggleButton Content="Tiếp khách, dự tiệc" Tag="Event" Style="{StaticResource FilterChoice}"/>
-                    </WrapPanel></StackPanel>
+                    <ItemsControl ItemsSource="{Binding Needs}"><ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate></ItemsControl.ItemsPanel><ItemsControl.ItemTemplate><DataTemplate><ToggleButton Content="{Binding Label}" Tag="{Binding Code}" IsChecked="{Binding IsSelected}" Style="{StaticResource FilterChoice}"/></DataTemplate></ItemsControl.ItemTemplate></ItemsControl></StackPanel>
                     <Border Margin="0,8,0,14" Height="1" Background="{StaticResource CustomerLine}"/>
                 <StackPanel><TextBlock Text="Loại xe yêu thích" Style="{StaticResource FieldTitle}"/>
-                    <WrapPanel x:Name="TrendsPanel">
-                        <ToggleButton Content="Xe điện" Tag="Electric" Style="{StaticResource FilterChoice}" Checked="FuelTrend_Checked"/>
-                        <ToggleButton Content="Xe hybrid" Tag="Hybrid" Style="{StaticResource FilterChoice}" Checked="FuelTrend_Checked"/>
-                        <ToggleButton Content="Xe thể thao" Tag="Sport" Style="{StaticResource FilterChoice}"/>
-                    </WrapPanel></StackPanel>
+                    <ItemsControl ItemsSource="{Binding Trends}"><ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate></ItemsControl.ItemsPanel><ItemsControl.ItemTemplate><DataTemplate><ToggleButton Content="{Binding Label}" Tag="{Binding Code}" IsChecked="{Binding IsSelected}" Style="{StaticResource FilterChoice}"/></DataTemplate></ItemsControl.ItemTemplate></ItemsControl></StackPanel>
                     <Border Margin="0,8,0,14" Height="1" Background="{StaticResource CustomerLine}"/>
                 <StackPanel><TextBlock Text="Ngân sách" Style="{StaticResource FieldTitle}"/>
-                    <WrapPanel x:Name="BudgetPanel">
-                        <ToggleButton Content="Giá rẻ" Tag="LowCost" Style="{StaticResource FilterChoice}" Checked="Budget_Checked"/>
-                        <ToggleButton Content="Tiết kiệm" Tag="Economy" Style="{StaticResource FilterChoice}" Checked="Budget_Checked"/>
-                    </WrapPanel></StackPanel>
+                    <ItemsControl ItemsSource="{Binding Budgets}"><ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate></ItemsControl.ItemsPanel><ItemsControl.ItemTemplate><DataTemplate><ToggleButton Content="{Binding Label}" Tag="{Binding Code}" IsChecked="{Binding IsSelected}" Style="{StaticResource FilterChoice}"/></DataTemplate></ItemsControl.ItemTemplate></ItemsControl></StackPanel>
                 </StackPanel></Border>
             </StackPanel>
         </ScrollViewer>
         <Border Grid.Row="2" Background="White" Padding="24,14" BorderBrush="{StaticResource CustomerLine}" BorderThickness="0,1,0,0">
-            <DockPanel><StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center"><Button Content="Đặt lại" Style="{StaticResource StaffSecondaryButton}" Click="Reset_Click" Margin="0,0,8,0"/><Button x:Name="ApplyButton" Content="Áp dụng bộ lọc" Style="{StaticResource StaffButton}" Click="Apply_Click"/></StackPanel>
-                <TextBlock x:Name="LocationStatus" Text="Chọn địa điểm nhận xe." Margin="0,0,14,0" Foreground="{StaticResource CustomerInk}" VerticalAlignment="Center" TextWrapping="Wrap"/>
+            <DockPanel><StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center"><Button Content="Đặt lại" Style="{StaticResource StaffSecondaryButton}" Command="{Binding ResetCommand}" Margin="0,0,8,0"/><Button x:Name="ApplyButton" Content="Áp dụng bộ lọc" Style="{StaticResource StaffButton}" Command="{Binding ApplyCommand}"/></StackPanel>
+                <TextBlock x:Name="LocationStatus" Text="{Binding Status}" Margin="0,0,14,0" Foreground="{StaticResource CustomerInk}" VerticalAlignment="Center" TextWrapping="Wrap"/>
             </DockPanel>
         </Border>
     </Grid></Border>

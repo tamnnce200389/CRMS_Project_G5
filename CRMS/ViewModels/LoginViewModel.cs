@@ -43,7 +43,7 @@ namespace CRMS.ViewModels
 
         public LoginViewModel()
         {
-            LoginCommand = new RelayCommand(
+            LoginCommand = new AsyncRelayCommand(
                 async parameter =>
                     await LoginAsync(parameter as string),
                 _ => !_isLoading);

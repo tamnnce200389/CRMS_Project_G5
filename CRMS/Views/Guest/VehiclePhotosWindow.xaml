@@ -1,14 +1,14 @@
-<Window x:Class="CRMS.Views.Guest.VehiclePhotosWindow"
+﻿<Window x:Class="CRMS.Views.Guest.VehiclePhotosWindow"
  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
  Title="Ảnh xe" Width="920" Height="620" WindowStartupLocation="CenterOwner" Background="{StaticResource CustomerBackground}" FontFamily="Segoe UI">
  <Grid Margin="24" Background="{StaticResource CustomerBackground}">
   <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
   <DockPanel Margin="0,0,0,20">
    <Button DockPanel.Dock="Right" Content="Đóng" IsCancel="True" Click="Close_Click" Style="{StaticResource StaffSecondaryButton}"/>
-   <TextBlock x:Name="VehicleTitle" FontSize="24" FontWeight="SemiBold" Foreground="{StaticResource CustomerInk}" VerticalAlignment="Center"/>
+   <TextBlock x:Name="VehicleTitle" Text="{Binding VehicleTitle}" FontSize="24" FontWeight="SemiBold" Foreground="{StaticResource CustomerInk}" VerticalAlignment="Center"/>
   </DockPanel>
   <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-   <ItemsControl x:Name="Photos">
+   <ItemsControl x:Name="Photos" ItemsSource="{Binding Photos}">
     <ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="2"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
     <ItemsControl.ItemTemplate><DataTemplate>
      <Border Background="White" BorderBrush="{StaticResource CustomerLine}" BorderThickness="1" CornerRadius="12" Padding="12" Margin="0,0,12,12">
@@ -20,6 +20,6 @@
     </DataTemplate></ItemsControl.ItemTemplate>
    </ItemsControl>
   </ScrollViewer>
-  <TextBlock Grid.Row="2" x:Name="StatusText" Text="Đang tải ảnh xe…" Foreground="{StaticResource MutedReadable}" Margin="0,12,0,0"/>
+  <TextBlock Grid.Row="2" x:Name="StatusText" Text="{Binding Status}" Foreground="{StaticResource MutedReadable}" Margin="0,12,0,0"/>
  </Grid>
 </Window>

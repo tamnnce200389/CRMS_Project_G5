@@ -1,9 +1,10 @@
-using System.Windows.Input;
+﻿using System.Windows.Input;
 using CRMS.Helpers;
 using CRMS.Services;
 using CRMS.Services.Vehicles;
 using Microsoft.Data.SqlClient;
 namespace CRMS.ViewModels;
+
 public sealed class BookingCheckoutViewModel : BaseViewModel
 {
     private readonly BookingSelection _selection;
@@ -25,7 +26,7 @@ public sealed class BookingCheckoutViewModel : BaseViewModel
     public BookingCheckoutViewModel(BookingSelection selection, string vehicleName, CustomerBookingService? service = null)
     {
         _selection = selection; VehicleName = vehicleName; _service = service ?? new CustomerBookingService();
-        ConfirmCommand = new RelayCommand(async _ => await ConfirmAsync(), _ => !IsBusy && Result == null);
+        ConfirmCommand = new AsyncRelayCommand(async _ => await ConfirmAsync(), _ => !IsBusy && Result == null);
     }
     public async Task ConfirmAsync()
     {

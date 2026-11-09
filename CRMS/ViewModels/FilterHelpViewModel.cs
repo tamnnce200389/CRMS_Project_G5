@@ -1,4 +1,4 @@
-namespace CRMS.ViewModels;
+﻿namespace CRMS.ViewModels;
 
 public sealed record FilterHelpViewModel(string Title, string Description)
 {

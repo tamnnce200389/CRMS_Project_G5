@@ -1,8 +1,8 @@
-<Page x:Class="CRMS.Views.Admin.UserManagementPage"
+﻿<Page x:Class="CRMS.Views.Admin.UserManagementPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       Title="Quản lý người dùng"
-      Background="{StaticResource CustomerBackground}">
+      Background="{StaticResource CustomerBackground}" Loaded="Page_Loaded" Unloaded="Page_Unloaded">
     <Page.Resources>
         <Style TargetType="Button" BasedOn="{StaticResource AdminButtonBase}"/>
         <Style TargetType="DataGridCell" BasedOn="{StaticResource AdminCell}"/>
@@ -27,6 +27,7 @@
             <TextBlock Text="Xem tài khoản, khóa/mở khóa và phân quyền."
                        Margin="0,6,0,0"
                        Foreground="{StaticResource MutedReadable}"/>
+            <TextBlock Text="{Binding Message}" Foreground="{StaticResource Danger}" TextWrapping="Wrap" Margin="0,8,0,0"/>
         </StackPanel>
 
         <!-- SEARCH -->
@@ -42,14 +43,14 @@
                      FontSize="14"
                      VerticalContentAlignment="Center"
                      ToolTip="Tìm theo ID, họ tên, email hoặc số điện thoại"
-                     TextChanged="SearchBox_TextChanged"/>
+                     Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"/>
 
             <Button Grid.Column="1"
                     Content="Tải lại"
                     Width="100"
                     Height="38"
                     Margin="10,0,0,0"
-                    Click="Reload_Click"/>
+                    Command="{Binding LoadCommand}"/>
         </Grid>
 
         <!-- USER TABLE -->
@@ -66,7 +67,7 @@
                   BorderBrush="{StaticResource CustomerLine}"
                   RowBackground="{StaticResource Surface}"
                   AlternatingRowBackground="{StaticResource CustomerBackground}"
-                  SelectionChanged="UsersGrid_SelectionChanged">
+                  ItemsSource="{Binding Users}" SelectedItem="{Binding SelectedUser}">
 
             <DataGrid.Columns>
                 <DataGridTextColumn Header="ID"
@@ -119,7 +120,7 @@
                 <StackPanel Grid.Column="0"
                             VerticalAlignment="Center">
                     <TextBlock x:Name="SelectedUserText"
-                               Text="Chọn một tài khoản trong danh sách."
+                               Text="{Binding SelectionMessage}"
                                FontWeight="SemiBold"
                                Foreground="{StaticResource CustomerInk}"
                                TextWrapping="Wrap"/>
@@ -143,11 +144,7 @@
                     <ComboBox Style="{StaticResource RoundedComboBox}" x:Name="RoleComboBox"
                               Width="120"
                               Height="34"
-                              VerticalContentAlignment="Center">
-                        <ComboBoxItem Content="Customer"/>
-                        <ComboBoxItem Content="Staff"/>
-                        <ComboBoxItem Content="Admin"/>
-                    </ComboBox>
+                              VerticalContentAlignment="Center" ItemsSource="{Binding Roles}" SelectedItem="{Binding SelectedRole}" IsEnabled="{Binding CanModify}"/>
                 </StackPanel>
 
                 <StackPanel Grid.Column="2"
@@ -161,7 +158,7 @@
                             Background="{StaticResource CustomerInk}"
                             Foreground="{StaticResource Surface}"
                             BorderThickness="0"
-                            Click="ChangeRole_Click"/>
+                            Command="{Binding ChangeRoleCommand}"/>
 
                     <Button x:Name="ToggleStatusButton"
                             Content="Khóa / Mở khóa"
@@ -171,7 +168,7 @@
                             Background="{StaticResource Danger}"
                             Foreground="{StaticResource Surface}"
                             BorderThickness="0"
-                            Click="ToggleStatus_Click"/>
+                            Command="{Binding ToggleActiveCommand}"/>
                 </StackPanel>
             </Grid>
         </Border>

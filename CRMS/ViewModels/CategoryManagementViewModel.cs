@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Windows.Input;
 using CRMS.Helpers;
 using CRMS.Services.Vehicles;
@@ -126,12 +126,12 @@ public sealed class CategoryManagementViewModel : BaseViewModel
     {
         _service = service ?? throw new ArgumentNullException(nameof(service));
 
-        RefreshCommand = new RelayCommand(async _ => await LoadAsync(), _ => !IsBusy);
+        RefreshCommand = new AsyncRelayCommand(async _ => await LoadAsync(), _ => !IsBusy);
         NewCommand = new RelayCommand(_ => ResetForm(), _ => !IsBusy);
-        SaveCommand = new RelayCommand(
+        SaveCommand = new AsyncRelayCommand(
             async _ => await SaveAsync(),
             _ => !IsBusy && !string.IsNullOrWhiteSpace(CategoryName));
-        ToggleActiveCommand = new RelayCommand(
+        ToggleActiveCommand = new AsyncRelayCommand(
             async _ => await ToggleSelectedAsync(),
             _ => !IsBusy && SelectedCategory != null);
     }

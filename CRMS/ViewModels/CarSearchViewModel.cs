@@ -1,4 +1,4 @@
-using CRMS.Helpers;
+﻿using CRMS.Helpers;
 using CRMS.Models;
 using CRMS.Services;
 using System.Collections.ObjectModel;
@@ -13,6 +13,38 @@ namespace CRMS.ViewModels
         private CancellationTokenSource? _searchCancellation;
         private int _requestVersion;
         private int _filterRevision;
+        private DateTime? _beforeHourlyStart, _beforeHourlyEnd;
+        public void AdjustHourlyPeriod()
+        {
+            if (!IsSelfDrive) return;
+            if (HourlyOnly)
+            {
+                _beforeHourlyStart = StartAtLocal; _beforeHourlyEnd = EndAtLocal;
+                var start = StartAtLocal ?? DateTime.Now.AddHours(1);
+                if (start <= DateTime.Now) start = DateTime.Now.AddHours(1);
+                SetRentalPeriod(start, start.AddHours(4));
+            }
+            else if (_beforeHourlyStart > DateTime.Now && _beforeHourlyEnd.HasValue)
+                SetRentalPeriod(_beforeHourlyStart, _beforeHourlyEnd);
+        }
+        public async Task RemoveCriterionAsync(AppliedCriterion criterion)
+        {
+            if (IsLoading || criterion.Remove == null) return;
+            var hourly = HourlyOnly; criterion.Remove();
+            if (hourly && !HourlyOnly) AdjustHourlyPeriod();
+            await SearchAsync();
+        }
+        public BookingSelection PrepareBooking(CarSearchItem car, IUserSession session)
+        {
+            if (!CanChooseResults || !Cars.Contains(car)) throw new InvalidOperationException("Vui lòng tìm lại và áp dụng bộ lọc trước khi chọn xe.");
+            if (session.Role != "Customer" || session.UserId is not > 0) throw new InvalidOperationException("Chức năng đặt xe chỉ dành cho Customer.");
+            if (!car.CanUseLegacyBooking) throw new InvalidOperationException("Báo giá trọn chuyến này chưa hỗ trợ đặt trực tiếp.");
+            if (RentalMode is not ("SelfDrive" or "WithDriver")) throw new InvalidOperationException("Vui lòng chọn gói thuê dài hạn tại cửa sổ riêng.");
+            if (!StartAtLocal.HasValue || !EndAtLocal.HasValue) throw new InvalidOperationException("Vui lòng chọn thời gian nhận và trả xe.");
+            CRMS.Services.Vehicles.AvailabilityRules.ValidatePeriod(StartAtLocal.Value, EndAtLocal.Value, DateTime.UtcNow, true);
+            return new(session.UserId.Value, car.VehicleId, RentalMode, StartAtLocal.Value, EndAtLocal.Value, car.QuoteUnit == "Hour" ? "Hour" : "Day", ExpectedTotal: car.EstimatedTripTotal);
+        }
+
         public ObservableCollection<CarSearchItem> Cars { get; } = new();
         public ObservableCollection<VehicleCategory> Categories { get; } = new();
         public ObservableCollection<string> Brands { get; } = new() { "Tất cả hãng xe" };
@@ -191,22 +223,28 @@ namespace CRMS.ViewModels
         public Task<SelfDriveFacets> GetSelfDriveFacetsAsync() => _searchService.GetSelfDriveFacetsAsync(new CarSearchFilter
         {
             CityId = SelectedCity?.CityId > 0 ? SelectedCity.CityId : null,
-            StartAtLocal = StartAtLocal, EndAtLocal = EndAtLocal
+            StartAtLocal = StartAtLocal,
+            EndAtLocal = EndAtLocal
         });
         private CarSearchFilter CreateJourneyFilter() => new()
         {
-            RentalMode = "WithDriver", CityId = SelectedCity?.CityId > 0 ? SelectedCity.CityId : null,
+            RentalMode = "WithDriver",
+            CityId = SelectedCity?.CityId > 0 ? SelectedCity.CityId : null,
             DestinationCityId = SelectedRoute == "Nội thành" ? (SelectedCity?.CityId > 0 ? SelectedCity.CityId : null) : (DestinationCity?.CityId > 0 ? DestinationCity.CityId : null),
             RouteType = SelectedRoute switch { "Liên tỉnh" => "InterCityRoundTrip", "Liên tỉnh một chiều" => "InterCityOneWay", _ => "InnerCity" },
-            StartAtLocal = StartAtLocal, EndAtLocal = EndAtLocal
+            StartAtLocal = StartAtLocal,
+            EndAtLocal = EndAtLocal
         };
         private SearchCity RequireLongTermCity() => Cities.FirstOrDefault(c => c.IsActive && c.CityId > 0 && string.Equals(c.CityName.Trim(), "Cần Thơ", StringComparison.OrdinalIgnoreCase))
             ?? throw new ArgumentException("Địa điểm Cần Thơ chưa được cấu hình cho trang thuê dài hạn.");
         public Task<SelfDriveFacets> GetCurrentModeFacetsAsync() => IsLongTerm
             ? _searchService.GetLongTermFacetsAsync(new CarSearchFilter
             {
-                RentalMode = "LongTerm", CityId = RequireLongTermCity().CityId, DurationMonths = SelectedDuration,
-                StartAtLocal = StartAtLocal, EndAtLocal = EndAtLocal
+                RentalMode = "LongTerm",
+                CityId = RequireLongTermCity().CityId,
+                DurationMonths = SelectedDuration,
+                StartAtLocal = StartAtLocal,
+                EndAtLocal = EndAtLocal
             }) : IsWithDriver ? _searchService.GetWithDriverFacetsAsync(CreateJourneyFilter()) : GetSelfDriveFacetsAsync();
         private bool _isFilterPending;
         public bool IsFilterPending { get => _isFilterPending; private set { _isFilterPending = value; OnPropertyChanged(); OnPropertyChanged(nameof(CanChooseResults)); } }
@@ -231,14 +269,19 @@ namespace CRMS.ViewModels
             }
         }
         public int ResultCount => Cars.Count;
+        public async Task InitializeAsync()
+        {
+            try { await LoadCategoriesAsync(); await SearchAsync(); }
+            catch (Exception ex) { Cars.Clear(); OnPropertyChanged(nameof(ResultCount)); StatusMessage = "Không thể tải bộ lọc: " + ex.Message; }
+        }
         public ICommand SearchCommand { get; }
         public ICommand ClearFilterCommand { get; }
         public CarSearchViewModel() : this(new SearchService()) { }
         public CarSearchViewModel(SearchService searchService)
         {
             _searchService = searchService;
-            SearchCommand = new RelayCommand(async _ => await SearchAsync(), _ => !IsLoading);
-            ClearFilterCommand = new RelayCommand(async _ => await ClearFiltersAsync(), _ => !IsLoading);
+            SearchCommand = new AsyncRelayCommand(async _ => await SearchAsync(), _ => !IsLoading);
+            ClearFilterCommand = new AsyncRelayCommand(async _ => await ClearFiltersAsync(), _ => !IsLoading);
         }
         public async Task LoadCategoriesAsync()
         {
@@ -293,14 +336,20 @@ namespace CRMS.ViewModels
         {
             var filter = new CarSearchFilter
             {
-                RentalMode = RentalMode, Keyword = SearchText.Trim(), CategoryId = HasCategoryFilter ? SelectedCategory!.CategoryId : null,
+                RentalMode = RentalMode,
+                Keyword = SearchText.Trim(),
+                CategoryId = HasCategoryFilter ? SelectedCategory!.CategoryId : null,
                 Brand = HasBrandFilter ? SelectedBrand : null,
                 Transmission = SelectedTransmission switch { "Số tự động" => "Automatic", "Số sàn" => "Manual", _ => null },
                 FuelType = SelectedFuel switch { "Xăng" => "Gasoline", "Dầu diesel" => "Diesel", "Điện" => "Electric", "Hybrid" => "Hybrid", _ => null },
                 Seats = byte.TryParse(SelectedSeats, out var seats) ? seats : null,
                 MinYear = short.TryParse(SelectedYear, out var year) ? year : null,
-                MinPrice = ParsePrice(MinPrice), MaxPrice = ParsePrice(MaxPrice), Sort = SelectedSort, DiscountOnly = DiscountOnly,
-                StartAtLocal = StartAtLocal, EndAtLocal = EndAtLocal,
+                MinPrice = ParsePrice(MinPrice),
+                MaxPrice = ParsePrice(MaxPrice),
+                Sort = SelectedSort,
+                DiscountOnly = DiscountOnly,
+                StartAtLocal = StartAtLocal,
+                EndAtLocal = EndAtLocal,
                 CityId = IsLongTerm ? RequireLongTermCity().CityId : SelectedCity?.CityId > 0 ? SelectedCity.CityId : null,
                 DestinationCityId = IsWithDriver && SelectedRoute == "Nội thành" ? (SelectedCity?.CityId > 0 ? SelectedCity.CityId : null) : (DestinationCity?.CityId > 0 ? DestinationCity.CityId : null),
                 RouteType = SelectedRoute switch { "Liên tỉnh" => "InterCityRoundTrip", "Liên tỉnh một chiều" => "InterCityOneWay", _ => "InnerCity" },
@@ -309,7 +358,17 @@ namespace CRMS.ViewModels
                 DurationMonths = SelectedDuration, CustomerId = CurrentUserService.Instance.UserId,
                 PurposeCodes = Purposes.Where(p => p.IsSelected).Select(p => p.Code).ToArray(),
                 ChildSeatAgeCodes = IsSelfDrive ? ChildSeatAgeCodes : Array.Empty<string>(),
-                HourlyOnly = HourlyOnly, DeliveryOnly = DeliveryOnly, FreeDeliveryOnly = FreeDeliveryOnly, FreePickupInCityOnly = IsWithDriver && FreeDeliveryOnly, HighlyRatedOnly = HighlyRatedOnly, InstantOnly = InstantOnly, NoCollateralOnly = NoCollateralOnly, ChildSeatOnly = ChildSeatOnly, ExtendedTravelOnly = ExtendedTravelOnly, UnlimitedMileageOnly = UnlimitedMileageOnly, SportOnly = SportOnly
+                HourlyOnly = HourlyOnly,
+                DeliveryOnly = DeliveryOnly,
+                FreeDeliveryOnly = FreeDeliveryOnly,
+                FreePickupInCityOnly = IsWithDriver && FreeDeliveryOnly,
+                HighlyRatedOnly = HighlyRatedOnly,
+                InstantOnly = InstantOnly,
+                NoCollateralOnly = NoCollateralOnly,
+                ChildSeatOnly = ChildSeatOnly,
+                ExtendedTravelOnly = ExtendedTravelOnly,
+                UnlimitedMileageOnly = UnlimitedMileageOnly,
+                SportOnly = SportOnly
             };
             filter.Validate(); return filter;
         }
@@ -427,17 +486,17 @@ namespace CRMS.ViewModels
 
 namespace CRMS.ViewModels
 {
-public sealed record AppliedCriterion(string Label, Action? Remove = null)
-{
-    public bool CanRemove => Remove != null;
-}
-public sealed class SearchPurposeChoice : CRMS.ViewModels.BaseViewModel
-{
-    public string Code { get; }
-    public string Name { get; }
-    private bool _isSelected;
-    public bool IsSelected { get => _isSelected; set { if (_isSelected == value) return; _isSelected = value; OnPropertyChanged(); } }
-    public SearchPurposeChoice(string code, string name) { Code = code; Name = name; }
-}
+    public sealed record AppliedCriterion(string Label, Action? Remove = null)
+    {
+        public bool CanRemove => Remove != null;
+    }
+    public sealed class SearchPurposeChoice : CRMS.ViewModels.BaseViewModel
+    {
+        public string Code { get; }
+        public string Name { get; }
+        private bool _isSelected;
+        public bool IsSelected { get => _isSelected; set { if (_isSelected == value) return; _isSelected = value; OnPropertyChanged(); } }
+        public SearchPurposeChoice(string code, string name) { Code = code; Name = name; }
+    }
 
 }

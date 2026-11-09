@@ -94,7 +94,7 @@ namespace CRMS.ViewModels
 
         public AdminDashboardViewModel()
         {
-            RefreshCommand = new RelayCommand(
+            RefreshCommand = new AsyncRelayCommand(
                 async _ => await LoadAsync(),
                 _ => !IsBusy);
         }
