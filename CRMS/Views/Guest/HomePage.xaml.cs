@@ -324,19 +324,30 @@ namespace CRMS.Views.Guest
             }
             catch (Exception ex)
             {
-                _cityLoadTask = null;
                 MessageBox.Show(ex.Message, "Tìm xe", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
-        private Task EnsureSearchCitiesAsync() => _cityLoadTask ??= LoadSearchCitiesCoreAsync();
+        private async Task EnsureSearchCitiesAsync()
+        {
+            var loadTask = _cityLoadTask ??= LoadSearchCitiesCoreAsync();
+            try { await loadTask; }
+            catch
+            {
+                // Retry failed data loads; validation errors must keep the existing options.
+                if (ReferenceEquals(_cityLoadTask, loadTask)) _cityLoadTask = null;
+                throw;
+            }
+        }
         private async void LoadSearchCities(object sender, RoutedEventArgs e)
         {
             try { await EnsureSearchCitiesAsync(); }
-            catch (Exception ex) { _cityLoadTask = null; SelfDriveLocationButton.ToolTip = "Không thể tải địa điểm: " + ex.Message; }
+            catch (Exception ex) { SelfDriveLocationButton.ToolTip = "Không thể tải địa điểm: " + ex.Message; }
         }
         private async Task LoadSearchCitiesCoreAsync()
         {
             var cities = await _searchService.GetCitiesAsync();
+            var driverPickupId = (DriverPickupCombo.SelectedItem as SearchCity)?.CityId;
+            var driverDestinationId = (DriverDestinationCombo.SelectedItem as SearchCity)?.CityId;
             var current = cities.FirstOrDefault(c => c.CityId == _selectedCityId)
                 ?? cities.FirstOrDefault(c => c.CityName == _selectedCity);
             _selectedCityId = current?.CityId;
@@ -345,8 +356,8 @@ namespace CRMS.Views.Guest
             _longTermCityId = cities.FirstOrDefault(c => c.CityName == "Cần Thơ")?.CityId;
             DriverPickupCombo.ItemsSource = new[] { new SearchCity { CityId=0, CityName="Chọn điểm đón" } }.Concat(cities).ToList();
             DriverDestinationCombo.ItemsSource = new[] { new SearchCity { CityId=0, CityName="Chọn điểm đến" } }.Concat(cities).ToList();
-            DriverPickupCombo.SelectedItem = current ?? DriverPickupCombo.Items[0];
-            DriverDestinationCombo.SelectedIndex = 0;
+            DriverPickupCombo.SelectedItem = DriverPickupCombo.Items.OfType<SearchCity>().FirstOrDefault(c => c.CityId == driverPickupId) ?? current ?? DriverPickupCombo.Items[0];
+            DriverDestinationCombo.SelectedItem = DriverDestinationCombo.Items.OfType<SearchCity>().FirstOrDefault(c => c.CityId == driverDestinationId) ?? DriverDestinationCombo.Items[0];
         }
         internal CarSearchContext BuildSearchContext(string mode)
         {
