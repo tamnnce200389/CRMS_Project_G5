@@ -84,7 +84,7 @@ public sealed class SelfDriveFilterDialogViewModel : BaseViewModel
         _routeDestination = IsInterCity ? parent.DestinationCity : _pickup;
         StartAt = parent.StartAtLocal; EndAt = parent.EndAtLocal;
         AnyChildSeat = parent.ChildSeatOnly && parent.ChildSeatAgeCodes.Length == 0;
-        ApplyCommand = new RelayCommand(async _ => await ApplyAsync(), _ => IsReady);
+        ApplyCommand = new AsyncRelayCommand(async _ => await ApplyAsync(), _ => IsReady);
     }
     public async Task LoadAsync()
     {
@@ -149,9 +149,9 @@ public sealed class SelfDriveFilterDialogViewModel : BaseViewModel
             foreach (var brand in facets.Brands) Brands.Add(brand);
             SelectedBrand = _parent.HasBrandFilter ? Brands.FirstOrDefault(b => b.Name == _parent.SelectedBrand) : Brands[0];
             Ages.Clear();
-            foreach (var pair in new[]{("0-12","Từ 0–12 tuổi (Ghế đa năng)"),("0-1","Từ 0–1 tuổi"),("1-4","Từ 1–4 tuổi"),("4-7","Từ 4–7 tuổi"),("7-12","Từ 7–12 tuổi")})
+            foreach (var pair in new[] { ("0-12", "Từ 0–12 tuổi (Ghế đa năng)"), ("0-1", "Từ 0–1 tuổi"), ("1-4", "Từ 1–4 tuổi"), ("4-7", "Từ 4–7 tuổi"), ("7-12", "Từ 7–12 tuổi") })
             {
-                var age = new ChildSeatAgeChoice("ChildSeat:"+pair.Item1, pair.Item2, _parent.ChildSeatAgeCodes.Contains("ChildSeat:"+pair.Item1), facets.ChildSeatCodes.Contains("ChildSeat:"+pair.Item1) || facets.ChildSeatCodes.Contains("ChildSeat:0-12"));
+                var age = new ChildSeatAgeChoice("ChildSeat:" + pair.Item1, pair.Item2, _parent.ChildSeatAgeCodes.Contains("ChildSeat:" + pair.Item1), facets.ChildSeatCodes.Contains("ChildSeat:" + pair.Item1) || facets.ChildSeatCodes.Contains("ChildSeat:0-12"));
                 age.PropertyChanged += (_, _) => { if (age.IsSelected) AnyChildSeat = false; };
                 Ages.Add(age);
             }

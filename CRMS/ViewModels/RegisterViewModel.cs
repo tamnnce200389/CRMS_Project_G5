@@ -64,7 +64,7 @@ namespace CRMS.ViewModels
 
         public RegisterViewModel()
         {
-            RegisterCommand = new RelayCommand(
+            RegisterCommand = new AsyncRelayCommand(
                 async parameter =>
                 {
                     if (parameter is ValueTuple<string, string> passwords)

@@ -6,7 +6,7 @@ using System.Windows.Input;
 
 namespace CRMS.ViewModels
 {
-    public class HomeViewModel : BaseViewModel
+    public partial class HomeViewModel : BaseViewModel
     {
         public string[] Seasons { get; } = ["Mùa xuân", "Mùa hè", "Mùa thu", "Mùa đông"];
 
@@ -115,6 +115,7 @@ namespace CRMS.ViewModels
 
         public HomeViewModel()
         {
+            InitializeSearchState();
             SelectModeCommand = new RelayCommand(parameter =>
             {
                 string? mode = parameter?.ToString();

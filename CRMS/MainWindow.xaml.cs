@@ -27,13 +27,9 @@ namespace CRMS
         {
             AccountMenu.IsOpen = false;
             // Xoa phien dang nhap
-            CurrentUserService.Instance.Logout();
+            if (DataContext is MainViewModel main) main.LogoutCommand.Execute(null);
 
-            // Cap nhat lai UI theo role
-            if (DataContext is MainViewModel vm)
-            {
-                vm.RefreshSession();
-            }
+
         }
     }
 }

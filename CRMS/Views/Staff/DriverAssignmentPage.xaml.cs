@@ -9,7 +9,7 @@ namespace CRMS.Views.Staff
     {
         public DriverAssignmentPage()
         {
-            
+            InitializeComponent();
         }
     }
 }

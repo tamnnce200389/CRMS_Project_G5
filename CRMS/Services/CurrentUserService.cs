@@ -1,11 +1,11 @@
 ﻿
 using CRMS.Models;
-using CRMS.ViewModels;
+using CRMS.Helpers;
 using System.Globalization;
 
 namespace CRMS.Services
 {
-    public class CurrentUserService : BaseViewModel
+    public class CurrentUserService : ObservableObject, IUserSession
     {
         // Dung chung mot phien nguoi dung trong ung dung
         public static CurrentUserService Instance { get; } = new();
@@ -14,6 +14,7 @@ namespace CRMS.Services
         {
         }
 
+        public long SessionVersion { get; private set; }
         public long? UserId { get; private set; }
 
         public string FullName { get; private set; } = "Guest";
@@ -42,20 +43,23 @@ namespace CRMS.Services
         // Chi goi sau khi AuthService xac thuc thanh cong
         public void SetUser(User user)
         {
+            bool changed = UserId != user.UserId || Role != user.UserRole;
             UserId = user.UserId;
             FullName = user.FullName;
             Role = user.UserRole;
 
+            if (changed) { ++SessionVersion; OnPropertyChanged(nameof(SessionVersion)); }
             NotifyChanges();
         }
 
         // Dang xuat ve Guest
         public void Logout()
         {
+            ++SessionVersion;
             UserId = null;
             FullName = "Guest";
             Role = "Guest";
-
+            OnPropertyChanged(nameof(SessionVersion));
             NotifyChanges();
         }
 

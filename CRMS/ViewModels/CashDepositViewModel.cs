@@ -1,4 +1,4 @@
-using CRMS.Helpers;
+﻿using CRMS.Helpers;
 using CRMS.Services;
 using CRMS.Services.Payments;
 using System.Collections.ObjectModel;
@@ -12,6 +12,7 @@ namespace CRMS.ViewModels;
 public class CashDepositViewModel : BaseViewModel
 {
     private readonly CashDepositService _service = new();
+    private readonly IConfirmationService _dialogs;
     private readonly PaymentService _payments = new();
     private readonly ObservableCollection<CashDepositItem> _items = new();
     private readonly Dictionary<long, Guid> _requestKeys = new();
@@ -42,14 +43,16 @@ public class CashDepositViewModel : BaseViewModel
     public ICommand LoadCommand { get; }
     public ICommand ConfirmDepositCommand { get; }
 
-    public CashDepositViewModel()
+    public CashDepositViewModel() : this(ApplicationServices.Confirmation) { }
+    public CashDepositViewModel(IConfirmationService dialogs)
     {
+        _dialogs = dialogs;
         Bookings = CollectionViewSource.GetDefaultView(_items);
         Bookings.Filter = item => item is CashDepositItem row &&
             (row.BookingCode.Contains(SearchText.Trim(), StringComparison.OrdinalIgnoreCase) ||
              row.CustomerName.Contains(SearchText.Trim(), StringComparison.OrdinalIgnoreCase));
-        LoadCommand = new RelayCommand(async _ => await LoadAsync(), _ => !IsLoading);
-        ConfirmDepositCommand = new RelayCommand(async _ => await ConfirmAsync(), _ => CanConfirmDeposit);
+        LoadCommand = new AsyncRelayCommand(async _ => await LoadAsync(), _ => !IsLoading);
+        ConfirmDepositCommand = new AsyncRelayCommand(async _ => await ConfirmAsync(), _ => CanConfirmDeposit);
     }
     private void RefreshCommands()
     {
@@ -80,8 +83,7 @@ public class CashDepositViewModel : BaseViewModel
     private async Task ConfirmAsync()
     {
         if (!CanConfirmDeposit || SelectedBooking is not { } row) return;
-        if (MessageBox.Show($"Bạn đã thực nhận {row.DepositAmount:N2} đ tiền mặt cho đơn {row.BookingCode}?",
-            "Xác nhận nhận cọc", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No) != MessageBoxResult.Yes) return;
+        if (!_dialogs.Confirm($"Bạn đã thực nhận {row.DepositAmount:N2} đ tiền mặt cho đơn {row.BookingCode}?", "Xác nhận nhận cọc")) return;
         if (!CanConfirmDeposit) return;
         IsLoading = true;
         if (!_requestKeys.TryGetValue(row.BookingId, out var key)) _requestKeys[row.BookingId] = key = Guid.NewGuid();

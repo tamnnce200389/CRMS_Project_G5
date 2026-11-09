@@ -1,4 +1,4 @@
-using System.Windows.Controls.Primitives;
+﻿using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 
 using System;
@@ -16,7 +16,7 @@ namespace CRMS.Views.Guest
         private readonly CarSearchViewModel _viewModel;
 
         private bool _isLoaded = false;
-        private DateTime? _beforeHourlyStart, _beforeHourlyEnd;
+
 
 
 
@@ -73,18 +73,7 @@ namespace CRMS.Views.Guest
 
             _isLoaded = true;
 
-            try
-            {
-                await _viewModel.LoadCategoriesAsync();
-                await _viewModel.SearchAsync();
-            }
-            catch (Exception ex)
-            {
-                _isLoaded = false;
-
-                _viewModel.Cars.Clear();
-                _viewModel.StatusMessage = "Không thể tải bộ lọc: " + ex.Message;
-            }
+            await _viewModel.InitializeAsync();
         }
 
         // Show navigation arrows only when quick filters exceed the available width.
@@ -137,15 +126,7 @@ namespace CRMS.Views.Guest
             }
             if (_viewModel.IsSelfDrive && sender is ToggleButton toggle && toggle.Content?.ToString() == "Thuê giờ")
             {
-                if (_viewModel.HourlyOnly)
-                {
-                    _beforeHourlyStart = _viewModel.StartAtLocal; _beforeHourlyEnd = _viewModel.EndAtLocal;
-                    var start = _viewModel.StartAtLocal ?? DateTime.Now.AddHours(1);
-                    if (start <= DateTime.Now) start = DateTime.Now.AddHours(1);
-                    _viewModel.SetRentalPeriod(start, start.AddHours(4));
-                }
-                else if (_beforeHourlyStart.HasValue && _beforeHourlyEnd.HasValue && _beforeHourlyStart > DateTime.Now)
-                    _viewModel.SetRentalPeriod(_beforeHourlyStart, _beforeHourlyEnd);
+                _viewModel.AdjustHourlyPeriod();
             }
             try { _viewModel.CreateFilter(); }
             catch (ArgumentException ex)
@@ -185,8 +166,10 @@ namespace CRMS.Views.Guest
             {
                 ComboBox input = button.CommandParameter?.ToString() switch
                 {
-                    "Category" => CategoryFilterInput, "Brand" => BrandFilterInput,
-                    "Sort" => SortFilterInput, _ => TransmissionFilterInput
+                    "Category" => CategoryFilterInput,
+                    "Brand" => BrandFilterInput,
+                    "Sort" => SortFilterInput,
+                    _ => TransmissionFilterInput
                 };
                 input.BringIntoView(); input.Focus(); input.IsDropDownOpen = true;
             }), System.Windows.Threading.DispatcherPriority.Input);
@@ -201,11 +184,7 @@ namespace CRMS.Views.Guest
         private async void RemoveCriterion_Click(object sender, RoutedEventArgs e)
         {
             if (sender is not Button { DataContext: AppliedCriterion { Remove: { } remove } } || _viewModel.IsLoading) return;
-            var wasHourly = _viewModel.HourlyOnly;
-            remove();
-            if (wasHourly && !_viewModel.HourlyOnly && _beforeHourlyStart > DateTime.Now && _beforeHourlyEnd.HasValue)
-                _viewModel.SetRentalPeriod(_beforeHourlyStart, _beforeHourlyEnd);
-            await _viewModel.SearchAsync();
+            await _viewModel.RemoveCriterionAsync((AppliedCriterion)((Button)sender).DataContext);
         }
 
         private void FilterHelp_Click(object sender, RoutedEventArgs e)
@@ -347,7 +326,7 @@ namespace CRMS.Views.Guest
                 // Cap nhat giao dien sau dang nhap
                 if (mainWindow?.DataContext is MainViewModel vm)
                 {
-                    vm.RefreshSession();
+
 
                     // Giu lai trang tim xe hien tai
                     if (session.IsCustomer)
@@ -381,85 +360,15 @@ namespace CRMS.Views.Guest
             object sender,
             RoutedEventArgs e)
         {
-            if (!_viewModel.CanChooseResults) { _viewModel.StatusMessage = "Vui lòng áp dụng bộ lọc trước khi chọn xe."; return; }
-
-            // Lay xe tu DataContext cua Button
-            if (sender is not Button button ||
-                button.DataContext is not CarSearchItem car)
+            if (sender is not Button { DataContext: CarSearchItem car }) return;
+            if (!EnsureCustomerLoggedIn()) return;
+            try
             {
-                MessageBox.Show(
-                    "Không xác định được xe đã chọn.");
-                return;
+                var selection = _viewModel.PrepareBooking(car, CurrentUserService.Instance);
+                var dialog = new BookingCheckoutWindow(selection, $"{car.Brand} {car.Model}") { Owner = Window.GetWindow(this) };
+                if (dialog.ShowDialog() == true && Window.GetWindow(this)?.DataContext is MainViewModel main) main.NavigateCommand.Execute("MyBookings");
             }
-
-            if (!car.CanUseLegacyBooking)
-            {
-                MessageBox.Show("Báo giá trọn chuyến này chưa hỗ trợ đặt trực tiếp.", "Báo giá", MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
-
-            // =====================================
-            // 1. KIEM TRA DANG NHAP
-            // =====================================
-
-            // Guest se duoc chuyen sang LoginWindow
-            if (!EnsureCustomerLoggedIn())
-            {
-                return;
-            }
-
-            // =====================================
-            // 2. KIEM TRA LOAI THUE
-            // =====================================
-
-            // LongTerm do module rieng xu ly
-            if (_viewModel.RentalMode != "SelfDrive" &&
-                _viewModel.RentalMode != "WithDriver")
-            {
-                MessageBox.Show(
-                    "Loại thuê này chưa được hỗ trợ tại đây.",
-                    "Thông báo",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
-
-                return;
-            }
-
-            // =====================================
-            // 3. KIEM TRA THOI GIAN
-            // =====================================
-
-            if (!_viewModel.StartAtLocal.HasValue ||
-                !_viewModel.EndAtLocal.HasValue)
-            {
-                MessageBox.Show(
-                    "Vui lòng chọn thời gian nhận và trả xe.",
-                    "Thiếu thông tin",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
-
-                return;
-            }
-
-            if (_viewModel.StartAtLocal.Value <= DateTime.Now ||
-                _viewModel.EndAtLocal.Value <= _viewModel.StartAtLocal.Value)
-            {
-                MessageBox.Show(
-                    "Thời gian thuê không hợp lệ.",
-                    "Lỗi thời gian",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
-
-                return;
-            }
-
-            var selection = new BookingSelection(
-                CurrentUserService.Instance.UserId!.Value, car.VehicleId, _viewModel.RentalMode,
-                _viewModel.StartAtLocal.Value, _viewModel.EndAtLocal.Value,
-                car.QuoteUnit == "Hour" ? "Hour" : "Day", ExpectedTotal: car.EstimatedTripTotal);
-            var dialog = new BookingCheckoutWindow(selection, $"{car.Brand} {car.Model}") { Owner = Window.GetWindow(this) };
-            if (dialog.ShowDialog() == true && Window.GetWindow(this)?.DataContext is MainViewModel main)
-                main.NavigateCommand.Execute("MyBookings");
+            catch (Exception ex) { _viewModel.StatusMessage = ex.Message; }
         }
 
         // =====================================

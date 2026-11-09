@@ -1,5 +1,6 @@
-<Application x:Class="CRMS.App" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:helpers="clr-namespace:CRMS.Helpers" StartupUri="MainWindow.xaml">
+﻿<Application x:Class="CRMS.App" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:helpers="clr-namespace:CRMS.Helpers" StartupUri="MainWindow.xaml">
     <Application.Resources>
+        <helpers:ValueEqualsConverter x:Key="ValueEquals"/>
         <helpers:VietnameseLabelConverter x:Key="VietnameseLabel" />
         <!-- Customer-facing travel palette; management workspaces retain their own colors. -->
         <SolidColorBrush x:Key="CustomerInk" Color="#193D33"/>

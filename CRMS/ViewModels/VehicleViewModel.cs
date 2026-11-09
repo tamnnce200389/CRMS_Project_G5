@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Data;
 using System.Windows.Input;
@@ -130,23 +130,23 @@ public class VehicleViewModel : BaseViewModel
         VehiclesView = CollectionViewSource.GetDefaultView(Vehicles);
         VehiclesView.Filter = FilterVehicle;
 
-        RefreshCommand = new RelayCommand(
+        RefreshCommand = new AsyncRelayCommand(
             async _ => await LoadVehiclesAsync(),
             _ => !IsLoading);
 
-        AddVehicleCommand = new RelayCommand(
+        AddVehicleCommand = new AsyncRelayCommand(
             async _ => await AddVehicleAsync(),
             _ => !IsLoading);
 
-        EditVehicleCommand = new RelayCommand(
+        EditVehicleCommand = new AsyncRelayCommand(
             async param => await EditVehicleAsync(param as VehicleListItem ?? SelectedVehicle),
             param => !IsLoading && (param is VehicleListItem || SelectedVehicle != null));
 
-        ToggleStatusCommand = new RelayCommand(
+        ToggleStatusCommand = new AsyncRelayCommand(
             async param => await ToggleVehicleStatusAsync(param as VehicleListItem ?? SelectedVehicle),
             param => !IsLoading && (param is VehicleListItem || SelectedVehicle != null));
 
-        ManageCategoriesCommand = new RelayCommand(
+        ManageCategoriesCommand = new AsyncRelayCommand(
             async _ => await ManageCategoriesAsync(),
             _ => !IsLoading);
     }

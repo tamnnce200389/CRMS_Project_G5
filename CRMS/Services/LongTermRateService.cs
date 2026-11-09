@@ -9,7 +9,8 @@ using System.Threading.Tasks;
 
 namespace CRMS.Services
 {
-    public class LongTermRateService
+    public interface ILongTermRateService { Task<List<VehicleLongTermRate>> GetRatesByVehicleAsync(long vehicleId); }
+    public class LongTermRateService : ILongTermRateService
     {
         // =====================================
         // LAY CAC GOI THUE CUA MOT XE
