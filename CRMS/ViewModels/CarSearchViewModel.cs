@@ -73,6 +73,7 @@ namespace CRMS.ViewModels
         public bool IsSelfDrive => RentalMode == "SelfDrive";
         private CarSearchContext? _initialContext;
         public string LocationSummary => SelectedCity?.CityId > 0 ? SelectedCity.CityName : "Tất cả địa điểm";
+        public string DeliveryFilterLabel => $"Giao nhận tận nơi: {LocationSummary}";
         public string DriverJourneySummary => SelectedCity?.CityId > 0
             ? SelectedRoute == "Nội thành" ? $"Nội thành · {SelectedCity.CityName}"
                 : $"{SelectedRoute} · {SelectedCity.CityName} → {DestinationCity?.CityName ?? "Chọn điểm đến"}"
@@ -91,7 +92,7 @@ namespace CRMS.ViewModels
             : "Chỉ hiển thị xe đã xác minh địa điểm và chế độ tự lái. Giá giờ và giá ngày được phân biệt rõ.";
         public string RentalPeriodSummary => StartAtLocal.HasValue ? $"{StartAtLocal:HH:mm dd/MM/yyyy} – {EndAtLocal:HH:mm dd/MM/yyyy}" : "Chọn thời gian thuê";
         private SearchCity? _selectedCity;
-        public SearchCity? SelectedCity { get => _selectedCity; set { _selectedCity = value; Changed(nameof(SelectedCity)); OnPropertyChanged(nameof(LocationSummary)); } }
+        public SearchCity? SelectedCity { get => _selectedCity; set { _selectedCity = value; Changed(nameof(SelectedCity)); OnPropertyChanged(nameof(LocationSummary)); OnPropertyChanged(nameof(DeliveryFilterLabel)); } }
         private SearchCity? _destinationCity;
         public SearchCity? DestinationCity { get => _destinationCity; set { _destinationCity = value; Changed(nameof(DestinationCity)); } }
         private string _selectedRoute = "Nội thành";
@@ -303,7 +304,8 @@ namespace CRMS.ViewModels
                 CityId = IsLongTerm ? RequireLongTermCity().CityId : SelectedCity?.CityId > 0 ? SelectedCity.CityId : null,
                 DestinationCityId = IsWithDriver && SelectedRoute == "Nội thành" ? (SelectedCity?.CityId > 0 ? SelectedCity.CityId : null) : (DestinationCity?.CityId > 0 ? DestinationCity.CityId : null),
                 RouteType = SelectedRoute switch { "Liên tỉnh" => "InterCityRoundTrip", "Liên tỉnh một chiều" => "InterCityOneWay", _ => "InnerCity" },
-                Latitude = ParseCoordinate(LatitudeText), Longitude = ParseCoordinate(LongitudeText),
+                Latitude = DeliveryOnly && !FreeDeliveryOnly ? null : ParseCoordinate(LatitudeText),
+                Longitude = DeliveryOnly && !FreeDeliveryOnly ? null : ParseCoordinate(LongitudeText),
                 DurationMonths = SelectedDuration, CustomerId = CurrentUserService.Instance.UserId,
                 PurposeCodes = Purposes.Where(p => p.IsSelected).Select(p => p.Code).ToArray(),
                 ChildSeatAgeCodes = IsSelfDrive ? ChildSeatAgeCodes : Array.Empty<string>(),
@@ -315,6 +317,17 @@ namespace CRMS.ViewModels
         {
             HasEmptyResults = false;
             ++_requestVersion; _searchCancellation?.Cancel(); _searchCancellation = null; IsLoading = false;
+        }
+        public async Task ToggleDeliveryAsync()
+        {
+            if (!IsSelfDrive || IsLoading) return;
+            if (!DeliveryOnly && SelectedCity?.CityId is not > 0)
+            {
+                StatusMessage = "Chọn khu vực tìm xe trước khi bật giao nhận tận nơi.";
+                return;
+            }
+            DeliveryOnly = !DeliveryOnly;
+            await SearchAsync();
         }
         public async Task SearchAsync()
         {
@@ -343,7 +356,7 @@ namespace CRMS.ViewModels
                 if (IsLongTerm && SelectedCity?.CityId > 0) parts.Add(new(SelectedCity.CityName));
                 if (ExtendedTravelOnly && DestinationCity?.CityId > 0) parts.Add(new("Đến " + DestinationCity.CityName, () => ExtendedTravelOnly = false));
                 if (HourlyOnly) parts.Add(new("Thuê giờ", () => HourlyOnly = false));
-                if (filter.DeliveryOnly) parts.Add(new(SelectedDeliveryLocation != null ? $"Giao nhận tận nơi: {SelectedDeliveryLocation.DisplayName}" : "Giao nhận tận nơi", () => DeliveryOnly = false));
+                if (filter.DeliveryOnly) parts.Add(new(DeliveryFilterLabel, () => DeliveryOnly = false));
                 if (FreeDeliveryOnly) parts.Add(new(IsWithDriver ? $"Miễn phí đưa đón nội thành: {LocationSummary}" : SelectedDeliveryLocation != null ? $"Miễn phí đưa đón: {SelectedDeliveryLocation.DisplayName}" : "Miễn phí đưa đón", () => FreeDeliveryOnly = false));
                 if (HighlyRatedOnly) parts.Add(new("Chủ xe uy tín", () => HighlyRatedOnly = false));
                 if (InstantOnly) parts.Add(new("Hỗ trợ đặt nhanh", () => InstantOnly = false));
