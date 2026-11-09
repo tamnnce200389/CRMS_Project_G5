@@ -1,0 +1,96 @@
+<Page x:Class="CRMS.Views.Customer.VNPaySimulationPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Title="VNPay Demo" Background="#F3F6FA">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid Margin="28" MaxWidth="760" HorizontalAlignment="Center">
+            <Border Background="White" CornerRadius="18" Padding="28">
+                <StackPanel>
+                    <Border Background="#D71920" CornerRadius="10" Padding="18" Margin="0,0,0,18">
+                        <StackPanel>
+                            <TextBlock Text="VNPAY" Foreground="White" FontSize="30"
+                                       FontWeight="Bold" HorizontalAlignment="Center"/>
+                            <TextBlock Text="CỔNG THANH TOÁN MÔ PHỎNG"
+                                       Foreground="White" FontSize="12" FontWeight="SemiBold"
+                                       HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Background="#FFF7ED" BorderBrush="#FDBA74" BorderThickness="1"
+                            CornerRadius="8" Padding="12" Margin="0,0,0,18">
+                        <TextBlock Text="CHẾ ĐỘ DEMO: Không kết nối VNPay thật, không phát sinh giao dịch hoặc chuyển tiền."
+                                   Foreground="#9A3412" FontWeight="SemiBold"
+                                   TextWrapping="Wrap" TextAlignment="Center"/>
+                    </Border>
+
+                    <TextBlock Text="XÁC NHẬN THANH TOÁN TIỀN CỌC"
+                               FontSize="21" FontWeight="Bold" Foreground="#172554"
+                               HorizontalAlignment="Center" Margin="0,0,0,20"/>
+
+                    <Grid Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Mã Booking" Foreground="#64748B"/>
+                        <TextBlock x:Name="BookingCodeText" Grid.Column="1"
+                                   FontWeight="Bold" Foreground="#0F172A"/>
+                    </Grid>
+                    <Grid Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Phương tiện" Foreground="#64748B"/>
+                        <TextBlock x:Name="VehicleText" Grid.Column="1"
+                                   FontWeight="SemiBold" Foreground="#0F172A"/>
+                    </Grid>
+                    <Grid Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Hạn thanh toán" Foreground="#64748B"/>
+                        <TextBlock x:Name="DeadlineText" Grid.Column="1"
+                                   FontWeight="SemiBold" Foreground="#0F172A"/>
+                    </Grid>
+
+                    <Border Background="#F0FDF4" CornerRadius="12" Padding="18" Margin="0,14,0,18">
+                        <StackPanel>
+                            <TextBlock Text="SỐ TIỀN CẦN THANH TOÁN"
+                                       Foreground="#166534" FontSize="12"
+                                       HorizontalAlignment="Center" FontWeight="Bold"/>
+                            <TextBlock x:Name="AmountText" Text="0 đ"
+                                       Foreground="#15803D" FontSize="32"
+                                       FontWeight="Bold" HorizontalAlignment="Center"
+                                       Margin="0,5,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <TextBlock Text="Chọn kết quả giao dịch để kiểm thử quy trình:"
+                               Foreground="#334155" FontWeight="SemiBold"
+                               Margin="0,0,0,12"/>
+
+                    <Button x:Name="SuccessButton" Content="✓  MÔ PHỎNG THANH TOÁN THÀNH CÔNG"
+                            Height="48" Background="#16A34A" Foreground="White"
+                            FontWeight="Bold" BorderThickness="0" Click="Success_Click"
+                            Margin="0,0,0,9"/>
+                    <Button x:Name="FailedButton" Content="Mô phỏng giao dịch thất bại"
+                            Height="42" Background="#FEF2F2" Foreground="#B91C1C"
+                            BorderBrush="#FECACA" Click="Failed_Click"
+                            Margin="0,0,0,9"/>
+                    <Button x:Name="CancelButton" Content="Hủy giao dịch"
+                            Height="42" Background="#F1F5F9" Foreground="#334155"
+                            BorderBrush="#CBD5E1" Click="Cancel_Click"
+                            Margin="0,0,0,14"/>
+
+                    <TextBlock x:Name="MessageText" TextWrapping="Wrap"
+                               Foreground="#475569" Margin="0,0,0,12"/>
+                    <Button Content="Quay lại lịch sử đặt xe" Height="42"
+                            Background="#2563EB" Foreground="White"
+                            BorderThickness="0" Click="Back_Click"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </ScrollViewer>
+</Page>

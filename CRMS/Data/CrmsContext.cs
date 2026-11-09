@@ -44,6 +44,8 @@ public partial class CrmsContext : DbContext
 
     public virtual DbSet<Voucher> Vouchers { get; set; }
 
+
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Booking>(entity =>

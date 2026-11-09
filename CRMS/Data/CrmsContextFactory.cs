@@ -1,23 +1,21 @@
 ﻿using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Design;
 using System;
 using System.Configuration;
 using System.IO;
 using System.Xml.Linq;
 
-
 namespace CRMS.Data
 {
-    public static class CrmsContextFactory
+    public class CrmsContextFactory : IDesignTimeDbContextFactory<CrmsContext>
     {
-        public static CrmsContext Create()
+        public CrmsContext CreateDbContext(string[] args)
         {
             string? connectionString =
                 ConfigurationManager.ConnectionStrings["CRMS"]
                     ?.ConnectionString;
 
-            // Doc App.config tu thu muc chua project khi
-            // ConfigurationManager khong tim thay cau hinh.
             if (string.IsNullOrWhiteSpace(connectionString))
             {
                 string[] possiblePaths =
@@ -68,6 +66,11 @@ namespace CRMS.Data
                     .Options;
 
             return new CrmsContext(options);
+        }
+
+        public static CrmsContext Create()
+        {
+            return new CrmsContextFactory().CreateDbContext(Array.Empty<string>());
         }
     }
 }

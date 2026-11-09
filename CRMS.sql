@@ -444,6 +444,15 @@ BEGIN
         CONSTRAINT CK_Reviews_Rating CHECK (Rating BETWEEN 1 AND 5)
     );
 END;');
+EXEC(N'IF COL_LENGTH(N''dbo.Reviews'', N''Rating'') IS NULL
+BEGIN
+    IF EXISTS (SELECT 1 FROM dbo.Reviews)
+        THROW 53902, ''Existing reviews need ratings before the search schema can be upgraded.'', 1;
+    ALTER TABLE dbo.Reviews ADD Rating TINYINT NOT NULL
+        CONSTRAINT DF_Reviews_Rating DEFAULT (5) WITH VALUES;
+    ALTER TABLE dbo.Reviews WITH CHECK ADD CONSTRAINT CK_Reviews_Rating
+        CHECK (Rating BETWEEN 1 AND 5);
+END;');
 EXEC(N'IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID(N''dbo.Reviews'') AND name = N''UX_Reviews_Booking'')
 BEGIN
     CREATE UNIQUE INDEX UX_Reviews_Booking ON dbo.Reviews(BookingId);
@@ -796,9 +805,11 @@ IF COL_LENGTH(''dbo.Bookings'',''UnitRate'') IS NULL
  ALTER TABLE dbo.Bookings ADD UnitRate decimal(18,2) NULL;');
 EXEC(N'UPDATE dbo.Bookings SET RentalUnits=RentalDays,UnitRate=VehicleDailyRate
  WHERE PriceUnit=''Day'' AND RentalUnits IS NULL AND UnitRate IS NULL;
-ALTER TABLE dbo.Bookings DROP CONSTRAINT CK_Bookings_RentalType;
+IF EXISTS(SELECT 1 FROM sys.check_constraints WHERE parent_object_id=OBJECT_ID(''dbo.Bookings'') AND name=''CK_Bookings_RentalType'')
+ ALTER TABLE dbo.Bookings DROP CONSTRAINT CK_Bookings_RentalType;
 ALTER TABLE dbo.Bookings WITH CHECK ADD CONSTRAINT CK_Bookings_RentalType CHECK(RentalType IN(''SelfDrive'',''WithDriver'',''LongTerm''));
-ALTER TABLE dbo.Bookings DROP CONSTRAINT CK_Bookings_SelfDrive;
+IF EXISTS(SELECT 1 FROM sys.check_constraints WHERE parent_object_id=OBJECT_ID(''dbo.Bookings'') AND name=''CK_Bookings_SelfDrive'')
+ ALTER TABLE dbo.Bookings DROP CONSTRAINT CK_Bookings_SelfDrive;
 ALTER TABLE dbo.Bookings WITH CHECK ADD CONSTRAINT CK_Bookings_SelfDrive CHECK(
  (RentalType IN(''SelfDrive'',''LongTerm'') AND DriverId IS NULL AND DriverDailyRate=0 AND DriverAmount=0) OR RentalType=''WithDriver'');
 IF NOT EXISTS(SELECT 1 FROM sys.check_constraints WHERE parent_object_id=OBJECT_ID(''dbo.Bookings'') AND name=''CK_Bookings_Billing'')

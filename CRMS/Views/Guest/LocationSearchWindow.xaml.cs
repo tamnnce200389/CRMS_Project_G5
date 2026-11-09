@@ -1,19 +1,26 @@
-﻿using System.Windows;
+﻿using System;
+using System.Collections.Generic;
+using System.Windows;
 using CRMS.ViewModels;
-namespace CRMS.Views.Guest;
 
-public partial class LocationSearchWindow : Window
+namespace CRMS.Views.Guest
 {
-    private LocationFilterViewModel ViewModel => (LocationFilterViewModel)DataContext;
-    public string SelectedCity => ViewModel.SelectedCity?.CityName ?? "Tất cả địa điểm";
-    public int? SelectedCityId => ViewModel.SelectedCity?.CityId > 0 ? ViewModel.SelectedCity.CityId : null;
-    public List<string> SelectedNeeds => ViewModel.Needs.Where(c => c.IsSelected).Select(c => c.Code).ToList();
-    public List<string> SelectedTrends => ViewModel.Trends.Where(c => c.IsSelected).Select(c => c.Code).ToList();
-    public List<string> SelectedBudgets => ViewModel.Budgets.Where(c => c.IsSelected).Select(c => c.Code).ToList();
-    public LocationSearchWindow(string currentCity = "", List<string>? currentTrends = null, int? currentCityId = null, List<string>? currentNeeds = null, List<string>? currentBudgets = null)
+    public partial class LocationSearchWindow : Window
     {
-        InitializeComponent(); DataContext = new LocationFilterViewModel(currentCityId, currentNeeds, currentTrends, currentBudgets, currentCityName: currentCity);
-        ViewModel.Applied += () => DialogResult = true; Loaded += (_, _) => ViewModel.LoadCommand.Execute(null);
+        public LocationSearchWindow(int? currentCityId, List<string>? currentNeeds, List<string>? currentTrends, List<string>? currentBudgets, string? currentCity)
+        {
+            InitializeComponent();
+
+            // Khởi tạo ViewModel đúng với cấu trúc dữ liệu của bạn
+            var viewModel = new LocationFilterViewModel(currentCityId, currentNeeds, currentTrends, currentBudgets, currentCityName: currentCity);
+
+            // Khi ViewModel báo hoàn tất (Applied), đóng cửa sổ và trả về true
+            viewModel.Applied += () => DialogResult = true;
+
+            DataContext = viewModel;
+
+            // Load dữ liệu khi cửa sổ mở lên
+            Loaded += (_, _) => viewModel.LoadCommand.Execute(null);
+        }
     }
-    private void Close_Click(object sender, RoutedEventArgs e) => DialogResult = false;
 }

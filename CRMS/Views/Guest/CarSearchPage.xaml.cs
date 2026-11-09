@@ -17,9 +17,6 @@ namespace CRMS.Views.Guest
 
         private bool _isLoaded = false;
 
-
-
-
         // =====================================
         // CONSTRUCTORS
         // =====================================
@@ -261,18 +258,10 @@ namespace CRMS.Views.Guest
             VisualFiltersPopup.HorizontalOffset = -430;
         }
 
-
         private void CloseVisualFilters_Click(object sender, RoutedEventArgs e)
         {
             AdvancedFiltersToggle.IsChecked = false;
         }
-
-
-
-        // =====================================
-        // MO / DONG BO LOC GIA DAI HAN
-        // =====================================
-
 
         // =====================================
         // XEM CHI TIET THUE DAI HAN
@@ -292,19 +281,19 @@ namespace CRMS.Views.Guest
 
             if (!EnsureCustomerLoggedIn()) return;
 
-            var detailWindow =
-                new LongTermDetailWindow(car, _viewModel.StartAtLocal, _viewModel.SelectedDuration);
+            var start = _viewModel.StartAtLocal ?? DateTime.Today.AddDays(1);
+            var details = new CarDetailsPage(
+                car,
+                "SelfDrive",
+                start,
+                start.AddMonths(_viewModel.SelectedDuration),
+                longTermMonths: _viewModel.SelectedDuration,
+                returnPage: this);
 
-            Window? mainWindow =
-                Window.GetWindow(this);
-
-            if (mainWindow != null)
-            {
-                detailWindow.Owner = mainWindow;
-            }
-
-            if (detailWindow.ShowDialog() == true && mainWindow?.DataContext is MainViewModel main)
-                main.NavigateCommand.Execute("MyBookings");
+            if (Window.GetWindow(this)?.DataContext is MainViewModel main)
+                main.CurrentPage = details;
+            else
+                NavigationService?.Navigate(details);
         }
 
         // =====================================
@@ -340,8 +329,6 @@ namespace CRMS.Views.Guest
                 // Cap nhat giao dien sau dang nhap
                 if (mainWindow?.DataContext is MainViewModel vm)
                 {
-
-
                     // Giu lai trang tim xe hien tai
                     if (session.IsCustomer)
                     {
