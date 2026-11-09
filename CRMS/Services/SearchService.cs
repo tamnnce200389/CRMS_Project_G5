@@ -123,7 +123,9 @@ public sealed record CarSearchFilter
         }
         if (FreePickupInCityOnly && (RentalMode != "WithDriver" || !FreeDeliveryOnly || CityId is null or <= 0))
             throw new ArgumentException("Miễn phí đưa đón nội thành cần chế độ có tài xế và thành phố đón hợp lệ.");
-        if (DeliveryOnly || (FreeDeliveryOnly && !FreePickupInCityOnly))
+        if (DeliveryOnly && CityId is null or <= 0)
+            throw new ArgumentException("Chọn khu vực tìm xe trước khi bật giao nhận tận nơi.");
+        if (FreeDeliveryOnly && !FreePickupInCityOnly)
         {
             if (!CityId.HasValue || !Latitude.HasValue || !Longitude.HasValue || !double.IsFinite(Latitude.Value) || !double.IsFinite(Longitude.Value) || Latitude is < -90 or > 90 || Longitude is < -180 or > 180)
                 throw new ArgumentException("Lọc giao/đón xe cần thành phố và tọa độ hợp lệ của điểm giao/đón.");
@@ -199,7 +201,7 @@ public class SearchService
             var available = db.SearchAvailableVehicles(start, end, now);
             catalog = catalog.Where(c => available.Any(a => a.VehicleId == c.VehicleId));
         }
-        if (filter.CityId.HasValue && (filter.RentalMode == "LongTerm" || (filter.RentalMode != "WithDriver" && !filter.DeliveryOnly && !filter.FreeDeliveryOnly))) catalog = catalog.Where(c => c.CityId == filter.CityId);
+        if (filter.CityId.HasValue && (filter.RentalMode == "LongTerm" || (filter.RentalMode != "WithDriver" && (filter.DeliveryOnly || !filter.FreeDeliveryOnly)))) catalog = catalog.Where(c => c.CityId == filter.CityId);
         if (filter.RentalMode == "WithDriver") catalog = catalog.Where(c => db.VehicleDriverRoutes.Any(r => r.VehicleId == c.VehicleId && r.IsActive && r.RouteType == filter.RouteType && r.PickupCityId == filter.CityId && r.DestinationCityId == filter.DestinationCityId));
         if (!string.IsNullOrWhiteSpace(filter.Keyword))
         {
@@ -231,7 +233,11 @@ public class SearchService
         var freeCityVehicles = db.VehicleDeliveryAreas.Where(a => a.IsActive && a.CityId == city && a.RentalMode == "WithDriver" && a.ServiceRadiusKm > 0 &&
             (a.FreeWithinKm > 0 || (a.FeeModel == "Flat" && a.FlatFee == 0) || (a.FeeModel == "PerKm" && a.FeePerKm == 0 && a.MinimumFee == 0))).Select(a => a.VehicleId);
         if (filter.FreePickupInCityOnly) catalog = catalog.Where(c => freeCityVehicles.Contains(c.VehicleId));
-        if (filter.DeliveryOnly || (filter.FreeDeliveryOnly && !filter.FreePickupInCityOnly)) catalog = catalog.Where(c => quotes.Any(q => q.VehicleId == c.VehicleId && (!filter.FreeDeliveryOnly || q.DeliveryAndCollectionFee == 0)));
+        // The quick delivery filter uses the region already selected for the search.
+        // A city-level match does not quote an address-specific distance or delivery fee.
+        if (filter.DeliveryOnly) catalog = catalog.Where(c => db.VehicleDeliveryAreas.Any(a =>
+            a.VehicleId == c.VehicleId && a.RentalMode == c.RentalMode && a.CityId == city && a.IsActive && a.ServiceRadiusKm > 0));
+        if (filter.FreeDeliveryOnly && !filter.FreePickupInCityOnly) catalog = catalog.Where(c => quotes.Any(q => q.VehicleId == c.VehicleId && q.DeliveryAndCollectionFee == 0));
         // This reads the unchanged daily-driver fee. Fixed-trip quotes remain explicitly separate.
         var query = catalog.Select(c => new CarSearchItem
         {
@@ -239,7 +245,7 @@ public class SearchService
             OwnerRating = c.AverageRating, OwnerReviewCount = c.ReviewCount ?? 0,
             SupportsInstant = c.SupportsInstantBooking == true, NoCollateral = c.RequiresCollateral == false,
             SupportsFreeCityPickup = filter.FreePickupInCityOnly && freeCityVehicles.Contains(c.VehicleId),
-            SupportsDelivery = db.VehicleDeliveryAreas.Any(a => a.VehicleId == c.VehicleId && a.RentalMode == c.RentalMode && a.IsActive),
+            SupportsDelivery = db.VehicleDeliveryAreas.Any(a => a.VehicleId == c.VehicleId && a.RentalMode == c.RentalMode && a.IsActive && a.ServiceRadiusKm > 0 && (!filter.CityId.HasValue || a.CityId == city)),
             HasChildSeat = db.VehicleAmenities.Any(a => a.VehicleId == c.VehicleId && a.RentalMode == c.RentalMode && a.IsActive && a.Quantity > 0 && db.Amenities.Any(t => t.AmenityId == a.AmenityId && t.IsActive && (t.AmenityCode == "ChildSeat" || t.AmenityCode.StartsWith("ChildSeat:")))),
             ManufactureYear = c.ManufactureYear, SeatCount = c.SeatCount, Transmission = c.Transmission, FuelType = c.FuelType,
             DailyRate = c.DailyRate, CityName = c.CityName,
