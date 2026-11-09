@@ -217,6 +217,26 @@ namespace CRMS.Views.Guest
             }
         }
 
+        private void SelfDriveChildSeat_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is ToggleButton button) button.GetBindingExpression(ToggleButton.IsCheckedProperty)?.UpdateTarget();
+            AdvancedFiltersToggle.IsChecked = false;
+            ShowFilterDialog("ChildSeat");
+        }
+
+        private async void SelfDriveTravel_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is ToggleButton button) button.GetBindingExpression(ToggleButton.IsCheckedProperty)?.UpdateTarget();
+            if (_viewModel.ExtendedTravelOnly)
+            {
+                _viewModel.ExtendedTravelOnly = false;
+                await _viewModel.SearchAsync();
+                return;
+            }
+            AdvancedFiltersToggle.IsChecked = false;
+            ShowFilterDialog("Travel");
+        }
+
         private bool ChooseDriverRoute() => ShowFilterDialog("Route") == true;
         private void DriverRoute_Click(object sender, RoutedEventArgs e) => ChooseDriverRoute();
         private async void DriverFreePickup_Click(object sender, RoutedEventArgs e)
@@ -231,14 +251,8 @@ namespace CRMS.Views.Guest
         private async void SelfDriveDelivery_Click(object sender, RoutedEventArgs e)
         {
             if (sender is ToggleButton button) button.GetBindingExpression(ToggleButton.IsCheckedProperty)?.UpdateTarget();
-            if (_viewModel.DeliveryOnly)
-            {
-                _viewModel.DeliveryOnly = false;
-                await _viewModel.SearchAsync();
-                return;
-            }
             AdvancedFiltersToggle.IsChecked = false;
-            ShowFilterDialog("Delivery");
+            await _viewModel.ToggleDeliveryAsync();
         }
 
         private void OpenShortTermFilters_Click(object sender, RoutedEventArgs e)

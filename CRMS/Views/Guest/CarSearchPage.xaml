@@ -102,7 +102,7 @@
         </ControlTemplate.Triggers>
       </ControlTemplate></Setter.Value></Setter>
     </Style>
-    <Style x:Key="MiotoQuickChip" TargetType="ToggleButton" BasedOn="{StaticResource SearchFilterChip}">
+    <Style x:Key="MiotoQuickChip" TargetType="ToggleButton" BasedOn="{StaticResource FilterChip}">
       <Setter Property="MinHeight" Value="38"/><Setter Property="Padding" Value="13,7"/>
       <Setter Property="FontSize" Value="13"/><Setter Property="FontWeight" Value="Normal"/>
       <Setter Property="Margin" Value="0,0,9,0"/>
@@ -327,15 +327,24 @@
               <StackPanel Style="{StaticResource ShowSelfDrive}" Orientation="Horizontal">
                 <ToggleButton Content="Loại xe" Tag="{StaticResource IconCar}" ToolTip="Chọn loại xe: sedan, SUV, MPV…" Style="{StaticResource MiotoQuickChip}" CommandParameter="Category" IsChecked="{Binding HasCategoryFilter, Mode=OneWay}" Click="QuickFilter_Click"/>
                 <ToggleButton Content="Hãng xe" Tag="{StaticResource IconBrand}" ToolTip="Chọn hãng sản xuất của xe" Style="{StaticResource MiotoQuickChip}" CommandParameter="Brand" IsChecked="{Binding HasBrandFilter, Mode=OneWay}" Click="QuickFilter_Click"/>
-                <ToggleButton Content="Giá thuê" Tag="{StaticResource IconFilters}" ToolTip="Chọn khoảng giá thuê" Style="{StaticResource MiotoQuickChip}" CommandParameter="Price" IsChecked="{Binding HasPriceFilter, Mode=OneWay}" Click="QuickFilter_Click"/>
                 <ToggleButton Content="Thuê giờ" Tag="{StaticResource IconClock}" ToolTip="Xem lựa chọn thuê theo giờ" Style="{StaticResource MiotoQuickChip}" IsChecked="{Binding HourlyOnly, Mode=TwoWay}" Click="QuickOption_Click"/>
-                <ToggleButton Content="Giao nhận tận nơi" Tag="{StaticResource IconMap}" ToolTip="Chọn điểm giao nhận xe" Style="{StaticResource MiotoQuickChip}" IsChecked="{Binding DeliveryOnly, Mode=OneWay}" Click="SelfDriveDelivery_Click"/>
+                <ToggleButton Content="Giao nhận tận nơi" Tag="{StaticResource IconMap}" ToolTip="{Binding DeliveryFilterLabel}" Style="{StaticResource MiotoQuickChip}" IsChecked="{Binding DeliveryOnly, Mode=OneWay}" Click="SelfDriveDelivery_Click"/>
+                <ToggleButton Content="Chủ xe 5★" Tag="{StaticResource IconStar}" ToolTip="Ưu tiên xe của chủ xe được đánh giá cao" Style="{StaticResource MiotoQuickChip}" IsChecked="{Binding HighlyRatedOnly, Mode=TwoWay}" Click="QuickOption_Click"/>
+                <ToggleButton Content="Đặt xe nhanh" Tag="{StaticResource IconBolt}" ToolTip="Ưu tiên xe có thể xác nhận đặt nhanh" Style="{StaticResource MiotoQuickChip}" IsChecked="{Binding InstantOnly, Mode=TwoWay}" Click="QuickOption_Click"/>
+                <ToggleButton Content="Miễn thế chấp" Tag="{StaticResource IconShield}" ToolTip="Xem xe có chính sách miễn thế chấp" Style="{StaticResource MiotoQuickChip}" IsChecked="{Binding NoCollateralOnly, Mode=TwoWay}" Click="QuickOption_Click"/>
+                <ToggleButton Content="Giảm giá" Tag="{StaticResource IconPercent}" ToolTip="Xem xe đang có ưu đãi" Style="{StaticResource MiotoQuickChip}" IsChecked="{Binding DiscountOnly, Mode=TwoWay}" Click="QuickOption_Click"/>
+                <ToggleButton Content="Ghế trẻ em" Tag="{StaticResource IconChild}" ToolTip="Xe có thể cung cấp ghế trẻ em" Style="{StaticResource MiotoQuickChip}" IsChecked="{Binding HasChildSeatFilter, Mode=OneWay}" Click="SelfDriveChildSeat_Click"/>
+                <ToggleButton Content="Di chuyển mở rộng" Tag="{StaticResource IconExpand}" ToolTip="Chọn thành phố đích để lọc xe được phép di chuyển tới đó" Style="{StaticResource MiotoQuickChip}" IsChecked="{Binding ExtendedTravelOnly, Mode=OneWay}" Click="SelfDriveTravel_Click"/>
               </StackPanel>
               <StackPanel Style="{StaticResource ShowWithDriver}" Orientation="Horizontal">
                 <ToggleButton Content="Loại xe" Tag="{StaticResource IconCar}" ToolTip="Chọn loại xe phù hợp số hành khách" Style="{StaticResource MiotoQuickChip}" CommandParameter="Category" IsChecked="{Binding HasCategoryFilter, Mode=OneWay}" Click="QuickFilter_Click"/>
                 <ToggleButton Content="Hãng xe" Tag="{StaticResource IconBrand}" ToolTip="Chọn hãng sản xuất của xe" Style="{StaticResource MiotoQuickChip}" CommandParameter="Brand" IsChecked="{Binding HasBrandFilter, Mode=OneWay}" Click="QuickFilter_Click"/>
-                <ToggleButton Content="Giá thuê" Tag="{StaticResource IconFilters}" ToolTip="Chọn khoảng giá thuê" Style="{StaticResource MiotoQuickChip}" CommandParameter="Price" IsChecked="{Binding HasPriceFilter, Mode=OneWay}" Click="QuickFilter_Click"/>
                 <ToggleButton Content="Miễn phí đưa đón" Tag="{StaticResource IconShuttle}" ToolTip="Miễn phí đưa đón nội thành, theo phạm vi từng xe" Style="{StaticResource MiotoQuickChip}" IsChecked="{Binding FreeDeliveryOnly, Mode=OneWay}" Click="DriverFreePickup_Click"/>
+                <ToggleButton Content="Chủ xe 5★" Tag="{StaticResource IconStar}" ToolTip="Ưu tiên dịch vụ được đánh giá cao" Style="{StaticResource MiotoQuickChip}" IsChecked="{Binding HighlyRatedOnly, Mode=TwoWay}" Click="QuickOption_Click"/>
+                <ToggleButton Content="Đặt xe nhanh" Tag="{StaticResource IconBolt}" ToolTip="Ưu tiên chuyến đi xác nhận nhanh" Style="{StaticResource MiotoQuickChip}" IsChecked="{Binding InstantOnly, Mode=TwoWay}" Click="QuickOption_Click"/>
+                <ToggleButton Content="Giảm giá" Tag="{StaticResource IconPercent}" ToolTip="Xem chuyến đi có ưu đãi" Style="{StaticResource MiotoQuickChip}" IsChecked="{Binding DiscountOnly, Mode=TwoWay}" Click="QuickOption_Click"/>
+                <ToggleButton Content="Xe điện" Tag="{StaticResource IconElectric}" ToolTip="Chọn xe vận hành bằng điện" Style="{StaticResource MiotoQuickChip}" IsChecked="{Binding IsElectricFilter, Mode=TwoWay}" Click="QuickOption_Click"/>
+                <ToggleButton Content="Xe xăng &amp; điện" Tag="{StaticResource IconHybrid}" ToolTip="Xe hybrid kết hợp xăng và điện" Style="{StaticResource MiotoQuickChip}" IsChecked="{Binding IsHybridFilter, Mode=TwoWay}" Click="QuickOption_Click"/>
               </StackPanel>
             </StackPanel>
           </ScrollViewer>
@@ -364,7 +373,6 @@
             <ToggleButton Content="Truyền động" Tag="{StaticResource IconTransmission}" ToolTip="Chọn xe số tự động hoặc số sàn" Style="{StaticResource MiotoQuickChip}" CommandParameter="Transmission" IsChecked="{Binding HasTransmissionFilter, Mode=OneWay}" Click="QuickFilter_Click"/>
             <ToggleButton Content="Loại xe" Tag="{StaticResource IconCar}" ToolTip="Chọn loại xe cho nhu cầu dài hạn" Style="{StaticResource MiotoQuickChip}" CommandParameter="Category" IsChecked="{Binding HasCategoryFilter, Mode=OneWay}" Click="QuickFilter_Click"/>
             <ToggleButton Content="Hãng xe" Tag="{StaticResource IconBrand}" ToolTip="Chọn hãng xe cho nhu cầu dài hạn" Style="{StaticResource MiotoQuickChip}" CommandParameter="Brand" IsChecked="{Binding HasBrandFilter, Mode=OneWay}" Click="QuickFilter_Click"/>
-                <ToggleButton Content="Giá thuê" Tag="{StaticResource IconFilters}" ToolTip="Chọn khoảng giá thuê" Style="{StaticResource MiotoQuickChip}" CommandParameter="Price" IsChecked="{Binding HasPriceFilter, Mode=OneWay}" Click="QuickFilter_Click"/>
           </StackPanel>
         </Grid>
       </StackPanel>
@@ -503,9 +511,22 @@
 <TextBlock Text="Tiện ích và chính sách" Margin="0,16,0,6" FontWeight="SemiBold"/>
 <CheckBox Content="Thuê giờ" IsChecked="{Binding HourlyOnly}" Visibility="{Binding IsSelfDrive, Converter={StaticResource BoolVisible}}" Margin="0,4"/>
 <CheckBox Content="Giao nhận tận nơi" IsChecked="{Binding DeliveryOnly}" Margin="0,4"/>
+<TextBlock Text="{Binding DeliveryFilterLabel}" Foreground="{StaticResource MutedReadable}" TextWrapping="Wrap" Margin="0,2,0,6" Visibility="{Binding DeliveryOnly, Converter={StaticResource BoolVisible}}"/>
 <CheckBox Content="Giao/đón miễn phí trong phạm vi" IsChecked="{Binding FreeDeliveryOnly}" Margin="0,4"/>
+<StackPanel>
+  <StackPanel.Style><Style TargetType="StackPanel">
+    <Setter Property="Visibility" Value="Collapsed"/>
+    <Style.Triggers><MultiDataTrigger>
+      <MultiDataTrigger.Conditions>
+        <Condition Binding="{Binding IsSelfDrive}" Value="True"/>
+        <Condition Binding="{Binding FreeDeliveryOnly}" Value="True"/>
+      </MultiDataTrigger.Conditions>
+      <Setter Property="Visibility" Value="Visible"/>
+    </MultiDataTrigger></Style.Triggers>
+  </Style></StackPanel.Style>
 <TextBlock Text="Điểm giao/đón đã đăng ký" Margin="0,8,0,6"/>
 <ComboBox ItemsSource="{Binding DeliveryLocations}" SelectedItem="{Binding SelectedDeliveryLocation}"><ComboBox.ItemTemplate><DataTemplate><StackPanel><TextBlock Text="{Binding DisplayName}"/><TextBlock Text="{Binding AddressLine}" Foreground="{StaticResource MutedReadable}" TextWrapping="Wrap"/></StackPanel></DataTemplate></ComboBox.ItemTemplate></ComboBox>
+</StackPanel>
 <CheckBox Content="Chủ xe uy tín (theo đánh giá thật)" IsChecked="{Binding HighlyRatedOnly}" Margin="0,8,0,4"/>
 <CheckBox Content="Hỗ trợ đặt nhanh" IsChecked="{Binding InstantOnly}" Margin="0,4"/>
 <CheckBox Content="Miễn thế chấp (vẫn áp dụng tiền cọc thanh toán)" IsChecked="{Binding NoCollateralOnly}" Style="{StaticResource SelfDrivePolicies}" Margin="0,4"/>

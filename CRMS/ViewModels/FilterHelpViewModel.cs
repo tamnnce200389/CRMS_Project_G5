@@ -11,7 +11,7 @@ public sealed record FilterHelpViewModel(string Title, string Description)
         "Thuê giờ" => new(title,
             "Xe có biểu giá thuê theo giờ, phù hợp các chuyến đi ngắn. Thời gian thuê tối thiểu, tối đa và bước làm tròn tùy biểu giá từng xe.\n\nChọn thời gian nhận và trả xe để xem số giờ tính phí và tổng tiền trước khi xác nhận đặt xe."),
         "Giao nhận tận nơi" => new(title,
-            "Xe có dịch vụ giao nhận tại nhà, sân bay hoặc điểm giao nhận trong phạm vi phục vụ của xe.\n\nChọn điểm giao nhận để tìm xe phù hợp. Phạm vi và phí phụ thuộc từng xe, từng địa điểm; giá thuê chưa bao gồm phí giao nhận."),
+            "Bấm để lọc ngay các xe có dịch vụ giao nhận trong khu vực bạn đã chọn khi tìm xe. Không cần chọn lại địa điểm.\n\nĐịa chỉ cụ thể vẫn phải nằm trong phạm vi phục vụ của từng xe. Phí giao nhận được xác nhận theo địa chỉ thực tế; bộ lọc theo khu vực không có nghĩa miễn phí giao nhận hoặc giao được mọi địa chỉ trong khu vực."),
         "Chủ xe 5★" => new(title,
             "Nhóm chủ xe uy tín, đạt yêu cầu về điểm đánh giá và số lượng đánh giá từ các chuyến thuê đã hoàn tất.\n\nĐiểm và số đánh giá được hiển thị trên thẻ xe. Nhãn 5★ không có nghĩa mọi chủ xe đều có điểm tuyệt đối 5,0."),
         "Đặt xe nhanh" => new(title,

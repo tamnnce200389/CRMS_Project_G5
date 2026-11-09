@@ -119,7 +119,9 @@ public sealed record CarSearchFilter
         }
         if (FreePickupInCityOnly && (RentalMode != "WithDriver" || !FreeDeliveryOnly || CityId is null or <= 0))
             throw new ArgumentException("Miễn phí đưa đón nội thành cần chế độ có tài xế và thành phố đón hợp lệ.");
-        if (DeliveryOnly || (FreeDeliveryOnly && !FreePickupInCityOnly))
+        if (DeliveryOnly && CityId is null or <= 0)
+            throw new ArgumentException("Chọn khu vực tìm xe trước khi bật giao nhận tận nơi.");
+        if (FreeDeliveryOnly && !FreePickupInCityOnly)
         {
             if (!CityId.HasValue || !Latitude.HasValue || !Longitude.HasValue || !double.IsFinite(Latitude.Value) || !double.IsFinite(Longitude.Value) || Latitude is < -90 or > 90 || Longitude is < -180 or > 180)
                 throw new ArgumentException("Lọc giao/đón xe cần thành phố và tọa độ hợp lệ của điểm giao/đón.");
