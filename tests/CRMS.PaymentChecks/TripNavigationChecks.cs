@@ -3,6 +3,8 @@ using System.Windows.Controls;
 using System.Windows.Threading;
 using System.Windows.Automation.Peers;
 using System.Windows.Automation.Provider;
+using System.Windows.Media;
+using System.Diagnostics;
 using CRMS.Models;
 using CRMS.Services;
 using CRMS.ViewModels;
@@ -45,8 +47,8 @@ internal static class TripNavigationChecks
                     {
                         ((ItemsControl)page.FindName("BookingsList")).ItemsSource = new[]
                         {
-                            new CRMS.Dtos.CustomerTrip("QA-EXPIRED", "Fixture", DateTime.UtcNow, DateTime.UtcNow.AddDays(1),
-                                4000000, "PendingDeposit", DepositDeadlineUtc: DateTime.UtcNow.AddDays(-1))
+                            new TripItemViewModel(new CRMS.Dtos.CustomerTrip("QA-EXPIRED", "Fixture", DateTime.UtcNow, DateTime.UtcNow.AddDays(1),
+                                4000000, "PendingDeposit", DepositDeadlineUtc: DateTime.UtcNow.AddDays(-1)))
                         };
                         ((UIElement)page.FindName("StatePanel")).Visibility = Visibility.Collapsed;
                         Layout();
@@ -58,6 +60,8 @@ internal static class TripNavigationChecks
                         throw new Exception("New-trip button did not navigate home and update the active navigation item.");
                     Console.WriteLine($"PASS: actual Frame-hosted NewTripButton navigates home from {(pass == 0 ? "empty trips" : "expired sample trips")}");
                 }
+                CheckTripBindings(main, Layout);
+                CheckDashboardBindings(main, Layout);
                 var service = new PaymentFixture();
                 using var paymentVm = new DemoPaymentViewModel(11, service, true);
                 string notice = "", noticeTitle = "";
@@ -87,7 +91,7 @@ internal static class TripNavigationChecks
                 Console.WriteLine("PASS: actual CheckStatusButton reports connection failure rather than cached success");
                 paymentWindow.Close();
                 CurrentUserService.Instance.Logout();
-                Console.WriteLine("SUCCESS: 5 customer navigation/status-button checks passed; no database writes or booking creation.");
+                Console.WriteLine("SUCCESS: customer navigation, trip binding and status-button checks passed; no database writes or booking creation.");
             }
             catch (Exception ex) { error = ex; }
         });
@@ -95,6 +99,103 @@ internal static class TripNavigationChecks
         thread.Start(); thread.Join();
         if (error != null) System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(error).Throw();
     }
+    private static void CheckDashboardBindings(MainViewModel main, Action layout)
+    {
+        var session = new DashboardSession();
+        var admin = new AdminDashboardViewModel((_, _) => Task.FromResult(new DashboardSnapshot { TotalBookings = 1234, DepositCollected = 2000 }), session);
+        var staff = new StaffDashboardViewModel((_, _) => Task.FromResult(new StaffDashboardSnapshot { TotalBookings = 1234 }), session);
+        admin.LoadAsync().GetAwaiter().GetResult();
+        staff.LoadAsync().GetAwaiter().GetResult();
+        foreach (var (page, vm, command) in new (Page, object, System.Windows.Input.ICommand)[]
+        {
+            (new CRMS.Views.Admin.DashboardPage(), admin, admin.RefreshCommand),
+            (new CRMS.Views.Staff.StaffDashboardPage(), staff, staff.RefreshCommand)
+        })
+        {
+            page.DataContext = vm;
+            main.CurrentPage = page;
+            layout();
+            var count = Descendants<TextBlock>(page).First(t => System.Windows.Data.BindingOperations.GetBinding(t, TextBlock.TextProperty)?.Path.Path == "Snapshot.TotalBookings");
+            if (string.Concat(count.Text.Where(char.IsDigit)) != "1234" ||
+                !Descendants<Button>(page).Any(b => ReferenceEquals(b.Command, command)) ||
+                Descendants<DatePicker>(page).Count(p => p.SelectedDate.HasValue) != 2)
+                throw new Exception("Dashboard inherited snapshot/date/command bindings failed: " + page.GetType().Name);
+            Console.WriteLine("PASS: actual " + page.GetType().Name + " retains inherited snapshot, dates and refresh-command bindings");
+        }
+    }
+
+    private sealed class DashboardSession : IUserSession
+    {
+        public long? UserId => -1;
+        public string Role => "Admin";
+        public long SessionVersion => 0;
+    }
+
+    private static void CheckTripBindings(MainViewModel main, Action layout)
+    {
+        using var errors = new System.IO.StringWriter();
+        using var trace = new TextWriterTraceListener(errors);
+        var source = PresentationTraceSources.DataBindingSource;
+        var previousLevel = source.Switch.Level;
+        source.Switch.Level = SourceLevels.Warning;
+        source.Listeners.Add(trace);
+        try
+        {
+            main.NavigateCommand.Execute("MyBookings");
+            layout();
+            var page = (MyBookingsPage)main.CurrentPage!;
+            var list = (ItemsControl)page.FindName("BookingsList");
+            ((UIElement)page.FindName("StatePanel")).Visibility = Visibility.Collapsed;
+            foreach (var (status, label) in new[]
+            {
+                ("PendingDeposit", "Thanh toán"), ("Confirmed", "Xem biên nhận demo"),
+                ("Expired", "Xem trạng thái demo"), ("Cancelled", "Xem trạng thái demo"),
+                ("InUse", "Xem biên nhận demo"), ("Returned", "Xem biên nhận demo"),
+                ("Completed", "Xem biên nhận demo")
+            })
+            {
+                var row = new TripItemViewModel(new CRMS.Dtos.CustomerTrip("BINDING-TRIP", "Toyota Vios", DateTime.UtcNow,
+                    DateTime.UtcNow.AddDays(1), 700000, status, IsDemo: true, DepositDeadlineUtc: DateTime.UtcNow.AddHours(1)));
+                list.ItemsSource = new[] { row };
+                layout();
+                var buttons = Descendants<Button>(list).ToArray();
+                var qr = buttons.Single(b => b.Name == "TripPaymentButton");
+                if (!Equals(qr.Content, label) || qr.Visibility != Visibility.Visible)
+                    throw new Exception("Trip QR button changed for " + status);
+                if (!Equals(buttons.Single(b => Equals(b.Content, "Xem thanh toán")).Tag, "BINDING-TRIP"))
+                    throw new Exception("Trip payment lookup binding is broken.");
+                if (!Descendants<TextBlock>(list).Any(t => t.Text == "Toyota Vios"))
+                    throw new Exception("Trip vehicle name binding is broken.");
+                Console.WriteLine("PASS: actual trip template preserves " + status + " button text, visibility, name and payment lookup");
+            }
+            var expired = new CRMS.Dtos.CustomerTrip("BINDING-EXPIRED", "Fixture", DateTime.UtcNow, DateTime.UtcNow.AddDays(1),
+                700000, "PendingDeposit", IsDemo: true, DepositDeadlineUtc: DateTime.UtcNow.AddDays(-1));
+            list.ItemsSource = new[] { new TripItemViewModel(expired) };
+            layout();
+            if (!Equals(Descendants<Button>(list).Single(b => b.Name == "TripPaymentButton").Content, "Xem trạng thái demo"))
+                throw new Exception("Expired pending trip still invites payment.");
+            Console.WriteLine("PASS: actual trip template keeps expired-deadline QR action");
+            list.ItemsSource = new[] { new TripItemViewModel(expired with { IsDemo = false }) };
+            layout();
+            if (Descendants<Button>(list).Single(b => b.Name == "TripPaymentButton").Visibility != Visibility.Collapsed)
+                throw new Exception("Non-demo trip exposes the QR demo action.");
+            trace.Flush();
+            if (errors.ToString().Length != 0) throw new Exception("Trip binding errors: " + errors);
+            Console.WriteLine("PASS: actual trip template hides non-demo QR and emits no binding warnings/errors");
+        }
+        finally { source.Listeners.Remove(trace); source.Switch.Level = previousLevel; }
+    }
+
+    private static IEnumerable<T> Descendants<T>(DependencyObject root) where T : DependencyObject
+    {
+        for (var i = 0; i < VisualTreeHelper.GetChildrenCount(root); i++)
+        {
+            var child = VisualTreeHelper.GetChild(root, i);
+            if (child is T match) yield return match;
+            foreach (var nested in Descendants<T>(child)) yield return nested;
+        }
+    }
+
     private sealed class PaymentFixture : IDemoPaymentService
     {
         public bool Fail;

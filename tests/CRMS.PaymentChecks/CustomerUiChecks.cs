@@ -99,7 +99,7 @@ internal static class CustomerUiChecks
                 Render("trips-empty-1100", 1100);
                 ((Border)trips.FindName("StatePanel")).Visibility = Visibility.Collapsed;
                 ((ItemsControl)trips.FindName("BookingsList")).ItemsSource = new[] {
-                    new CRMS.Dtos.CustomerTrip("DEMO-001", "Xe minh họa", new DateTime(2026,11,3,8,0,0), new DateTime(2026,11,4,8,0,0), 900000, "Confirmed", "SelfDrive", "Day", 1) };
+                    new TripItemViewModel(new CRMS.Dtos.CustomerTrip("DEMO-001", "Xe minh họa", new DateTime(2026,11,3,8,0,0), new DateTime(2026,11,4,8,0,0), 900000, "Confirmed", "SelfDrive", "Day", 1)) };
                 Render("trips-1100", 1100);
 
                 main.NavigateCommand.Execute("PaymentSummary");

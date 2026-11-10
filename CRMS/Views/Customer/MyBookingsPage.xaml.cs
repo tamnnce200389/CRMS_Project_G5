@@ -1,7 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
-using CRMS.Dtos;
 using CRMS.Services;
 using CRMS.ViewModels;
 namespace CRMS.Views.Customer;
@@ -34,9 +33,9 @@ public partial class MyBookingsPage : Page
     }
     private void DemoPayment_Click(object sender, RoutedEventArgs e)
     {
-        if (!CurrentUserService.Instance.IsCustomer || sender is not Button { DataContext: CustomerTrip { IsDemo: true } row }) return;
+        if (!CurrentUserService.Instance.IsCustomer || sender is not Button { DataContext: TripItemViewModel { Trip.IsDemo: true } row }) return;
         var actor = CurrentUserService.Instance.UserId;
-        var window = new DemoPaymentWindow(row.BookingId) { Owner = Window.GetWindow(this) ?? Application.Current?.MainWindow };
+        var window = new DemoPaymentWindow(row.Trip.BookingId) { Owner = Window.GetWindow(this) ?? Application.Current?.MainWindow };
         window.ViewModel.SessionUpdated += session =>
         {
             if (CurrentUserService.Instance.UserId == actor) ViewModel.UpdatePaymentSession(session);
