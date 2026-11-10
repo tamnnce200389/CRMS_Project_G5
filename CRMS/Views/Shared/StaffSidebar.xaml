@@ -75,6 +75,15 @@
                 </DataTrigger>
             </Style.Triggers>
         </Style>
+        <Style x:Key="IsAvailabilityActiveNav" TargetType="Button" BasedOn="{StaticResource NavButton}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding DataContext.IsAvailability, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
+                    <Setter Property="Background" Value="{StaticResource CustomerAccent}"/>
+                    <Setter Property="Foreground" Value="{StaticResource CustomerInk}"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
         <Style x:Key="IsDriversActiveNav" TargetType="Button" BasedOn="{StaticResource NavButton}">
             <Style.Triggers>
                 <DataTrigger Binding="{Binding DataContext.IsDrivers, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
@@ -249,7 +258,7 @@
                                     CommandParameter="Vehicles"/>
 
                             <Button Content="Kiểm tra lịch trống"
-                                    Style="{StaticResource NavButton}"
+                                    Style="{StaticResource IsAvailabilityActiveNav}"
                                     Command="{Binding NavigateCommand}"
                                     CommandParameter="Availability"/>
 

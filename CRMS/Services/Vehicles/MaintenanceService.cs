@@ -246,7 +246,7 @@ public sealed class MaintenanceService : IMaintenanceService
 
             return maintenanceId;
         }
-        catch (SqlException ex) when (ex.Number is >= 51400 and <= 51405)
+        catch (SqlException ex) when (ex.Number is >= 51400 and <= 51406)
         {
             throw new InvalidOperationException(TranslateProcError(ex.Number), ex);
         }
@@ -266,6 +266,7 @@ public sealed class MaintenanceService : IMaintenanceService
             51403 => "Không tìm thấy phương tiện trong hệ thống.",
             51404 => "Không thể xếp lịch bảo trì: phương tiện đã có đơn thuê (Đang sử dụng / Đã xác nhận / Giữ chỗ chờ cọc) trùng khoảng thời gian.",
             51405 => "Không thể xếp lịch bảo trì: phương tiện đã có lịch bảo trì khác chồng lấn trong khoảng thời gian này.",
+            51406 => "Không thể xếp lịch bảo trì: phương tiện đang bị khóa lịch trong khoảng thời gian này.",
             _ => "Không thể lưu lịch bảo trì."
         };
 
@@ -302,6 +303,18 @@ public sealed class MaintenanceService : IMaintenanceService
         {
             throw new InvalidOperationException(
                 "Không thể lưu lịch bảo trì: phương tiện đã có lịch bảo trì khác chồng lấn trong khoảng thời gian này.");
+        }
+
+        var hasCalendarBlock = await db.VehicleCalendarBlocks.AnyAsync(block =>
+            block.VehicleId == vehicleId &&
+            block.IsActive &&
+            block.StartAt < endUtc &&
+            block.EndAt > startUtc);
+
+        if (hasCalendarBlock)
+        {
+            throw new InvalidOperationException(
+                "Không thể lưu lịch bảo trì: phương tiện đang bị khóa lịch trong khoảng thời gian này.");
         }
     }
 

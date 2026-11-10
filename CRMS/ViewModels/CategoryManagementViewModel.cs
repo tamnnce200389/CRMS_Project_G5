@@ -112,10 +112,13 @@ public sealed class CategoryManagementViewModel : BaseViewModel
     public int TotalCategories => Categories.Count;
     public int ActiveCategories => Categories.Count(c => c.IsActive);
 
+    public event Action? RequestClose;
+
     public ICommand RefreshCommand { get; }
     public ICommand NewCommand { get; }
     public ICommand SaveCommand { get; }
     public ICommand ToggleActiveCommand { get; }
+    public ICommand CloseCommand { get; }
 
     public CategoryManagementViewModel()
         : this(new VehicleService())
@@ -134,6 +137,7 @@ public sealed class CategoryManagementViewModel : BaseViewModel
         ToggleActiveCommand = new AsyncRelayCommand(
             async _ => await ToggleSelectedAsync(),
             _ => !IsBusy && SelectedCategory != null);
+        CloseCommand = new RelayCommand(_ => RequestClose?.Invoke(), _ => !IsBusy);
     }
 
     public async Task LoadAsync()

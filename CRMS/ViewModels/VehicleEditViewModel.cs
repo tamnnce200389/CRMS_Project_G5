@@ -47,6 +47,14 @@ public sealed class VehicleImageItemViewModel : BaseViewModel
     {
         get
         {
+            if (ImageUrl.StartsWith("pack://", StringComparison.OrdinalIgnoreCase))
+            {
+                var slashIdx = ImageUrl.LastIndexOf('/');
+                return slashIdx >= 0 && slashIdx + 1 < ImageUrl.Length
+                    ? ImageUrl[(slashIdx + 1)..]
+                    : ImageUrl;
+            }
+
             if (Uri.TryCreate(ImageUrl, UriKind.Absolute, out var uri))
             {
                 if (uri.IsFile)
@@ -231,8 +239,10 @@ public sealed class VehicleEditViewModel : BaseViewModel
         }
     }
 
+    public Func<IReadOnlyList<string>?>? PickLocalImageFiles { get; set; }
     public event Action<bool>? RequestClose;
 
+    public ICommand BrowseLocalImagesCommand { get; }
     public ICommand AddImageUrlCommand { get; }
     public ICommand SetPrimaryImageCommand { get; }
     public ICommand MoveImageUpCommand { get; }
@@ -250,6 +260,7 @@ public sealed class VehicleEditViewModel : BaseViewModel
     {
         _service = service ?? throw new ArgumentNullException(nameof(service));
 
+        BrowseLocalImagesCommand = new RelayCommand(_ => BrowseLocalImages(), _ => !IsSaving);
         AddImageUrlCommand = new RelayCommand(_ => AddImageFromInput(), _ => !IsSaving);
         SetPrimaryImageCommand = new RelayCommand(
             p => SetPrimaryImage(p as VehicleImageItemViewModel ?? SelectedImage),
@@ -340,6 +351,50 @@ public sealed class VehicleEditViewModel : BaseViewModel
         {
             ErrorMessage = ex.Message;
         }
+    }
+
+    public void ImportLocalImageFiles(IEnumerable<string> sourceFiles)
+    {
+        try
+        {
+            ErrorMessage = "";
+            var uploadDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "VehicleUploads");
+            Directory.CreateDirectory(uploadDir);
+
+            foreach (var sourceFile in sourceFiles)
+            {
+                if (string.IsNullOrWhiteSpace(sourceFile) || !File.Exists(sourceFile))
+                    throw new InvalidOperationException($"Không tìm thấy tệp ảnh: {sourceFile}");
+
+                var ext = Path.GetExtension(sourceFile);
+                var safeName = $"{DateTime.UtcNow:yyyyMMddHHmmss}_{Guid.NewGuid():N}{ext}";
+                var destination = Path.Combine(uploadDir, safeName);
+                File.Copy(sourceFile, destination, overwrite: true);
+                var uri = VehicleRules.NormalizeImageUrl(destination);
+                AppendImageUri(uri);
+            }
+        }
+        catch (InvalidOperationException ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+        catch (IOException ex)
+        {
+            ErrorMessage = $"Không thể sao chép tệp ảnh: {ex.Message}";
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            ErrorMessage = $"Không có quyền truy cập tệp ảnh: {ex.Message}";
+        }
+    }
+
+    private void BrowseLocalImages()
+    {
+        var selectedFiles = PickLocalImageFiles?.Invoke();
+        if (selectedFiles is null || selectedFiles.Count == 0)
+            return;
+
+        ImportLocalImageFiles(selectedFiles);
     }
 
     private void AddImageFromInput()
@@ -444,8 +499,7 @@ public sealed class VehicleEditViewModel : BaseViewModel
             if (!byte.TryParse(SeatCountText.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var seats))
                 throw new InvalidOperationException("Số chỗ ngồi phải là số nguyên từ 1 đến 30.");
 
-            var normalizedRateText = DailyRateText.Trim().Replace(",", "");
-            if (!decimal.TryParse(normalizedRateText, NumberStyles.Number, CultureInfo.InvariantCulture, out var dailyRate))
+            if (!VehicleRules.TryParseVndAmount(DailyRateText, out var dailyRate))
                 throw new InvalidOperationException("Giá thuê theo ngày không hợp lệ.");
 
             var normalizedOdoText = OdometerKmText.Trim().Replace(",", "").Replace(".", "");

@@ -31,6 +31,8 @@ public sealed class MainViewModel : BaseViewModel
     public bool IsCustomerProfile => _navigation.CurrentRoute == "Profile";
     public bool IsDashboard => _navigation.CurrentRoute == "Dashboard";
     public bool IsVehicles => _navigation.CurrentRoute == "Vehicles";
+    public bool IsAvailability => _navigation.CurrentRoute == "Availability";
+    public bool IsMaintenance => _navigation.CurrentRoute == "Maintenance";
     public bool IsDrivers => _navigation.CurrentRoute == "Drivers";
     public bool IsBookings => _navigation.CurrentRoute == "Bookings";
     public bool IsReports => _navigation.CurrentRoute == "Reports";
@@ -43,7 +45,7 @@ public sealed class MainViewModel : BaseViewModel
     public void OpenSearch(SearchNavigationRequest request) => _navigation.Navigate("CarSearch", request);
     private void RefreshNavigationStates()
     {
-        foreach (var name in new[] { nameof(CurrentPage), nameof(IsCustomerExplore), nameof(IsCustomerBookings), nameof(IsCustomerPayments), nameof(IsCustomerProfile), nameof(IsDashboard), nameof(IsVehicles), nameof(IsDrivers), nameof(IsBookings), nameof(IsReports), nameof(IsUserManagement) }) OnPropertyChanged(name);
+        foreach (var name in new[] { nameof(CurrentPage), nameof(IsCustomerExplore), nameof(IsCustomerBookings), nameof(IsCustomerPayments), nameof(IsCustomerProfile), nameof(IsDashboard), nameof(IsVehicles), nameof(IsAvailability), nameof(IsMaintenance), nameof(IsDrivers), nameof(IsBookings), nameof(IsReports), nameof(IsUserManagement) }) OnPropertyChanged(name);
     }
     public void RefreshSession()
     {

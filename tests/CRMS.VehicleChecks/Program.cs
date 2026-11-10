@@ -179,6 +179,22 @@ listVm.SearchText = "";
 listVm.SelectedStatus = "Suspended";
 Assert(listVm.FilteredCount == 1, "VehicleViewModel filters by OperationalStatus compatible with StaffVehiclePage");
 
+long? navAvailId = null;
+long? navMaintId = null;
+listVm.NavigateToAvailability = id => navAvailId = id;
+listVm.NavigateToMaintenance = id => navMaintId = id;
+listVm.SelectedVehicle = listVm.Vehicles.First(v => v.VehicleId == 1);
+listVm.OpenAvailabilityCommand.Execute(null);
+listVm.OpenMaintenanceCommand.Execute(null);
+Assert(navAvailId == 1 && navMaintId == 1,
+    "VehicleViewModel OpenAvailabilityCommand and OpenMaintenanceCommand pass SelectedVehicle.VehicleId via MVVM hooks");
+
+var catVm = new CategoryManagementViewModel(fakeService);
+var catClosed = false;
+catVm.RequestClose += () => catClosed = true;
+catVm.CloseCommand.Execute(null);
+Assert(catClosed, "CategoryManagementViewModel CloseCommand raises RequestClose without code-behind Click");
+
 var editVm = new VehicleEditViewModel(fakeService);
 await editVm.InitializeForCreateAsync();
 editVm.AddUrlInput = "https://placehold.co/960x540/png?text=One";
@@ -190,6 +206,27 @@ Assert(editVm.Images.Count == 2 && editVm.Images[0].IsPrimary && !editVm.Images[
 editVm.SetPrimaryImageCommand.Execute(editVm.Images[1]);
 Assert(!editVm.Images[0].IsPrimary && editVm.Images[1].IsPrimary,
     "VehicleEditViewModel switches primary image");
+
+var bundledImgVm = new VehicleImageItemViewModel
+{
+    ImageUrl = "pack://application:,,,/CRMS;component/Assets/Vehicles/vehicle-01-exterior.jpg"
+};
+Assert(bundledImgVm.DisplayName == "vehicle-01-exterior.jpg",
+    "VehicleImageItemViewModel extracts clean file name for pack:// bundled image URI");
+
+Assert(VehicleRules.TryParseVndAmount("850.000", out var vnd1) && vnd1 == 850000m &&
+       VehicleRules.TryParseVndAmount("1.250.000", out var vnd2) && vnd2 == 1250000m &&
+       VehicleRules.TryParseVndAmount("850,000.50", out var vnd3) && vnd3 == 850000.50m &&
+       VehicleRules.TryParseVndAmount("850000,25", out var vnd4) && vnd4 == 850000.25m,
+    "TryParseVndAmount parses Vietnamese dot-thousands and US comma-thousands accurately");
+
+editVm.LicensePlate = "65A-999.88";
+editVm.Brand = "Honda";
+editVm.Model = "CR-V";
+editVm.DailyRateText = "1.350.000";
+await editVm.SaveAsync();
+Assert(!editVm.HasError && fakeService.LastSavedRequest?.DailyRate == 1350000m,
+    "VehicleEditViewModel saves Vietnamese dot-grouped DailyRateText (1.350.000 -> 1350000)");
 
 // =========================================================
 // 3B. F07 PURE AVAILABILITY RULES & VIEWMODEL CHECKS
@@ -320,6 +357,13 @@ Assert(maintVm.TotalRecords == 3 &&
     "F24: MaintenanceViewModel computes status KPIs and completed cost");
 maintVm.SelectedStatusFilter = "Scheduled";
 Assert(maintVm.FilteredCount == 1, "F24: MaintenanceViewModel filters by MaintenanceStatus");
+maintVm.SwitchToCreateMode();
+maintVm.DescriptionInput = "Bảo dưỡng điều hòa";
+maintVm.CostInput = "650.000";
+maintVm.SaveCommand.Execute(null);
+await Task.Delay(50);
+Assert(!maintVm.HasError && fakeMaintService.LastScheduledRequest?.Cost == 650000m,
+    "F24: MaintenanceViewModel parses Vietnamese dot-grouped CostInput (650.000 -> 650000)");
 
 if (!args.Contains("--integration"))
 {
@@ -840,6 +884,56 @@ try
     Assert((await availService.CheckAvailabilityAsync(newVehicleId, nowVn.AddHours(1), emergencyEnd)).IsAvailable,
         "F24: Cancelling InProgress maintenance frees vehicle availability");
 
+    // 6.6 CalendarBlock <-> F07 & F24 integration (51406 + EnsureNoConflictsAsync)
+    var cbDay = DateTime.Today.AddDays(22);
+    var cb10 = cbDay.AddHours(10);
+    var cb14 = cbDay.AddHours(14);
+    var cb14To16 = cbDay.AddHours(16);
+    long blockId;
+    using (var db = Create())
+    {
+        var block = new VehicleCalendarBlock
+        {
+            VehicleId = newVehicleId,
+            StartAt = AvailabilityRules.ToUtc(cb10),
+            EndAt = AvailabilityRules.ToUtc(cb14),
+            Reason = "Khóa lịch phục vụ đoàn sự kiện nội bộ",
+            IsActive = true,
+            CreatedByUserId = adminId,
+            CreatedAt = DateTime.UtcNow
+        };
+        db.VehicleCalendarBlocks.Add(block);
+        await db.SaveChangesAsync();
+        blockId = block.BlockId;
+    }
+
+    var cbAvail = await availService.CheckAvailabilityAsync(newVehicleId, cb10, cb14);
+    Assert(!cbAvail.IsAvailable &&
+           cbAvail.Conflicts.Any(c => c.Type == AvailabilityConflictType.CalendarBlock),
+        "F07: Active VehicleCalendarBlock blocks availability with CalendarBlock conflict");
+
+    await RejectAsync(() => maintService.ScheduleMaintenanceAsync(
+            new MaintenanceScheduleRequest(newVehicleId, cb10.AddHours(1), cb14, "Bảo trì đè lên CalendarBlock", 200000m, StartImmediately: false)),
+        "F24: Scheduled maintenance overlapping active CalendarBlock rejected with Vietnamese error (51406)");
+
+    await RejectAsync(() => maintService.ScheduleMaintenanceAsync(
+            new MaintenanceScheduleRequest(newVehicleId, cb10.AddHours(1), cb14, "Bảo trì khẩn cấp đè lên CalendarBlock", 200000m, StartImmediately: true)),
+        "F24: Immediate maintenance overlapping active CalendarBlock rejected");
+
+    var adjacentAfterBlockId = await maintService.ScheduleMaintenanceAsync(
+        new MaintenanceScheduleRequest(newVehicleId, cb14, cb14To16, "Bảo trì nối tiếp ngay sau CalendarBlock", 200000m, StartImmediately: false));
+    await RejectAsync(() => maintService.UpdateMaintenanceAsync(
+            new MaintenanceUpdateRequest(adjacentAfterBlockId, cb10.AddHours(2), cb14To16, "Dời lịch đè lên CalendarBlock", 200000m, "Scheduled")),
+        "F24: Updating maintenance window to overlap active CalendarBlock rejected");
+
+    await maintService.ChangeStatusAsync(adjacentAfterBlockId, "Cancelled");
+    using (var db = Create())
+    {
+        var block = await db.VehicleCalendarBlocks.FindAsync(blockId);
+        block!.IsActive = false;
+        await db.SaveChangesAsync();
+    }
+
     Console.WriteLine($"ALL {passed} CHECKS PASSED (F06 + F07 + F24 unit & SQL integration).");
 }
 finally
@@ -882,7 +976,13 @@ sealed class FakeVehicleService : IVehicleService
     public Task<VehicleDetailsDto?> GetVehicleDetailsAsync(long vehicleId) =>
         Task.FromResult<VehicleDetailsDto?>(null);
 
-    public Task<long> SaveVehicleAsync(VehicleUpsertRequest request) => Task.FromResult(1L);
+    public VehicleUpsertRequest? LastSavedRequest { get; private set; }
+
+    public Task<long> SaveVehicleAsync(VehicleUpsertRequest request)
+    {
+        LastSavedRequest = request;
+        return Task.FromResult(1L);
+    }
     public Task SetVehicleStatusAsync(long vehicleId, string operationalStatus) => Task.CompletedTask;
     public Task<List<CategoryListItem>> GetCategoriesAsync(bool includeInactive = true) =>
         Task.FromResult(_categories.ToList());
@@ -962,7 +1062,13 @@ sealed class FakeMaintenanceService : IMaintenanceService
     public Task<List<MaintenanceListItem>> GetMaintenanceRecordsAsync(MaintenanceFilter? filter = null) =>
         Task.FromResult(_items.ToList());
 
-    public Task<long> ScheduleMaintenanceAsync(MaintenanceScheduleRequest request) => Task.FromResult(4L);
+    public MaintenanceScheduleRequest? LastScheduledRequest { get; private set; }
+
+    public Task<long> ScheduleMaintenanceAsync(MaintenanceScheduleRequest request)
+    {
+        LastScheduledRequest = request;
+        return Task.FromResult(4L);
+    }
     public Task UpdateMaintenanceAsync(MaintenanceUpdateRequest request) => Task.CompletedTask;
     public Task ChangeStatusAsync(long maintenanceId, string nextStatus, decimal? finalCost = null, string? updatedDescription = null) =>
         Task.CompletedTask;

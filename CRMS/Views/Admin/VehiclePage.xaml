@@ -27,7 +27,7 @@
                         Orientation="Horizontal"
                         VerticalAlignment="Center">
                 <Button Content="Kiểm tra lịch trống"
-                        Click="OpenAvailability_Click"
+                        Command="{Binding OpenAvailabilityCommand}"
                         Background="White"
                         Foreground="{StaticResource CustomerInk}"
                         BorderBrush="{StaticResource CustomerLine}"
@@ -36,7 +36,7 @@
                         Margin="0,0,8,0" />
 
                 <Button Content="Lịch bảo trì"
-                        Click="OpenMaintenance_Click"
+                        Command="{Binding OpenMaintenanceCommand}"
                         Background="White"
                         Foreground="#B45309"
                         BorderBrush="#FDE68A"

@@ -174,7 +174,7 @@
                     <DockPanel Margin="0,0,0,10">
                         <Button DockPanel.Dock="Right"
                                 Content="Chọn ảnh từ máy…"
-                                Click="BrowseLocalImage_Click"
+                                Command="{Binding BrowseLocalImagesCommand}"
                                 Background="{StaticResource CustomerSoft}"
                                 Foreground="{StaticResource CustomerInk}"
                                 BorderBrush="{StaticResource CustomerLine}"

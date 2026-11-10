@@ -24,7 +24,7 @@
         <DockPanel Margin="0,0,0,16" LastChildFill="True">
             <Button DockPanel.Dock="Right"
                     Content="Đóng"
-                    Click="Close_Click"
+                    Command="{Binding CloseCommand}"
                     IsCancel="True"
                     Background="White"
                     Foreground="#334155"

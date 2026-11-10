@@ -111,12 +111,16 @@ public class VehicleViewModel : BaseViewModel
     public Func<Task<bool>>? OpenCategoryManagerAsync { get; set; }
     public Func<string, string, bool>? ConfirmAction { get; set; }
     public Action<string, string>? ShowError { get; set; }
+    public Action<long?>? NavigateToAvailability { get; set; }
+    public Action<long?>? NavigateToMaintenance { get; set; }
 
     public ICommand RefreshCommand { get; }
     public ICommand AddVehicleCommand { get; }
     public ICommand EditVehicleCommand { get; }
     public ICommand ToggleStatusCommand { get; }
     public ICommand ManageCategoriesCommand { get; }
+    public ICommand OpenAvailabilityCommand { get; }
+    public ICommand OpenMaintenanceCommand { get; }
 
     public VehicleViewModel()
         : this(new VehicleService())
@@ -148,6 +152,14 @@ public class VehicleViewModel : BaseViewModel
 
         ManageCategoriesCommand = new AsyncRelayCommand(
             async _ => await ManageCategoriesAsync(),
+            _ => !IsLoading);
+
+        OpenAvailabilityCommand = new RelayCommand(
+            _ => NavigateToAvailability?.Invoke(SelectedVehicle?.VehicleId),
+            _ => !IsLoading);
+
+        OpenMaintenanceCommand = new RelayCommand(
+            _ => NavigateToMaintenance?.Invoke(SelectedVehicle?.VehicleId),
             _ => !IsLoading);
     }
 

@@ -13,11 +13,7 @@ public partial class CategoryManagementWindow : Window
     public CategoryManagementWindow(CategoryManagementViewModel viewModel)
     {
         InitializeComponent();
-        DataContext = viewModel;
-    }
-
-    private void Close_Click(object sender, RoutedEventArgs e)
-    {
-        Close();
+        DataContext = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
+        viewModel.RequestClose += Close;
     }
 }

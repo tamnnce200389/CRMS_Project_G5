@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.IO;
 using System.Text.RegularExpressions;
 
@@ -7,6 +8,18 @@ public static class VehicleRules
 {
     private static readonly Regex PlateRegex = new(
         @"^[A-Z0-9][A-Z0-9\-\.\s]{1,18}[A-Z0-9]$",
+        RegexOptions.Compiled);
+
+    private static readonly Regex VnDotThousandsRegex = new(
+        @"^[+-]?\d{1,3}(\.\d{3})+(,\d{1,2})?$",
+        RegexOptions.Compiled);
+
+    private static readonly Regex VnDecimalCommaRegex = new(
+        @"^[+-]?\d+,\d{1,2}$",
+        RegexOptions.Compiled);
+
+    private static readonly Regex UsCommaThousandsRegex = new(
+        @"^[+-]?\d{1,3}(,\d{3})+(\.\d+)?$",
         RegexOptions.Compiled);
 
     private static readonly HashSet<string> AllowedTransmissions = new(StringComparer.Ordinal)
@@ -239,5 +252,37 @@ public static class VehicleRules
             CategoryName: name,
             Description: description,
             IsActive: request.IsActive);
+    }
+
+    public static bool TryParseVndAmount(string? raw, out decimal amount)
+    {
+        amount = 0m;
+        var text = (raw ?? string.Empty).Trim().Replace(" ", string.Empty);
+        if (string.IsNullOrEmpty(text))
+            return false;
+
+        string normalized;
+        if (VnDotThousandsRegex.IsMatch(text))
+        {
+            normalized = text.Replace(".", string.Empty).Replace(',', '.');
+        }
+        else if (VnDecimalCommaRegex.IsMatch(text))
+        {
+            normalized = text.Replace(',', '.');
+        }
+        else if (UsCommaThousandsRegex.IsMatch(text))
+        {
+            normalized = text.Replace(",", string.Empty);
+        }
+        else
+        {
+            normalized = text;
+        }
+
+        return decimal.TryParse(
+            normalized,
+            NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign,
+            CultureInfo.InvariantCulture,
+            out amount);
     }
 }

@@ -41,6 +41,18 @@ public partial class VehiclePage : Page
                 title,
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
+
+        vm.NavigateToAvailability = vehicleId =>
+        {
+            if (Window.GetWindow(this)?.DataContext is MainViewModel mainVm)
+                mainVm.OpenAvailability(vehicleId);
+        };
+
+        vm.NavigateToMaintenance = vehicleId =>
+        {
+            if (Window.GetWindow(this)?.DataContext is MainViewModel mainVm)
+                mainVm.OpenMaintenance(vehicleId);
+        };
     }
 
     private async void VehiclePage_Loaded(object sender, RoutedEventArgs e)
@@ -112,27 +124,11 @@ public partial class VehiclePage : Page
         }
     }
 
-    private void OpenAvailability_Click(object sender, RoutedEventArgs e)
-    {
-        var selectedVehicleId = (DataContext as VehicleViewModel)?.SelectedVehicle?.VehicleId;
-        if (Window.GetWindow(this)?.DataContext is MainViewModel mainVm)
-        {
-            mainVm.OpenAvailability(selectedVehicleId);
-        }
-    }
-
-    private void OpenMaintenance_Click(object sender, RoutedEventArgs e)
-    {
-        var selectedVehicleId = (DataContext as VehicleViewModel)?.SelectedVehicle?.VehicleId;
-        if (Window.GetWindow(this)?.DataContext is MainViewModel mainVm)
-        {
-            mainVm.OpenMaintenance(selectedVehicleId);
-        }
-    }
-
     private void VehiclesGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
-        if (DataContext is VehicleViewModel vm &&
+        if (sender is DataGrid grid &&
+            ItemsControl.ContainerFromElement(grid, e.OriginalSource as DependencyObject) is DataGridRow &&
+            DataContext is VehicleViewModel vm &&
             vm.SelectedVehicle is VehicleListItem selected &&
             vm.EditVehicleCommand.CanExecute(selected))
         {

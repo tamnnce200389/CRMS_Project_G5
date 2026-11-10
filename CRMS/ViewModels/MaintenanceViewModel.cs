@@ -658,18 +658,14 @@ public sealed class MaintenanceViewModel : BaseViewModel
 
     private static bool TryParseCost(string? raw, out decimal cost)
     {
-        var cleaned = (raw ?? "0").Trim().Replace(",", string.Empty);
-        if (string.IsNullOrEmpty(cleaned))
+        var trimmed = (raw ?? string.Empty).Trim();
+        if (string.IsNullOrEmpty(trimmed))
         {
             cost = 0m;
             return true;
         }
 
-        return decimal.TryParse(
-                   cleaned,
-                   NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign,
-                   CultureInfo.InvariantCulture,
-                   out cost)
+        return VehicleRules.TryParseVndAmount(trimmed, out cost)
                && cost >= 0m
                && decimal.Round(cost, 2) == cost;
     }

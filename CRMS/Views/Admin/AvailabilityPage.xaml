@@ -122,7 +122,7 @@
                                        FontSize="14"
                                        FontWeight="SemiBold"
                                        Foreground="{StaticResource CustomerInk}" />
-                            <TextBlock Text="Không có đơn thuê (Đang sử dụng / Đã xác nhận / Giữ chỗ chờ cọc) hoặc lịch bảo trì nào giao với khoảng giờ đã chọn."
+                            <TextBlock Text="Không có đơn thuê (Đang sử dụng / Đã xác nhận / Giữ chỗ chờ cọc), lịch bảo trì hoặc khóa lịch nào giao với khoảng giờ đã chọn."
                                        Foreground="{StaticResource CustomerInk}"
                                        FontSize="12"
                                        TextWrapping="Wrap"
@@ -228,7 +228,7 @@
 
             <StackPanel>
                 <TextBlock Text="Kiểm tra lịch trống phương tiện" Style="{StaticResource PageTitle}" Margin="0,0,0,4" />
-                <TextBlock Text="Đối chiếu tức thì đơn đang thuê, đơn đã xác nhận, giữ chỗ chờ cọc và lịch bảo trì xe."
+                <TextBlock Text="Đối chiếu tức thì đơn đang thuê, đơn đã xác nhận, giữ chỗ chờ cọc, lịch bảo trì và khóa lịch xe."
                            Style="{StaticResource Subtitle}" />
             </StackPanel>
         </DockPanel>
