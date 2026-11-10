@@ -6,7 +6,7 @@ public sealed record CustomerTrip(string BookingCode, string VehicleName, DateTi
     long BookingId = 0, string DepositMethod = "Cash", bool IsDemo = false, DateTime? DepositDeadlineUtc = null)
 {
     public string EffectiveStatus => BookingStatusRules.EffectiveStatus(Status, DepositDeadlineUtc);
-    public string DemoPaymentAction => EffectiveStatus == "PendingDeposit" ? "Thanh toán QR demo"
+    public string DemoPaymentAction => EffectiveStatus == "PendingDeposit" ? "Thanh toán"
         : EffectiveStatus is "Expired" or "Cancelled" ? "Xem trạng thái demo" : "Xem biên nhận demo";
     public DateTime StartLocal => AvailabilityRules.ToVietnamLocal(StartAt);
     public DateTime EndLocal => AvailabilityRules.ToVietnamLocal(EndAt);
