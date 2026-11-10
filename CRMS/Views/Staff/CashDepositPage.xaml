@@ -1,0 +1,128 @@
+<Page x:Class="CRMS.Views.Staff.CashDepositPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Background="{StaticResource CustomerBackground}"
+      Title="Xác nhận cọc và QR demo">
+    <Page.Resources>
+        <BooleanToVisibilityConverter x:Key="DemoVisible"/>
+        <Style TargetType="Button" BasedOn="{StaticResource StaffButton}"/>
+        <Style TargetType="DataGridCell" BasedOn="{StaticResource AdminCell}"/>
+    </Page.Resources>
+
+
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Margin="0,0,0,20">
+            <TextBlock Text="Xác nhận cọc và QR demo"
+                       FontSize="26"
+                       FontWeight="Bold"
+                       Foreground="{StaticResource CustomerInk}"/>
+
+            <TextBlock Text="Đơn QR demo chỉ xác nhận sau khi kiểm tra thực nhận 1.000đ. Tiền cọc mô phỏng được hiển thị riêng, không ghi nhận thành tiền thu thật."
+                       Margin="0,8,0,0"
+                       Foreground="{StaticResource MutedReadable}"
+                       TextWrapping="Wrap"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" Margin="0,0,0,16">
+        <DockPanel>
+            <Button Content="Tải lại"
+                    DockPanel.Dock="Right"
+                    Command="{Binding LoadCommand}"
+                    Padding="18,8"
+                    Margin="12,0,0,0"/>
+
+            <TextBox IsEnabled="{Binding CanEdit}" Text="{Binding SearchText,
+                                    UpdateSourceTrigger=PropertyChanged}"
+                     ToolTip="Tìm theo mã đơn, tên khách hàng hoặc nội dung chuyển khoản QR"
+                     VerticalContentAlignment="Center"
+                     Padding="10,8"/>
+        </DockPanel>
+            <CheckBox Content="Hiện cả đơn hết hạn / VNPay cũ (chỉ xem)" IsChecked="{Binding IncludeUnavailable}" IsEnabled="{Binding CanEdit}" Margin="0,12,0,0"/>
+        </StackPanel>
+
+        <DataGrid Grid.Row="2"
+                  IsEnabled="{Binding CanEdit}"
+                  ItemsSource="{Binding Bookings}"
+                  SelectedItem="{Binding SelectedBooking}"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  CanUserAddRows="False"
+                  SelectionMode="Single"
+                  SelectionUnit="FullRow"
+                  RowHeight="44"
+                  HeadersVisibility="Column"
+                  GridLinesVisibility="Horizontal"
+                  Background="{StaticResource Surface}">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Hình thức" Binding="{Binding ModeText}" Width="100"/>
+                <DataGridTextColumn Header="Mã booking"
+                                    Binding="{Binding BookingCode}"
+                                    MinWidth="140"
+                                    Width="*"/>
+
+                <DataGridTextColumn Header="Khách hàng"
+                                    Binding="{Binding CustomerName}"
+                                    MinWidth="180"
+                                    Width="1.5*"/>
+
+                <DataGridTextColumn Header="Cọc theo đơn"
+                                    MinWidth="145"
+                                    Binding="{Binding DepositAmountLabel}"
+                                    Width="*"/>
+
+                <DataGridTextColumn Header="Cần thực nhận (đ)" Binding="{Binding ActualAmountLabel}" Width="150"/>
+
+                <DataGridTextColumn Header="Hạn cọc"
+                                    MinWidth="150"
+                                    Binding="{Binding DepositDeadline,
+                                                      StringFormat=dd/MM/yyyy HH:mm}"
+                                    Width="1.3*"/>
+
+                <DataGridTextColumn Header="Trạng thái"
+                                    MinWidth="170"
+                                    Binding="{Binding StatusText}"
+                                    Width="*"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <StackPanel Grid.Row="3" Margin="0,16,0,0">
+            <TextBlock Text="{Binding SelectedBooking.Explanation}" TextWrapping="Wrap" Foreground="#805B13" Margin="0,0,0,10"/>
+            <Border IsEnabled="{Binding CanEdit}" Visibility="{Binding SelectedBooking.IsDemo, Converter={StaticResource DemoVisible}, FallbackValue=Collapsed}" Background="#FFF6E5" CornerRadius="12" Padding="16" Margin="0,0,0,12">
+                <StackPanel>
+                    <TextBlock Text="ĐỐI SOÁT QR DEMO · chỉ 1.000đ" FontWeight="SemiBold" Foreground="#805B13"/>
+                    <TextBlock Text="{Binding SelectedBooking.TransferContent, StringFormat=Nội dung chuyển khoản: {0}}" Margin="0,7,0,10"/>
+                    <TextBlock Text="Mã giao dịch ngân hàng thực nhận"/>
+                    <TextBox Text="{Binding BankTransactionReference, UpdateSourceTrigger=PropertyChanged}" MaxLength="100" Padding="10,7" Margin="0,6,0,10"/>
+                    <CheckBox IsChecked="{Binding HasVerifiedDemoReceipt}"><TextBlock Text="Tôi đã kiểm tra tiền về tài khoản và nhận đúng 1.000đ với nội dung của đơn này." TextWrapping="Wrap"/></CheckBox>
+                </StackPanel>
+            </Border>
+            <Border Visibility="{Binding HasLastConfirmation, Converter={StaticResource DemoVisible}}" Background="#DEF3E4" CornerRadius="12" Padding="16" Margin="0,0,0,12">
+                <StackPanel>
+                    <TextBlock Text="BIÊN NHẬN VỪA XÁC NHẬN" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding LastConfirmation}" TextWrapping="Wrap" Margin="0,7,0,0"/>
+                </StackPanel>
+            </Border>
+            <TextBlock Text="{Binding Message}"
+                       Foreground="{StaticResource CustomerInk}"
+                       TextWrapping="Wrap"
+                       Margin="0,0,0,12"/>
+
+            <Button Content="{Binding ConfirmButtonText}"
+                    Command="{Binding ConfirmDepositCommand}"
+                    IsEnabled="{Binding CanConfirmDeposit,
+                                        FallbackValue=False}"
+                    HorizontalAlignment="Right"
+                    Padding="20,12"
+                    Background="{StaticResource CustomerInk}"
+                    Foreground="{StaticResource Surface}"
+                    FontWeight="SemiBold"/>
+        </StackPanel>
+    </Grid>
+</Page>

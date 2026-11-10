@@ -17,11 +17,20 @@ public sealed class VietnameseLabelConverter : IValueConverter
             "MAINTENANCE" => "Bảo dưỡng",
             "INACTIVE" => "Ngừng hoạt động",
             "ACTIVE" => "Hoạt động",
+            "SUSPENDED" => "Tạm ngưng",
             "UNAVAILABLE" => "Không khả dụng",
             "RETIRED" => "Ngừng khai thác",
             "AUTOMATIC" or "AUTO" or "AT" => "Số tự động",
             "MANUAL" or "MT" => "Số sàn",
             "CVT" => "Vô cấp (CVT)",
+            "GASOLINE" => "Xăng",
+            "DIESEL" => "Dầu Diesel",
+            "ELECTRIC" => "Điện",
+            "HYBRID" => "Hybrid",
+            "SCHEDULED" => "Đã lên lịch",
+            "INPROGRESS" => "Đang bảo trì",
+            "COMPLETED" => "Đã hoàn thành",
+            "CANCELLED" => "Đã hủy",
             _ => text
         };
     }

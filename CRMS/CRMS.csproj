@@ -9,6 +9,17 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<Resource Include="Assets\coastal-drive-hero.png" />
+		<Resource Include="Assets\seasonal-destinations.png" />
+		<Resource Include="Assets\Vehicles\*.jpg" />
+		<Resource Include="Assets\Vehicles\*.png" />
+	</ItemGroup>
+
+    <ItemGroup>
+        <None Update="payment-demo.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    </ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.31">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -20,6 +31,10 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
+
+		<PackageReference Include="Microsoft.Extensions.Identity.Core" Version="8.0.31" />
+
+		<PackageReference Include="QRCoder" Version="1.8.1" />
 
 		<PackageReference Include="System.Configuration.ConfigurationManager" Version="8.0.0" />
 	</ItemGroup>

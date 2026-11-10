@@ -1,0 +1,116 @@
+﻿<Window x:Class="CRMS.Views.WriteReviewWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Viết đánh giá"
+        Width="520"
+        Height="490"
+        MinWidth="480"
+        MinHeight="450"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="#F3F6FB"
+        FontFamily="Segoe UI">
+
+    <Grid Margin="25">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- HEADER -->
+        <StackPanel Grid.Row="0"
+                    Margin="0,0,0,20">
+
+            <TextBlock Text="VIẾT ĐÁNH GIÁ"
+                       FontSize="23"
+                       FontWeight="Bold"
+                       Foreground="#172B4D"/>
+
+            <TextBlock Text="Chia sẻ trải nghiệm thuê xe của bạn."
+                       Margin="0,7,0,0"
+                       Foreground="#64748B"/>
+        </StackPanel>
+
+        <!-- BOOKING -->
+        <StackPanel Grid.Row="1"
+                    Margin="0,0,0,15">
+
+            <TextBlock Text="Đơn thuê đã hoàn thành"
+                       FontWeight="SemiBold"
+                       Margin="0,0,0,7"/>
+
+            <ComboBox x:Name="BookingComboBox"
+                      Height="38"/>
+        </StackPanel>
+
+        <!-- RATING -->
+        <StackPanel Grid.Row="2"
+                    Margin="0,0,0,15">
+
+            <TextBlock Text="Số sao đánh giá"
+                       FontWeight="SemiBold"
+                       Margin="0,0,0,7"/>
+
+            <ComboBox x:Name="RatingComboBox"
+                      Height="38"
+                      SelectedIndex="4">
+
+                <ComboBoxItem Content="1 sao" Tag="1"/>
+                <ComboBoxItem Content="2 sao" Tag="2"/>
+                <ComboBoxItem Content="3 sao" Tag="3"/>
+                <ComboBoxItem Content="4 sao" Tag="4"/>
+                <ComboBoxItem Content="5 sao" Tag="5"/>
+
+            </ComboBox>
+        </StackPanel>
+
+        <!-- COMMENT -->
+        <StackPanel Grid.Row="3">
+
+            <TextBlock Text="Nội dung nhận xét"
+                       FontWeight="SemiBold"
+                       Margin="0,0,0,7"/>
+
+            <TextBox x:Name="CommentTextBox"
+                     Height="105"
+                     MaxLength="1000"
+                     TextWrapping="Wrap"
+                     AcceptsReturn="True"
+                     VerticalScrollBarVisibility="Auto"
+                     Padding="10"/>
+        </StackPanel>
+
+        <!-- STATUS -->
+        <TextBlock Grid.Row="4"
+                   x:Name="StatusTextBlock"
+                   Foreground="#64748B"
+                   TextWrapping="Wrap"
+                   Margin="0,12,0,0"/>
+
+        <!-- ACTION BUTTONS -->
+        <StackPanel Grid.Row="5"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right">
+
+            <Button Content="Hủy"
+                    Width="100"
+                    Height="38"
+                    Margin="0,0,10,0"
+                    Click="Cancel_Click"/>
+
+            <Button x:Name="SubmitButton"
+                    Content="Gửi đánh giá"
+                    Width="135"
+                    Height="38"
+                    Background="#2563EB"
+                    Foreground="White"
+                    BorderThickness="0"
+                    Click="Submit_Click"/>
+        </StackPanel>
+
+    </Grid>
+</Window>

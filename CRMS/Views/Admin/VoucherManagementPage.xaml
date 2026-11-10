@@ -1,0 +1,152 @@
+<Page x:Class="CRMS.Views.Admin.VoucherManagementPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Title="Quản lý Voucher"
+      Background="{StaticResource PageBackground}">
+
+    <Grid Margin="30">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Tieu de -->
+        <StackPanel Grid.Row="0"
+                    Margin="0,0,0,20">
+
+            <TextBlock Text="Quản lý Voucher"
+                       FontSize="28"
+                       FontWeight="Bold"/>
+
+            <TextBlock
+                Text="Thêm, sửa, kích hoạt và khóa mã giảm giá của hệ thống."
+                Foreground="{StaticResource MutedReadable}"
+                Margin="0,8,0,0"/>
+        </StackPanel>
+
+        <!-- Cac nut chuc nang -->
+        <WrapPanel Grid.Row="1"
+                   Margin="0,0,0,20">
+
+            <Button Content="Thêm Voucher"
+                    Command="{Binding AddCommand}"
+                    Width="130"
+                    Height="38"
+                    Margin="0,0,10,8"/>
+
+            <Button Content="Sửa Voucher"
+                    Command="{Binding EditCommand}"
+                    Width="120"
+                    Height="38"
+                    Margin="0,0,10,8"/>
+
+            <Button Content="Làm mới"
+                    Command="{Binding RefreshCommand}"
+                    Width="100"
+                    Height="38"
+                    Margin="0,0,10,8"/>
+
+            <Button Content="Kích hoạt"
+                    Command="{Binding EnableCommand}"
+                    Width="110"
+                    Height="38"
+                    Margin="0,0,10,8"/>
+
+            <Button Content="Khóa Voucher"
+                    Command="{Binding DisableCommand}"
+                    Width="130"
+                    Height="38"
+                    Margin="0,0,10,8"/>
+        </WrapPanel>
+
+        <!-- Danh sach Voucher -->
+        <DataGrid Grid.Row="2"
+                  ItemsSource="{Binding Vouchers}"
+                  SelectedItem="{Binding SelectedVoucher,
+                                         Mode=TwoWay}"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  CanUserAddRows="False"
+                  CanUserDeleteRows="False"
+                  SelectionMode="Single"
+                  SelectionUnit="FullRow"
+                  RowHeight="38"
+                  HeadersVisibility="Column"
+                  HorizontalScrollBarVisibility="Auto"
+                  VerticalScrollBarVisibility="Auto">
+
+            <DataGrid.Columns>
+
+                <DataGridTextColumn
+                    Header="ID"
+                    Binding="{Binding VoucherId}"
+                    Width="60"/>
+
+                <DataGridTextColumn
+                    Header="Mã Voucher"
+                    Binding="{Binding VoucherCode}"
+                    Width="150"/>
+
+                <DataGridTextColumn
+                    Header="Loại giảm"
+                    Binding="{Binding DiscountType}"
+                    Width="100"/>
+
+                <DataGridTextColumn
+                    Header="Giá trị giảm"
+                    Binding="{Binding DiscountValue,
+                        StringFormat={}{0:N2}}"
+                    Width="120"/>
+
+                <DataGridTextColumn
+                    Header="Giảm tối đa"
+                    Binding="{Binding MaxDiscountAmount,
+                        StringFormat={}{0:N2}}"
+                    Width="120"/>
+
+                <DataGridTextColumn
+                    Header="Đơn tối thiểu"
+                    Binding="{Binding MinimumOrderAmount,
+                        StringFormat={}{0:N2}}"
+                    Width="130"/>
+
+                <DataGridTextColumn
+                    Header="Ngày bắt đầu"
+                    Binding="{Binding StartsAt,
+                        StringFormat=dd/MM/yyyy HH:mm}"
+                    Width="150"/>
+
+                <DataGridTextColumn
+                    Header="Ngày kết thúc"
+                    Binding="{Binding EndsAt,
+                        StringFormat=dd/MM/yyyy HH:mm}"
+                    Width="150"/>
+
+                <DataGridTextColumn
+                    Header="Lượt tối đa"
+                    Binding="{Binding UsageLimit}"
+                    Width="100"/>
+
+                <DataGridTextColumn
+                    Header="Mỗi khách"
+                    Binding="{Binding PerCustomerLimit}"
+                    Width="100"/>
+
+                <DataGridCheckBoxColumn
+                    Header="Hoạt động"
+                    Binding="{Binding IsActive}"
+                    Width="100"/>
+
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- Trang thai -->
+        <TextBlock Grid.Row="3"
+                   Text="{Binding StatusMessage}"
+                   Foreground="{StaticResource MutedReadable}"
+                   Margin="0,15,0,0"
+                   TextWrapping="Wrap"/>
+    </Grid>
+</Page>

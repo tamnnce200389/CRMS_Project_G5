@@ -1,0 +1,460 @@
+<UserControl x:Class="CRMS.Views.Shared.AdminSidebar"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Width="250"
+             Background="{StaticResource CustomerInk}"
+             FontFamily="Segoe UI">
+
+    <UserControl.Resources>
+
+        <!-- MENU BUTTON -->
+        <Style x:Key="NavButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{StaticResource CustomerSoft}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Margin" Value="8,2"/>
+            <Setter Property="Padding" Value="14,10"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="8"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background"
+                            Value="{StaticResource CustomerHover}"/>
+                    <Setter Property="Foreground" Value="White"/>
+                </Trigger>
+
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Foreground"
+                            Value="{StaticResource AdminSidebarMuted}"/>
+                    <Setter Property="Cursor" Value="Arrow"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- ACTIVE NAVIGATION -->
+        <Style x:Key="IsDashboardActiveNav"
+               TargetType="Button"
+               BasedOn="{StaticResource NavButton}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding DataContext.IsDashboard, RelativeSource={RelativeSource AncestorType=Window}}"
+                             Value="True">
+                    <Setter Property="Background"
+                            Value="{StaticResource CustomerAccent}"/>
+                    <Setter Property="Foreground"
+                            Value="{StaticResource CustomerInk}"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="IsReportsActiveNav"
+               TargetType="Button"
+               BasedOn="{StaticResource NavButton}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding DataContext.IsReports, RelativeSource={RelativeSource AncestorType=Window}}"
+                             Value="True">
+                    <Setter Property="Background"
+                            Value="{StaticResource CustomerAccent}"/>
+                    <Setter Property="Foreground"
+                            Value="{StaticResource CustomerInk}"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="IsVehiclesActiveNav"
+               TargetType="Button"
+               BasedOn="{StaticResource NavButton}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding DataContext.IsVehicles, RelativeSource={RelativeSource AncestorType=Window}}"
+                             Value="True">
+                    <Setter Property="Background"
+                            Value="{StaticResource CustomerAccent}"/>
+                    <Setter Property="Foreground"
+                            Value="{StaticResource CustomerInk}"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="IsBookingsActiveNav"
+               TargetType="Button"
+               BasedOn="{StaticResource NavButton}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding DataContext.IsBookings, RelativeSource={RelativeSource AncestorType=Window}}"
+                             Value="True">
+                    <Setter Property="Background"
+                            Value="{StaticResource CustomerAccent}"/>
+                    <Setter Property="Foreground"
+                            Value="{StaticResource CustomerInk}"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="IsDriversActiveNav"
+               TargetType="Button"
+               BasedOn="{StaticResource NavButton}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding DataContext.IsDrivers, RelativeSource={RelativeSource AncestorType=Window}}"
+                             Value="True">
+                    <Setter Property="Background"
+                            Value="{StaticResource CustomerAccent}"/>
+                    <Setter Property="Foreground"
+                            Value="{StaticResource CustomerInk}"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="IsUserManagementActiveNav"
+               TargetType="Button"
+               BasedOn="{StaticResource NavButton}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding DataContext.IsUserManagement, RelativeSource={RelativeSource AncestorType=Window}}"
+                             Value="True">
+                    <Setter Property="Background"
+                            Value="{StaticResource CustomerAccent}"/>
+                    <Setter Property="Foreground"
+                            Value="{StaticResource CustomerInk}"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- TV7 - F20: VOUCHER MANAGEMENT -->
+        <Style x:Key="IsVoucherManagementActiveNav"
+               TargetType="Button"
+               BasedOn="{StaticResource NavButton}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding DataContext.IsVoucherManagement, RelativeSource={RelativeSource AncestorType=Window}}"
+                             Value="True">
+                    <Setter Property="Background"
+                            Value="{StaticResource CustomerAccent}"/>
+                    <Setter Property="Foreground"
+                            Value="{StaticResource CustomerInk}"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- TV7 - F23: REVIEW MODERATION -->
+        <Style x:Key="IsReviewModerationActiveNav"
+               TargetType="Button"
+               BasedOn="{StaticResource NavButton}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding DataContext.IsReviewModeration, RelativeSource={RelativeSource AncestorType=Window}}"
+                             Value="True">
+                    <Setter Property="Background"
+                            Value="{StaticResource CustomerAccent}"/>
+                    <Setter Property="Foreground"
+                            Value="{StaticResource CustomerInk}"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- COLLAPSIBLE GROUP -->
+        <Style x:Key="MenuGroup" TargetType="Expander">
+            <Setter Property="Margin" Value="10,4,10,0"/>
+            <Setter Property="Foreground"
+                    Value="{StaticResource AdminSidebarText}"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Expander">
+                        <StackPanel>
+
+                            <ToggleButton
+                                Content="{TemplateBinding Header}"
+                                IsChecked="{Binding IsExpanded,
+                                    RelativeSource={RelativeSource TemplatedParent},
+                                    Mode=TwoWay}"
+                                Foreground="{StaticResource AdminSidebarText}"
+                                Cursor="Hand">
+
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border x:Name="HeaderBackground"
+                                                Background="Transparent"
+                                                CornerRadius="8"
+                                                Padding="13,12">
+
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="20"/>
+                                                </Grid.ColumnDefinitions>
+
+                                                <ContentPresenter
+                                                    Grid.Column="0"
+                                                    VerticalAlignment="Center"/>
+
+                                                <TextBlock Grid.Column="1"
+                                                           Text="⌄"
+                                                           FontSize="16"
+                                                           Foreground="{StaticResource AdminSidebarText}"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </Border>
+
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver"
+                                                     Value="True">
+                                                <Setter TargetName="HeaderBackground"
+                                                        Property="Background"
+                                                        Value="{StaticResource CustomerHover}"/>
+                                            </Trigger>
+
+                                            <Trigger Property="IsChecked"
+                                                     Value="True">
+                                                <Setter TargetName="HeaderBackground"
+                                                        Property="Background"
+                                                        Value="{StaticResource CustomerHover}"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+
+                            <ContentPresenter x:Name="ExpandContent"
+                                              ContentSource="Content"
+                                              Visibility="Collapsed"
+                                              Margin="0,3,0,5"/>
+                        </StackPanel>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsExpanded" Value="True">
+                                <Setter TargetName="ExpandContent"
+                                        Property="Visibility"
+                                        Value="Visible"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+    </UserControl.Resources>
+
+    <Border Background="{StaticResource CustomerInk}">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- HEADER -->
+            <StackPanel Grid.Row="0"
+                        Margin="24,25,20,15">
+
+                <TextBlock Text="CRMS"
+                           FontSize="30"
+                           FontWeight="Bold"
+                           Foreground="{StaticResource Surface}"/>
+
+                <TextBlock Text="ADMIN CONSOLE"
+                           FontSize="12"
+                           FontWeight="SemiBold"
+                           Foreground="{StaticResource AdminSidebarText}"
+                           Margin="0,5,0,0"/>
+
+                <Border Background="{StaticResource CustomerHover}"
+                        CornerRadius="8"
+                        Padding="12,10"
+                        Margin="0,18,0,0">
+                    <TextBlock Text="QUẢN TRỊ HỆ THỐNG"
+                               Foreground="{StaticResource Surface}"
+                               FontSize="11"
+                               FontWeight="SemiBold"
+                               HorizontalAlignment="Center"/>
+                </Border>
+            </StackPanel>
+
+            <!-- MENU -->
+            <ScrollViewer Grid.Row="1"
+                          VerticalScrollBarVisibility="Hidden"
+                          HorizontalScrollBarVisibility="Disabled">
+
+                <StackPanel Margin="0,0,0,12">
+
+                    <!-- TỔNG QUAN -->
+                    <Expander x:Name="OverviewGroup"
+                              Header="TỔNG QUAN"
+                              Style="{StaticResource MenuGroup}"
+                              Expanded="Group_Expanded">
+
+                        <StackPanel>
+                            <Button Content="Dashboard"
+                                    Style="{StaticResource IsDashboardActiveNav}"
+                                    Command="{Binding NavigateCommand}"
+                                    CommandParameter="Dashboard"/>
+
+                            <Button Content="Báo cáo doanh thu"
+                                    Style="{StaticResource IsReportsActiveNav}"
+                                    Command="{Binding NavigateCommand}"
+                                    CommandParameter="Reports"/>
+                        </StackPanel>
+                    </Expander>
+
+                    <!-- QUẢN LÝ PHƯƠNG TIỆN -->
+                    <Expander x:Name="VehicleGroup"
+                              Header="QUẢN LÝ PHƯƠNG TIỆN"
+                              Style="{StaticResource MenuGroup}"
+                              Expanded="Group_Expanded">
+
+                        <StackPanel>
+                            <Button Content="Quản lý xe"
+                                    Style="{StaticResource IsVehiclesActiveNav}"
+                                    Command="{Binding NavigateCommand}"
+                                    CommandParameter="Vehicles"/>
+
+                            <Button Content="Kiểm tra lịch trống"
+                                    Style="{StaticResource NavButton}"
+                                    Command="{Binding NavigateCommand}"
+                                    CommandParameter="Availability"/>
+
+                            <Button Content="Quản lý bảo trì"
+                                    Style="{StaticResource NavButton}"
+                                    Command="{Binding NavigateCommand}"
+                                    CommandParameter="Maintenance"/>
+                        </StackPanel>
+                    </Expander>
+
+                    <!-- QUẢN LÝ ĐƠN THUÊ -->
+                    <Expander x:Name="BookingGroup"
+                              Header="QUẢN LÝ ĐƠN THUÊ"
+                              Style="{StaticResource MenuGroup}"
+                              Expanded="Group_Expanded">
+
+                        <StackPanel>
+                            <Button Content="Danh sách đơn thuê"
+                                    Style="{StaticResource IsBookingsActiveNav}"
+                                    Command="{Binding NavigateCommand}"
+                                    CommandParameter="Bookings"/>
+
+                            <Button Content="Tổng hợp thanh toán"
+                                    Style="{StaticResource NavButton}"
+                                    Command="{Binding NavigateCommand}"
+                                    CommandParameter="PaymentSummary"/>
+
+                            <!-- GIỮ QR DEMO CỦA NHÓM -->
+                            <Button Content="Xác nhận cọc / QR demo"
+                                    Style="{StaticResource NavButton}"
+                                    Command="{Binding NavigateCommand}"
+                                    CommandParameter="CashDeposit"/>
+
+                            <Button Content="Thu tiền còn lại"
+                                    Style="{StaticResource NavButton}"
+                                    Command="{Binding NavigateCommand}"
+                                    CommandParameter="OutstandingBalance"/>
+
+                            <!-- TV7 - F15 -->
+                            <Button Content="Ghi nhận hoàn tiền"
+                                    Style="{StaticResource NavButton}"
+                                    Command="{Binding NavigateCommand}"
+                                    CommandParameter="ManualRefund"/>
+                        </StackPanel>
+                    </Expander>
+
+                    <!-- QUẢN LÝ TÀI XẾ -->
+                    <Expander x:Name="DriverGroup"
+                              Header="QUẢN LÝ TÀI XẾ"
+                              Style="{StaticResource MenuGroup}"
+                              Expanded="Group_Expanded">
+
+                        <StackPanel>
+                            <Button Content="Danh sách và quản lý tài xế"
+                                    Style="{StaticResource IsDriversActiveNav}"
+                                    Command="{Binding NavigateCommand}"
+                                    CommandParameter="Drivers"/>
+                        </StackPanel>
+                    </Expander>
+
+                    <!-- QUẢN TRỊ HỆ THỐNG -->
+                    <Expander x:Name="SystemGroup"
+                              Header="QUẢN TRỊ HỆ THỐNG"
+                              Style="{StaticResource MenuGroup}"
+                              Expanded="Group_Expanded">
+
+                        <StackPanel>
+
+                            <Button Content="Khách hàng và phân quyền"
+                                    Style="{StaticResource IsUserManagementActiveNav}"
+                                    Command="{Binding NavigateCommand}"
+                                    CommandParameter="UserManagement"/>
+
+                            <!-- TV7 - F20 -->
+                            <Button Content="Quản lý Voucher"
+                                    Style="{StaticResource IsVoucherManagementActiveNav}"
+                                    Command="{Binding NavigateCommand}"
+                                    CommandParameter="VoucherManagement"/>
+
+                            <!-- TV7 - F23 -->
+                            <Button Content="Kiểm duyệt đánh giá"
+                                    Style="{StaticResource IsReviewModerationActiveNav}"
+                                    Command="{Binding NavigateCommand}"
+                                    CommandParameter="ReviewModeration"/>
+                        </StackPanel>
+                    </Expander>
+
+                    <!-- TÀI KHOẢN -->
+                    <Expander x:Name="AccountGroup"
+                              Header="TÀI KHOẢN"
+                              Style="{StaticResource MenuGroup}"
+                              Expanded="Group_Expanded">
+
+                        <StackPanel>
+                            <Button Content="Hồ sơ cá nhân"
+                                    Style="{StaticResource NavButton}"
+                                    IsEnabled="False"
+                                    ToolTipService.ShowOnDisabled="True"
+                                    ToolTip="Chưa tích hợp ProfilePage"/>
+                        </StackPanel>
+                    </Expander>
+
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- FOOTER -->
+            <Border Grid.Row="2"
+                    BorderBrush="{StaticResource AdminSidebarDivider}"
+                    BorderThickness="0,1,0,0"
+                    Padding="22,15">
+
+                <StackPanel>
+                    <TextBlock Text="ADMINISTRATOR"
+                               Foreground="{StaticResource Surface}"
+                               FontWeight="Bold"
+                               FontSize="13"/>
+
+                    <TextBlock Text="Quản trị toàn hệ thống"
+                               Foreground="{StaticResource AdminSidebarText}"
+                               FontSize="11"
+                               Margin="0,5,0,0"/>
+                </StackPanel>
+            </Border>
+
+        </Grid>
+    </Border>
+</UserControl>

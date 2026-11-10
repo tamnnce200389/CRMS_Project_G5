@@ -1,0 +1,135 @@
+<Window x:Class="CRMS.Views.Guest.RentalTimeWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Thời gian thuê xe" Width="740" SizeToContent="Height" Language="vi-VN"
+        MaxHeight="{Binding Height, Source={x:Static SystemParameters.WorkArea}}"
+        MaxWidth="{Binding Width, Source={x:Static SystemParameters.WorkArea}}"
+        WindowStartupLocation="CenterOwner" WindowStyle="None" ResizeMode="NoResize"
+        Background="{StaticResource CustomerBackground}" Foreground="{StaticResource CustomerInk}">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries><ResourceDictionary Source="RentalPickerStyles.xaml"/></ResourceDictionary.MergedDictionaries>
+            <Style x:Key="TimeTab" TargetType="TabItem">
+                <Setter Property="Foreground" Value="{StaticResource CustomerInk}"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="TabItem">
+                    <Border x:Name="Tab" CornerRadius="9" Padding="18,9" Margin="0,0,5,0" Background="{StaticResource CustomerSoft}">
+                        <ContentPresenter ContentSource="Header" HorizontalAlignment="Center"/></Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsSelected" Value="True"><Setter TargetName="Tab" Property="Background" Value="{StaticResource CustomerInk}"/>
+                            <Setter Property="Foreground" Value="White"/></Trigger>
+                        <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="Tab" Property="BorderBrush" Value="{StaticResource CustomerAccent}"/>
+                            <Setter TargetName="Tab" Property="BorderThickness" Value="1"/></Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate></Setter.Value></Setter>
+            </Style>
+            <Style x:Key="RentalDay" TargetType="CalendarDayButton">
+                <Setter Property="MinWidth" Value="32"/><Setter Property="Height" Value="26"/>
+                <Setter Property="FontSize" Value="13"/><Setter Property="Foreground" Value="{StaticResource CustomerInk}"/>
+                <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="CalendarDayButton">
+                    <Border x:Name="DateSurface" Background="Transparent" CornerRadius="6" BorderThickness="1">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsInactive" Value="True"><Setter Property="Foreground" Value="{StaticResource CustomerMuted}"/></Trigger>
+                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="DateSurface" Property="Background" Value="{StaticResource CustomerSoft}"/></Trigger>
+                        <Trigger Property="IsToday" Value="True"><Setter TargetName="DateSurface" Property="BorderBrush" Value="{StaticResource CustomerHover}"/></Trigger>
+                        <Trigger Property="IsSelected" Value="True"><Setter TargetName="DateSurface" Property="Background" Value="{StaticResource CustomerInk}"/><Setter Property="Foreground" Value="White"/></Trigger>
+                        <Trigger Property="IsEnabled" Value="False"><Setter Property="Foreground" Value="#79867F"/></Trigger>
+                        <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="DateSurface" Property="BorderBrush" Value="{StaticResource CustomerHover}"/></Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate></Setter.Value></Setter>
+            </Style>
+        </ResourceDictionary>
+    </Window.Resources>
+    <Border Background="{StaticResource CustomerBackground}" BorderBrush="{StaticResource CustomerLine}" BorderThickness="1"><Grid>
+        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+        <Border Background="{StaticResource CustomerInk}" Padding="24,17">
+            <DockPanel>
+                <Button DockPanel.Dock="Right" Content="Đóng" IsCancel="True" AutomationProperties.Name="Đóng cửa sổ"
+                    Style="{StaticResource StaffSecondaryButton}" MinHeight="32" Padding="12,5" VerticalAlignment="Center" Click="Close_Click"/>
+                <TextBlock Text="Thời gian thuê xe" FontSize="24" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
+            </DockPanel>
+        </Border>
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <TabControl x:Name="RentalTabs" SelectedIndex="{Binding SelectedTab, Mode=TwoWay}" Margin="24,18" Foreground="{StaticResource CustomerInk}">
+                <TabControl.Template><ControlTemplate TargetType="TabControl"><StackPanel>
+                    <TabPanel IsItemsHost="True" Margin="0,0,0,14" HorizontalAlignment="Left"/>
+                    <ContentPresenter x:Name="PART_SelectedContentHost" ContentSource="SelectedContent" TextElement.Foreground="{StaticResource CustomerInk}"/>
+                </StackPanel></ControlTemplate></TabControl.Template>
+                <TabItem x:Name="DayTab" Header="Theo ngày" Style="{StaticResource TimeTab}"><StackPanel>
+                    <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Margin="0,0,6,0" Style="{StaticResource PickerCard}">
+                            <StackPanel><TextBlock Text="Ngày nhận xe" Style="{StaticResource FieldTitle}"/>
+                                <Calendar x:Name="PickupCalendar" SelectedDate="{Binding PickupDate, Mode=TwoWay}" DisplayDateStart="{Binding MinimumDate, Mode=OneWay}" Language="vi-VN" FirstDayOfWeek="Monday" SelectionMode="SingleDate"
+                                          CalendarDayButtonStyle="{StaticResource RentalDay}">
+                                    <Calendar.CalendarItemStyle><Style TargetType="CalendarItem"><Setter Property="Background" Value="White"/><Setter Property="BorderThickness" Value="0"/></Style></Calendar.CalendarItemStyle>
+                                </Calendar>
+                                <TextBlock Text="Giờ nhận xe" Style="{StaticResource FieldTitle}" Margin="0,10,0,6"/>
+                                <ComboBox x:Name="DayPickupTime" ItemsSource="{Binding Times}" SelectedItem="{Binding PickupTime, Mode=TwoWay}" Height="42"/>
+                            </StackPanel></Border>
+                        <Border Grid.Column="1" Margin="6,0,0,0" Style="{StaticResource PickerCard}">
+                            <StackPanel><TextBlock Text="Ngày trả xe" Style="{StaticResource FieldTitle}"/>
+                                <Calendar x:Name="ReturnCalendar" SelectedDate="{Binding ReturnDate, Mode=TwoWay}" DisplayDateStart="{Binding MinimumDate, Mode=OneWay}" Language="vi-VN" FirstDayOfWeek="Monday" SelectionMode="SingleDate"
+                                          CalendarDayButtonStyle="{StaticResource RentalDay}">
+                                    <Calendar.CalendarItemStyle><Style TargetType="CalendarItem"><Setter Property="Background" Value="White"/><Setter Property="BorderThickness" Value="0"/></Style></Calendar.CalendarItemStyle>
+                                </Calendar>
+                                <TextBlock Text="Giờ trả xe" Style="{StaticResource FieldTitle}" Margin="0,10,0,6"/>
+                                <ComboBox x:Name="DayReturnTime" ItemsSource="{Binding Times}" SelectedItem="{Binding ReturnTime, Mode=TwoWay}" Height="42"/>
+                            </StackPanel></Border>
+                    </Grid>
+                    <TextBlock Text="Thời gian thuê theo ngày tối đa 48 giờ." Foreground="{StaticResource MutedReadable}" Margin="2,12,0,0"/>
+                </StackPanel></TabItem>
+                <TabItem x:Name="HourTab" Header="Theo giờ" Style="{StaticResource TimeTab}">
+                    <Border Style="{StaticResource PickerCard}"><StackPanel>
+                        <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
+                            <StackPanel Margin="0,0,8,0"><TextBlock Text="Ngày nhận xe" Style="{StaticResource FieldTitle}"/>
+                                <DatePicker x:Name="HourlyDate" SelectedDate="{Binding HourDate, Mode=TwoWay}" DisplayDateStart="{Binding MinimumDate, Mode=OneWay}" Height="42" Language="vi-VN">
+                                    <DatePicker.Template>
+                                        <ControlTemplate TargetType="DatePicker">
+                                            <Grid x:Name="PART_Root">
+                                                <Border x:Name="DateField" Background="White" BorderBrush="{StaticResource CustomerLine}" BorderThickness="1" CornerRadius="9">
+                                                    <DockPanel Margin="10,0,4,0">
+                                                        <Button x:Name="PART_Button" DockPanel.Dock="Right" Style="{StaticResource StaffSecondaryButton}"
+                                                                Width="34" MinHeight="30" Height="30" Padding="6" BorderThickness="0"
+                                                                AutomationProperties.Name="Mở lịch chọn ngày">
+                                                            <Path Stroke="{StaticResource CustomerInk}" StrokeThickness="1.5" Stretch="Uniform"
+                                                                  Data="M2,5 L20,5 20,21 2,21 Z M2,10 L20,10 M7,2 L7,7 M15,2 L15,7"/>
+                                                        </Button>
+                                                        <DatePickerTextBox x:Name="PART_TextBox" Background="Transparent" BorderThickness="0"
+                                                                           Foreground="{StaticResource CustomerInk}" VerticalContentAlignment="Center"/>
+                                                    </DockPanel>
+                                                </Border>
+                                                <Popup x:Name="PART_Popup" Placement="Bottom" AllowsTransparency="True" StaysOpen="False"/>
+                                            </Grid>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsKeyboardFocusWithin" Value="True"><Setter TargetName="DateField" Property="BorderBrush" Value="{StaticResource CustomerHover}"/></Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </DatePicker.Template>
+                                </DatePicker></StackPanel>
+                            <StackPanel Grid.Column="1" Margin="8,0,0,0"><TextBlock Text="Giờ nhận xe" Style="{StaticResource FieldTitle}"/>
+                                <ComboBox x:Name="HourlyPickupTime" ItemsSource="{Binding Times}" SelectedItem="{Binding HourTime, Mode=TwoWay}" Height="42"/></StackPanel>
+                        </Grid>
+                        <TextBlock Text="Thời lượng thuê" Style="{StaticResource FieldTitle}" Margin="0,18,0,8"/>
+                        <ComboBox x:Name="DurationCombo" SelectedValuePath="Tag" SelectedValue="{Binding DurationHours, Mode=TwoWay}" Height="42">
+                            <ComboBoxItem Content="1 giờ" Tag="1"/>
+                            <ComboBoxItem Content="2 giờ" Tag="2"/>
+                            <ComboBoxItem Content="4 giờ" Tag="4"/>
+                            <ComboBoxItem Content="6 giờ" Tag="6"/>
+                            <ComboBoxItem Content="8 giờ" Tag="8"/>
+                            <ComboBoxItem Content="12 giờ" Tag="12"/>
+                            <ComboBoxItem Content="24 giờ" Tag="24"/>
+                            <ComboBoxItem Content="48 giờ" Tag="48"/>
+                            <ComboBoxItem Content="72 giờ" Tag="72"/>
+                        </ComboBox>
+                    </StackPanel></Border>
+                </TabItem>
+            </TabControl>
+        </ScrollViewer>
+        <Border Grid.Row="2" Background="White" Padding="24,14" BorderBrush="{StaticResource CustomerLine}" BorderThickness="0,1,0,0">
+            <DockPanel><StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center"><Button Content="Xác nhận thời gian" Style="{StaticResource StaffButton}" Command="{Binding ConfirmCommand}"/></StackPanel>
+                <TextBlock x:Name="SummaryText" Text="{Binding Summary}" FontWeight="SemiBold" Margin="0,0,14,0" Foreground="{StaticResource CustomerInk}" VerticalAlignment="Center" TextWrapping="Wrap"/>
+            </DockPanel>
+        </Border>
+    </Grid></Border>
+</Window>
+
