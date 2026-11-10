@@ -206,7 +206,7 @@ namespace CRMS.Services
                     payment.PaymentType,
                     payment.Amount,
 
-                    PaidAtUtc = payment.PaidAt.Value
+                    PaidAtUtc = payment.PaidAt.GetValueOrDefault()
                 }
             ).ToListAsync();
 
