@@ -23,6 +23,7 @@ async Task Reject(Func<Task> action, string name)
     throw new Exception("FAIL accepted: " + name);
 }
 var options = new DemoPaymentOptions { Enabled = true, BankBin = "970436", BankName = "TEST BANK", AccountNumber = "0000000001", AccountName = "TEST RECEIVER" };
+ReceiverConfigurationChecks.Run(Check);
 var payload = VietQrCode.CreatePayload(options.BankBin, options.AccountNumber, "DEMO123456789");
 Dictionary<string, string> Fields(string text)
 {

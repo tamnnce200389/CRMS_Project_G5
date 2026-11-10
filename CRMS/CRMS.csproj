@@ -16,7 +16,7 @@
 	</ItemGroup>
 
     <ItemGroup>
-        <None Update="payment-demo.local.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="Never" />
+        <None Update="payment-demo.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     </ItemGroup>
 
 	<ItemGroup>

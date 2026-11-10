@@ -20,7 +20,7 @@
                 <Border Background="White" BorderBrush="{StaticResource CustomerLine}" BorderThickness="1" CornerRadius="18" Padding="22">
                     <StackPanel>
                         <TextBlock Text="{Binding TransferAmountLabel}" FontSize="19" FontWeight="SemiBold" TextWrapping="Wrap" TextAlignment="Center"/>
-                        <TextBlock Text="Quét bằng ứng dụng hỗ trợ VietQR / VNPAY" Foreground="{StaticResource CustomerMuted}" FontSize="12" TextAlignment="Center" Margin="0,8,0,12"/>
+                        <TextBlock Text="Quét QR và chuyển thử nghiệm đúng 1.000đ" Foreground="{StaticResource CustomerMuted}" FontSize="12" TextAlignment="Center" Margin="0,8,0,12"/>
                         <Border Visibility="{Binding CanShowQr, Converter={StaticResource VisibleWhenTrue}}" Background="White" Padding="10" HorizontalAlignment="Center">
                             <Image Source="{Binding QrImage}" Width="270" Height="270" Stretch="Uniform" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
                         </Border>

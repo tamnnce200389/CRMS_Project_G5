@@ -17,10 +17,15 @@ public sealed record DemoPaymentOptions
     public static DemoPaymentOptions Load()
     {
         bool enabled = bool.TryParse(ConfigurationManager.AppSettings["DemoPaymentsEnabled"], out var flag) && flag;
+        return Load(AppContext.BaseDirectory, enabled);
+    }
+
+    public static DemoPaymentOptions Load(string baseDirectory, bool enabled)
+    {
         var paths = new[]
         {
-            Path.Combine(AppContext.BaseDirectory, "payment-demo.local.json"),
-            Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "payment-demo.local.json"))
+            Path.Combine(baseDirectory, "payment-demo.json"),
+            Path.GetFullPath(Path.Combine(baseDirectory, "..", "..", "..", "payment-demo.json"))
         };
         var path = paths.FirstOrDefault(File.Exists);
         if (path == null) return new() { Enabled = enabled };
