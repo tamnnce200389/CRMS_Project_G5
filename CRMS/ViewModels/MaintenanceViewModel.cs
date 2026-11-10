@@ -227,6 +227,7 @@ public sealed class MaintenanceViewModel : BaseViewModel
             if (_isLoading == value) return;
             _isLoading = value;
             OnPropertyChanged();
+            CommandManager.InvalidateRequerySuggested();
         }
     }
 
@@ -321,6 +322,9 @@ public sealed class MaintenanceViewModel : BaseViewModel
 
     public async Task InitializeAsync()
     {
+        if (IsLoading)
+            return;
+
         try
         {
             IsLoading = true;
@@ -345,41 +349,29 @@ public sealed class MaintenanceViewModel : BaseViewModel
             SelectedFormVehicle = _initialVehicleId.HasValue
                 ? FormVehicleOptions.FirstOrDefault(x => x.VehicleId == _initialVehicleId.Value) ?? FormVehicleOptions.FirstOrDefault()
                 : FormVehicleOptions.FirstOrDefault();
+
+            await LoadRecordsCoreAsync();
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Không thể tải danh sách xe: {ex.Message}";
+            ErrorMessage = $"Không thể tải dữ liệu bảo trì: {ex.Message}";
+            StatusMessage = "Không thể tải danh sách bảo trì.";
         }
         finally
         {
             IsLoading = false;
         }
-
-        await LoadRecordsAsync();
     }
 
     public async Task LoadRecordsAsync(long? selectMaintenanceId = null)
     {
+        if (IsLoading)
+            return;
+
         try
         {
             IsLoading = true;
-            var list = await _maintenanceService.GetMaintenanceRecordsAsync();
-            var keepId = selectMaintenanceId ?? SelectedRecord?.MaintenanceId;
-
-            Records.Clear();
-            foreach (var item in list)
-                Records.Add(item);
-
-            RefreshFilteredView();
-
-            if (keepId.HasValue)
-            {
-                var match = Records.FirstOrDefault(x => x.MaintenanceId == keepId.Value);
-                if (match is not null)
-                    SelectedRecord = match;
-            }
-
-            StatusMessage = $"Cập nhật lúc {DateTime.Now:HH:mm} · {TotalRecords} phiếu ({InProgressCount} đang bảo trì, {ScheduledCount} đã lên lịch, {CompletedCount} hoàn thành).";
+            await LoadRecordsCoreAsync(selectMaintenanceId);
         }
         catch (Exception ex)
         {
@@ -389,8 +381,28 @@ public sealed class MaintenanceViewModel : BaseViewModel
         finally
         {
             IsLoading = false;
-            CommandManager.InvalidateRequerySuggested();
         }
+    }
+
+    private async Task LoadRecordsCoreAsync(long? selectMaintenanceId = null)
+    {
+        var list = await _maintenanceService.GetMaintenanceRecordsAsync();
+        var keepId = selectMaintenanceId ?? SelectedRecord?.MaintenanceId;
+
+        Records.Clear();
+        foreach (var item in list)
+            Records.Add(item);
+
+        RefreshFilteredView();
+
+        if (keepId.HasValue)
+        {
+            var match = Records.FirstOrDefault(x => x.MaintenanceId == keepId.Value);
+            if (match is not null)
+                SelectedRecord = match;
+        }
+
+        StatusMessage = $"Cập nhật lúc {DateTime.Now:HH:mm} · {TotalRecords} phiếu ({InProgressCount} đang bảo trì, {ScheduledCount} đã lên lịch, {CompletedCount} hoàn thành).";
     }
 
     public void SwitchToCreateMode()
@@ -438,8 +450,7 @@ public sealed class MaintenanceViewModel : BaseViewModel
                     Cost: cost,
                     StartImmediately: StartImmediately));
 
-                IsLoading = false;
-                await LoadRecordsAsync(selectMaintenanceId: newId);
+                await LoadRecordsCoreAsync(selectMaintenanceId: newId);
                 StatusMessage = $"Đã lưu phiếu bảo trì BT-#{newId} thành công.";
             }
             else if (SelectedRecord is not null)
@@ -453,8 +464,7 @@ public sealed class MaintenanceViewModel : BaseViewModel
                     Cost: cost,
                     MaintenanceStatus: SelectedRecord.MaintenanceStatus));
 
-                IsLoading = false;
-                await LoadRecordsAsync(selectMaintenanceId: targetId);
+                await LoadRecordsCoreAsync(selectMaintenanceId: targetId);
                 StatusMessage = $"Đã cập nhật phiếu bảo trì BT-#{targetId}.";
             }
         }
@@ -465,7 +475,6 @@ public sealed class MaintenanceViewModel : BaseViewModel
         finally
         {
             IsLoading = false;
-            CommandManager.InvalidateRequerySuggested();
         }
     }
 
@@ -508,8 +517,7 @@ public sealed class MaintenanceViewModel : BaseViewModel
                 finalCost: cost,
                 updatedDescription: DescriptionInput);
 
-            IsLoading = false;
-            await LoadRecordsAsync(selectMaintenanceId: targetId);
+            await LoadRecordsCoreAsync(selectMaintenanceId: targetId);
             StatusMessage = $"Đã chuyển trạng thái phiếu BT-#{targetId} thành công.";
         }
         catch (Exception ex)
@@ -519,7 +527,6 @@ public sealed class MaintenanceViewModel : BaseViewModel
         finally
         {
             IsLoading = false;
-            CommandManager.InvalidateRequerySuggested();
         }
     }
 

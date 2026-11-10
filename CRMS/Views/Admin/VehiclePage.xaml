@@ -5,14 +5,19 @@
       Title="Quản lý xe">
     <Page.Resources>
         <Style TargetType="Button" BasedOn="{StaticResource AdminButtonBase}"/>
-        <Style TargetType="DataGridCell" BasedOn="{StaticResource AdminCell}"/>
+        <Style TargetType="DataGridCell" BasedOn="{StaticResource AdminCell}">
+            <Setter Property="Padding" Value="8,0"/>
+        </Style>
+        <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+            <Setter Property="Padding" Value="8,12"/>
+        </Style>
     </Page.Resources>
 
     <Page.DataContext>
         <vm:VehicleViewModel />
     </Page.DataContext>
 
-    <Grid Margin="32,26">
+    <Grid Margin="28,24">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -26,7 +31,9 @@
             <StackPanel DockPanel.Dock="Right"
                         Orientation="Horizontal"
                         VerticalAlignment="Center">
-                <Button Content="Kiểm tra lịch trống"
+                <Button x:Name="OpenAvailabilityToolbarButton"
+                        AutomationProperties.AutomationId="OpenAvailabilityToolbarButton"
+                        Content="Kiểm tra lịch trống"
                         Command="{Binding OpenAvailabilityCommand}"
                         Background="White"
                         Foreground="{StaticResource CustomerInk}"
@@ -196,7 +203,7 @@
                           RowHeight="60"
                           AutomationProperties.Name="Danh sách xe">
                     <DataGrid.Columns>
-                        <DataGridTemplateColumn Header="ẢNH" Width="78" IsReadOnly="True">
+                        <DataGridTemplateColumn Header="ẢNH" Width="66" IsReadOnly="True">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <Border Width="50" Height="34" CornerRadius="6" Background="#F1F5F9" BorderBrush="#E2E8F0" BorderThickness="1" ClipToBounds="True">
@@ -214,22 +221,22 @@
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
 
-                        <DataGridTextColumn Header="BIỂN SỐ" Binding="{Binding LicensePlate}" Width="136" />
+                        <DataGridTextColumn Header="BIỂN SỐ" Binding="{Binding LicensePlate}" Width="128" />
 
-                        <DataGridTemplateColumn Header="PHƯƠNG TIỆN" SortMemberPath="Brand" Width="*" MinWidth="125">
+                        <DataGridTemplateColumn Header="PHƯƠNG TIỆN" SortMemberPath="Brand" Width="*" MinWidth="116">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <StackPanel>
-                                        <TextBlock Text="{Binding Brand}" FontWeight="SemiBold" />
-                                        <TextBlock Text="{Binding Model}" Foreground="{StaticResource Muted}" FontSize="11" Margin="0,2,0,0" />
+                                        <TextBlock Text="{Binding Brand}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{Binding Model}" Foreground="{StaticResource Muted}" FontSize="11" Margin="0,2,0,0" TextTrimming="CharacterEllipsis" />
                                     </StackPanel>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
 
-                        <DataGridTextColumn Header="LOẠI XE" Binding="{Binding CategoryName}" Width="92" />
+                        <DataGridTextColumn Header="LOẠI XE" Binding="{Binding CategoryName}" Width="86" />
 
-                        <DataGridTemplateColumn Header="NĂM / GHẾ" SortMemberPath="ManufactureYear" Width="88">
+                        <DataGridTemplateColumn Header="NĂM / GHẾ" SortMemberPath="ManufactureYear" Width="82">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <StackPanel>
@@ -240,7 +247,7 @@
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
 
-                        <DataGridTemplateColumn Header="HỘP SỐ / NL" SortMemberPath="Transmission" Width="136">
+                        <DataGridTemplateColumn Header="HỘP SỐ / NL" SortMemberPath="Transmission" Width="108">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <StackPanel>
@@ -251,11 +258,11 @@
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
 
-                        <DataGridTextColumn Header="ODO (KM)" Binding="{Binding OdometerKm, StringFormat={}{0:N0}}" Width="92" />
+                        <DataGridTextColumn Header="ODO (KM)" Binding="{Binding OdometerKm, StringFormat={}{0:N0}}" Width="86" />
 
-                        <DataGridTextColumn Header="GIÁ/NGÀY · VNĐ" Binding="{Binding DailyRate, StringFormat={}{0:N0}}" Width="124" />
+                        <DataGridTextColumn Header="GIÁ/NGÀY · VNĐ" Binding="{Binding DailyRate, StringFormat={}{0:N0}}" Width="122" />
 
-                        <DataGridTemplateColumn Header="TRẠNG THÁI" SortMemberPath="OperationalStatus" Width="110">
+                        <DataGridTemplateColumn Header="TRẠNG THÁI" SortMemberPath="OperationalStatus" Width="102">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <Border CornerRadius="5" Padding="9,4" HorizontalAlignment="Left">
@@ -288,7 +295,7 @@
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
 
-                        <DataGridTemplateColumn Header="THAO TÁC" Width="178">
+                        <DataGridTemplateColumn Header="THAO TÁC" Width="162">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal">

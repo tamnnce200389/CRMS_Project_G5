@@ -62,14 +62,16 @@
                                       SelectedValuePath="CategoryId"
                                       DisplayMemberPath="CategoryName"
                                       SelectedValue="{Binding SelectedCategoryId, Mode=TwoWay}"
-                                      Height="38" />
+                                      Height="38"
+                                      AutomationProperties.Name="Loại xe" />
                         </StackPanel>
 
                         <StackPanel Grid.Row="0" Grid.Column="1" Margin="10,0,0,14">
                             <TextBlock Text="Biển số xe *" FontWeight="SemiBold" FontSize="12" Margin="0,0,0,6" />
                             <TextBox Text="{Binding LicensePlate, UpdateSourceTrigger=PropertyChanged}"
                                      MaxLength="20"
-                                     Height="38" />
+                                     Height="38"
+                                     AutomationProperties.Name="Biển số xe" />
                         </StackPanel>
 
                         <!-- Row 1: Brand & Model -->
@@ -77,14 +79,16 @@
                             <TextBlock Text="Hãng xe *" FontWeight="SemiBold" FontSize="12" Margin="0,0,0,6" />
                             <TextBox Text="{Binding Brand, UpdateSourceTrigger=PropertyChanged}"
                                      MaxLength="80"
-                                     Height="38" />
+                                     Height="38"
+                                     AutomationProperties.Name="Hãng xe" />
                         </StackPanel>
 
                         <StackPanel Grid.Row="1" Grid.Column="1" Margin="10,0,0,14">
                             <TextBlock Text="Mẫu xe *" FontWeight="SemiBold" FontSize="12" Margin="0,0,0,6" />
                             <TextBox Text="{Binding Model, UpdateSourceTrigger=PropertyChanged}"
                                      MaxLength="100"
-                                     Height="38" />
+                                     Height="38"
+                                     AutomationProperties.Name="Mẫu xe" />
                         </StackPanel>
 
                         <!-- Row 2: Year & Seats -->
@@ -92,14 +96,16 @@
                             <TextBlock Text="Năm sản xuất (1990 - 2100) *" FontWeight="SemiBold" FontSize="12" Margin="0,0,0,6" />
                             <TextBox Text="{Binding ManufactureYearText, UpdateSourceTrigger=PropertyChanged}"
                                      MaxLength="4"
-                                     Height="38" />
+                                     Height="38"
+                                     AutomationProperties.Name="Năm sản xuất" />
                         </StackPanel>
 
                         <StackPanel Grid.Row="2" Grid.Column="1" Margin="10,0,0,14">
                             <TextBlock Text="Số chỗ ngồi (1 - 30) *" FontWeight="SemiBold" FontSize="12" Margin="0,0,0,6" />
                             <TextBox Text="{Binding SeatCountText, UpdateSourceTrigger=PropertyChanged}"
                                      MaxLength="2"
-                                     Height="38" />
+                                     Height="38"
+                                     AutomationProperties.Name="Số chỗ ngồi" />
                         </StackPanel>
 
                         <!-- Row 3: Transmission & Fuel -->
@@ -109,7 +115,8 @@
                                       SelectedValuePath="Value"
                                       DisplayMemberPath="Label"
                                       SelectedValue="{Binding SelectedTransmission, Mode=TwoWay}"
-                                      Height="38" />
+                                      Height="38"
+                                      AutomationProperties.Name="Hộp số" />
                         </StackPanel>
 
                         <StackPanel Grid.Row="3" Grid.Column="1" Margin="10,0,0,14">
@@ -118,20 +125,23 @@
                                       SelectedValuePath="Value"
                                       DisplayMemberPath="Label"
                                       SelectedValue="{Binding SelectedFuelType, Mode=TwoWay}"
-                                      Height="38" />
+                                      Height="38"
+                                      AutomationProperties.Name="Nhiên liệu" />
                         </StackPanel>
 
                         <!-- Row 4: DailyRate & Odometer -->
                         <StackPanel Grid.Row="4" Grid.Column="0" Margin="0,0,10,14">
                             <TextBlock Text="Giá thuê / ngày (VNĐ) *" FontWeight="SemiBold" FontSize="12" Margin="0,0,0,6" />
                             <TextBox Text="{Binding DailyRateText, UpdateSourceTrigger=PropertyChanged}"
-                                     Height="38" />
+                                     Height="38"
+                                     AutomationProperties.Name="Giá thuê theo ngày" />
                         </StackPanel>
 
                         <StackPanel Grid.Row="4" Grid.Column="1" Margin="10,0,0,14">
                             <TextBlock Text="Công-tơ-mét (km) *" FontWeight="SemiBold" FontSize="12" Margin="0,0,0,6" />
                             <TextBox Text="{Binding OdometerKmText, UpdateSourceTrigger=PropertyChanged}"
-                                     Height="38" />
+                                     Height="38"
+                                     AutomationProperties.Name="Số công-tơ-mét" />
                         </StackPanel>
 
                         <!-- Row 5: Status -->
@@ -141,7 +151,8 @@
                                       SelectedValuePath="Value"
                                       DisplayMemberPath="Label"
                                       SelectedValue="{Binding SelectedOperationalStatus, Mode=TwoWay}"
-                                      Height="38" />
+                                      Height="38"
+                                      AutomationProperties.Name="Trạng thái khai thác" />
                         </StackPanel>
 
                         <!-- Row 6: Description -->
@@ -154,7 +165,8 @@
                                      VerticalContentAlignment="Top"
                                      TextWrapping="Wrap"
                                      AcceptsReturn="True"
-                                     VerticalScrollBarVisibility="Auto" />
+                                     VerticalScrollBarVisibility="Auto"
+                                     AutomationProperties.Name="Mô tả chi tiết xe" />
                         </StackPanel>
                     </Grid>
                 </ScrollViewer>
@@ -212,7 +224,8 @@
 
                         <Grid Margin="0,0,8,0">
                             <TextBox Height="36"
-                                     Text="{Binding AddUrlInput, UpdateSourceTrigger=PropertyChanged}" />
+                                     Text="{Binding AddUrlInput, UpdateSourceTrigger=PropertyChanged}"
+                                     AutomationProperties.Name="URL ảnh xe" />
                             <TextBlock Text="Hoặc dán URL ảnh (https://...)"
                                        Margin="12,0"
                                        Foreground="#94A3B8"
@@ -254,7 +267,8 @@
                              BorderThickness="1"
                              Background="#FAFCFF"
                              HorizontalContentAlignment="Stretch"
-                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             AutomationProperties.Name="Danh sách ảnh của xe">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <Border Padding="6,6" BorderBrush="#EEF2F7" BorderThickness="0,0,0,1">

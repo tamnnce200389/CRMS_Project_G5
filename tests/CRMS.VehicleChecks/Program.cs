@@ -215,10 +215,18 @@ Assert(bundledImgVm.DisplayName == "vehicle-01-exterior.jpg",
     "VehicleImageItemViewModel extracts clean file name for pack:// bundled image URI");
 
 Assert(VehicleRules.TryParseVndAmount("850.000", out var vnd1) && vnd1 == 850000m &&
+       VehicleRules.TryParseVndAmount("125.500", out var vndHalf) && vndHalf == 125500m &&
        VehicleRules.TryParseVndAmount("1.250.000", out var vnd2) && vnd2 == 1250000m &&
        VehicleRules.TryParseVndAmount("850,000.50", out var vnd3) && vnd3 == 850000.50m &&
        VehicleRules.TryParseVndAmount("850000,25", out var vnd4) && vnd4 == 850000.25m,
     "TryParseVndAmount parses Vietnamese dot-thousands and US comma-thousands accurately");
+
+Assert(!VehicleRules.TryParseVndAmount("0.500", out _) &&
+       !VehicleRules.TryParseVndAmount("0,500", out _) &&
+       !VehicleRules.TryParseVndAmount("100.555", out _) &&
+       !VehicleRules.TryParseVndAmount("500000.125", out _) &&
+       !VehicleRules.TryParseVndAmount("850,000.555", out _),
+    "TryParseVndAmount rejects malformed leading-zero thousands and >2 decimal inputs");
 
 editVm.LicensePlate = "65A-999.88";
 editVm.Brand = "Honda";
@@ -227,6 +235,51 @@ editVm.DailyRateText = "1.350.000";
 await editVm.SaveAsync();
 Assert(!editVm.HasError && fakeService.LastSavedRequest?.DailyRate == 1350000m,
     "VehicleEditViewModel saves Vietnamese dot-grouped DailyRateText (1.350.000 -> 1350000)");
+
+var stageImgPath = Path.Combine(Path.GetTempPath(), $"crms_stage_{Guid.NewGuid():N}.png");
+var bigImgPath = Path.Combine(Path.GetTempPath(), $"crms_big_{Guid.NewGuid():N}.png");
+string? copiedUploadPath = null;
+try
+{
+    await File.WriteAllBytesAsync(stageImgPath, new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A });
+    await using (var fs = new FileStream(bigImgPath, FileMode.Create, FileAccess.Write, FileShare.None))
+    {
+        fs.SetLength(VehicleEditViewModel.MaxImageFileBytes + 1);
+    }
+
+    var uploadVm = new VehicleEditViewModel(fakeService);
+    await uploadVm.InitializeForCreateAsync();
+    uploadVm.ImportLocalImageFiles(new[] { bigImgPath });
+    Assert(uploadVm.HasError && uploadVm.Images.Count == 0,
+        "VehicleEditViewModel rejects local image larger than 10 MB");
+
+    uploadVm.ImportLocalImageFiles(new[] { stageImgPath });
+    var stagedUri = new Uri(Path.GetFullPath(stageImgPath)).AbsoluteUri;
+    Assert(!uploadVm.HasError && uploadVm.Images.Count == 1 && uploadVm.Images[0].ImageUrl == stagedUri,
+        "VehicleEditViewModel stages local image URI without copying before SaveAsync");
+
+    uploadVm.LicensePlate = "65A-777.66";
+    uploadVm.Brand = "Mazda";
+    uploadVm.Model = "CX-5";
+    uploadVm.DailyRateText = "950.000";
+    await uploadVm.SaveAsync();
+
+    var savedImgUrl = fakeService.LastSavedRequest?.Images?.Single().ImageUrl ?? "";
+    copiedUploadPath = Uri.TryCreate(savedImgUrl, UriKind.Absolute, out var savedUri) && savedUri.IsFile
+        ? savedUri.LocalPath
+        : null;
+    Assert(!uploadVm.HasError &&
+           copiedUploadPath != null &&
+           copiedUploadPath.StartsWith(VehicleEditViewModel.GetUploadDirectory(), StringComparison.OrdinalIgnoreCase) &&
+           File.Exists(copiedUploadPath),
+        "VehicleEditViewModel copies staged local image into LocalApplicationData/CRMS/VehicleUploads only on SaveAsync");
+}
+finally
+{
+    if (File.Exists(stageImgPath)) File.Delete(stageImgPath);
+    if (File.Exists(bigImgPath)) File.Delete(bigImgPath);
+    if (copiedUploadPath != null && File.Exists(copiedUploadPath)) File.Delete(copiedUploadPath);
+}
 
 // =========================================================
 // 3B. F07 PURE AVAILABILITY RULES & VIEWMODEL CHECKS
@@ -302,7 +355,11 @@ await availVm.InitializeAsync();
 Assert(availVm.TotalCheckedCount == 2 && availVm.AvailableCount == 1 && availVm.UnavailableCount == 1,
     "AvailabilityViewModel computes available/unavailable KPIs");
 availVm.SelectedAvailabilityFilter = "Chỉ xe còn trống";
-Assert(availVm.FilteredCount == 1, "AvailabilityViewModel filters available-only vehicles");
+Assert(availVm.FilteredCount == 1 && availVm.SelectedResult?.VehicleId == 1,
+    "AvailabilityViewModel filters available-only vehicles and keeps valid selection");
+availVm.SelectedAvailabilityFilter = "Chỉ xe không khả dụng";
+Assert(availVm.FilteredCount == 1 && availVm.SelectedResult?.VehicleId == 2,
+    "AvailabilityViewModel auto-selects first visible vehicle when filter hides previous selection");
 
 // =========================================================
 // 3C. F24 PURE MAINTENANCE RULES & VIEWMODEL CHECKS
@@ -345,6 +402,12 @@ Reject(() => MaintenanceRules.ValidateTransition("Completed", "InProgress"),
     "F24: Reject modifying Completed maintenance");
 Reject(() => MaintenanceRules.ValidateTransition("Cancelled", "Scheduled"),
     "F24: Reject modifying Cancelled maintenance");
+Reject(() => MaintenanceRules.ValidateUpdate(
+        new MaintenanceUpdateRequest(10, DateTime.Today.AddDays(-2), DateTime.Today.AddDays(1), "Lùi về quá khứ", 200000m, "Scheduled"),
+        currentStatus: "Scheduled",
+        nowUtc: nowRefUtc,
+        existingStartUtc: AvailabilityRules.ToUtc(baseDayLocal.AddHours(9))),
+    "F24: Reject backdating Scheduled maintenance StartAt into the past on update");
 
 var fakeMaintService = new FakeMaintenanceService();
 var maintVm = new MaintenanceViewModel(fakeMaintService, fakeService);
@@ -360,8 +423,7 @@ Assert(maintVm.FilteredCount == 1, "F24: MaintenanceViewModel filters by Mainten
 maintVm.SwitchToCreateMode();
 maintVm.DescriptionInput = "Bảo dưỡng điều hòa";
 maintVm.CostInput = "650.000";
-maintVm.SaveCommand.Execute(null);
-await Task.Delay(50);
+await ((AsyncRelayCommand)maintVm.SaveCommand).ExecuteAsync(null);
 Assert(!maintVm.HasError && fakeMaintService.LastScheduledRequest?.Cost == 650000m,
     "F24: MaintenanceViewModel parses Vietnamese dot-grouped CostInput (650.000 -> 650000)");
 
@@ -488,6 +550,17 @@ try
         await reader.ReadAsync();
         Assert(reader.GetInt32(0) == 5 && reader.GetDecimal(1) == 60000000m && reader.GetDecimal(2) == 60000000m,
             "5 VehicleLongTermRates packages synced automatically on vehicle creation");
+    }
+
+    await using (var conn = new SqlConnection(connectionString))
+    {
+        await conn.OpenAsync();
+        await using var catalogCmd = new SqlCommand(
+            "SELECT COUNT(DISTINCT RentalMode) FROM dbo.vVehicleSearchCatalog WHERE VehicleId = @id", conn);
+        catalogCmd.Parameters.AddWithValue("@id", newVehicleId);
+        var modeCount = Convert.ToInt32(await catalogCmd.ExecuteScalarAsync());
+        Assert(modeCount >= 2,
+            "Newly created Active vehicle is automatically published in dbo.vVehicleSearchCatalog (SelfDrive & LongTerm)");
     }
 
     // 4.4 Duplicate license plate protection
@@ -933,6 +1006,40 @@ try
         block!.IsActive = false;
         await db.SaveChangesAsync();
     }
+
+    // 6.7 Concurrent overlapping ScheduleMaintenanceAsync race (sp_getapplock + atomic Cost persistence)
+    var raceDay = DateTime.Today.AddDays(28);
+    var r10 = raceDay.AddHours(10);
+    var r14 = raceDay.AddHours(14);
+
+    async Task<(bool Succeeded, long Id)> TryRaceScheduleAsync(string desc, decimal cost)
+    {
+        try
+        {
+            var id = await maintService.ScheduleMaintenanceAsync(
+                new MaintenanceScheduleRequest(newVehicleId, r10, r14, desc, cost, StartImmediately: false));
+            return (true, id);
+        }
+        catch (InvalidOperationException)
+        {
+            return (false, 0L);
+        }
+    }
+
+    var raceOutcomes = await Task.WhenAll(
+        TryRaceScheduleAsync("Concurrent slot A", 750000m),
+        TryRaceScheduleAsync("Concurrent slot B", 880000m));
+
+    var winners = raceOutcomes.Where(x => x.Succeeded).ToList();
+    Assert(winners.Count == 1,
+        "F24: Concurrent overlapping ScheduleMaintenanceAsync allows exactly 1 winner under sp_getapplock");
+
+    var winnerRecord = (await maintService.GetMaintenanceRecordsAsync(new MaintenanceFilter(VehicleId: newVehicleId)))
+        .First(x => x.MaintenanceId == winners[0].Id);
+    Assert(winnerRecord.Cost is 750000m or 880000m,
+        "F24: Scheduled maintenance Cost is persisted atomically inside ExecuteScheduleStoredProcAsync transaction");
+
+    await maintService.ChangeStatusAsync(winners[0].Id, "Cancelled");
 
     Console.WriteLine($"ALL {passed} CHECKS PASSED (F06 + F07 + F24 unit & SQL integration).");
 }

@@ -46,6 +46,8 @@ public sealed class VehicleListItem
     public string? PrimaryImageUrl { get; init; }
     public int ImageCount { get; init; }
     public bool IsActive => OperationalStatus == "Active";
+
+    public override string ToString() => $"{LicensePlate} · {Brand} {Model}".Trim();
 }
 
 public sealed class VehicleDetailsDto
@@ -96,6 +98,8 @@ public sealed class CategoryListItem
     public bool IsActive { get; init; }
     public int TotalVehicles { get; init; }
     public int ActiveVehicles { get; init; }
+
+    public override string ToString() => CategoryName;
 }
 
 public sealed record CategoryUpsertRequest(

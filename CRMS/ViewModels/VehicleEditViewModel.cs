@@ -71,12 +71,28 @@ public sealed class VehicleImageItemViewModel : BaseViewModel
             return ImageUrl;
         }
     }
+
+    public override string ToString() => DisplayName;
 }
 
-public sealed record OptionItem(string Value, string Label);
+public sealed record OptionItem(string Value, string Label)
+{
+    public override string ToString() => Label;
+}
 
 public sealed class VehicleEditViewModel : BaseViewModel
 {
+    public const long MaxImageFileBytes = 10L * 1024 * 1024;
+
+    private static readonly HashSet<string> AllowedLocalImageExtensions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".webp",
+        ".bmp"
+    };
+
     private readonly IVehicleService _service;
     private int? _originalOdometerKm;
 
@@ -339,27 +355,14 @@ public sealed class VehicleEditViewModel : BaseViewModel
         ErrorMessage = "";
     }
 
-    public void AddLocalImagePath(string filePath)
-    {
-        try
-        {
-            ErrorMessage = "";
-            var uri = VehicleRules.NormalizeImageUrl(filePath);
-            AppendImageUri(uri);
-        }
-        catch (InvalidOperationException ex)
-        {
-            ErrorMessage = ex.Message;
-        }
-    }
+    public static string GetUploadDirectory() =>
+        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CRMS", "VehicleUploads");
 
     public void ImportLocalImageFiles(IEnumerable<string> sourceFiles)
     {
         try
         {
             ErrorMessage = "";
-            var uploadDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "VehicleUploads");
-            Directory.CreateDirectory(uploadDir);
 
             foreach (var sourceFile in sourceFiles)
             {
@@ -367,10 +370,17 @@ public sealed class VehicleEditViewModel : BaseViewModel
                     throw new InvalidOperationException($"Không tìm thấy tệp ảnh: {sourceFile}");
 
                 var ext = Path.GetExtension(sourceFile);
-                var safeName = $"{DateTime.UtcNow:yyyyMMddHHmmss}_{Guid.NewGuid():N}{ext}";
-                var destination = Path.Combine(uploadDir, safeName);
-                File.Copy(sourceFile, destination, overwrite: true);
-                var uri = VehicleRules.NormalizeImageUrl(destination);
+                if (!AllowedLocalImageExtensions.Contains(ext))
+                    throw new InvalidOperationException("Chỉ hỗ trợ tệp ảnh định dạng JPG, JPEG, PNG, WEBP hoặc BMP.");
+
+                var info = new FileInfo(sourceFile);
+                if (info.Length <= 0)
+                    throw new InvalidOperationException($"Tệp ảnh rỗng hoặc không hợp lệ: {info.Name}");
+
+                if (info.Length > MaxImageFileBytes)
+                    throw new InvalidOperationException($"Tệp ảnh '{info.Name}' vượt quá dung lượng tối đa 10 MB.");
+
+                var uri = VehicleRules.NormalizeImageUrl(sourceFile);
                 AppendImageUri(uri);
             }
         }
@@ -380,7 +390,7 @@ public sealed class VehicleEditViewModel : BaseViewModel
         }
         catch (IOException ex)
         {
-            ErrorMessage = $"Không thể sao chép tệp ảnh: {ex.Message}";
+            ErrorMessage = $"Không thể đọc tệp ảnh: {ex.Message}";
         }
         catch (UnauthorizedAccessException ex)
         {
@@ -489,6 +499,8 @@ public sealed class VehicleEditViewModel : BaseViewModel
         if (IsSaving)
             return;
 
+        var copiedFiles = new List<(VehicleImageItemViewModel Item, string OriginalUri, string CopiedPath)>();
+
         try
         {
             ErrorMessage = "";
@@ -525,15 +537,23 @@ public sealed class VehicleEditViewModel : BaseViewModel
             VehicleRules.ValidateVehicle(request, _originalOdometerKm);
 
             IsSaving = true;
+            PersistStagedLocalImages(copiedFiles);
+            request = request with
+            {
+                Images = Images.Select((img, idx) => new VehicleImageInput(img.ImageUrl, img.IsPrimary, idx)).ToList()
+            };
+
             await _service.SaveVehicleAsync(request);
             RequestClose?.Invoke(true);
         }
         catch (InvalidOperationException ex)
         {
+            RollbackCopiedImages(copiedFiles);
             ErrorMessage = ex.Message;
         }
         catch (Exception ex)
         {
+            RollbackCopiedImages(copiedFiles);
             ErrorMessage = "Không thể lưu thông tin xe. Vui lòng kiểm tra kết nối cơ sở dữ liệu và thử lại.";
             System.Diagnostics.Debug.WriteLine(ex);
         }
@@ -542,5 +562,55 @@ public sealed class VehicleEditViewModel : BaseViewModel
             IsSaving = false;
             CommandManager.InvalidateRequerySuggested();
         }
+    }
+
+    private void PersistStagedLocalImages(List<(VehicleImageItemViewModel Item, string OriginalUri, string CopiedPath)> copiedFiles)
+    {
+        var uploadDir = Path.GetFullPath(GetUploadDirectory());
+        var uploadPrefix = uploadDir.EndsWith(Path.DirectorySeparatorChar)
+            ? uploadDir
+            : uploadDir + Path.DirectorySeparatorChar;
+
+        foreach (var item in Images)
+        {
+            if (!Uri.TryCreate(item.ImageUrl, UriKind.Absolute, out var uri) || !uri.IsFile)
+                continue;
+
+            var localPath = Path.GetFullPath(uri.LocalPath);
+            if (localPath.StartsWith(uploadPrefix, StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            Directory.CreateDirectory(uploadDir);
+            var ext = Path.GetExtension(localPath);
+            var safeName = $"{DateTime.UtcNow:yyyyMMddHHmmss}_{Guid.NewGuid():N}{ext}";
+            var destination = Path.Combine(uploadDir, safeName);
+            File.Copy(localPath, destination, overwrite: true);
+
+            var originalUri = item.ImageUrl;
+            item.ImageUrl = new Uri(destination).AbsoluteUri;
+            copiedFiles.Add((item, originalUri, destination));
+        }
+
+        OnPropertyChanged(nameof(PreviewImageUrl));
+    }
+
+    private void RollbackCopiedImages(List<(VehicleImageItemViewModel Item, string OriginalUri, string CopiedPath)> copiedFiles)
+    {
+        foreach (var (item, originalUri, copiedPath) in copiedFiles)
+        {
+            item.ImageUrl = originalUri;
+            try
+            {
+                if (File.Exists(copiedPath))
+                    File.Delete(copiedPath);
+            }
+            catch
+            {
+                // Ignore best-effort temp cleanup failure
+            }
+        }
+
+        if (copiedFiles.Count > 0)
+            OnPropertyChanged(nameof(PreviewImageUrl));
     }
 }

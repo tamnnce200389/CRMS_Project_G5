@@ -68,4 +68,6 @@ public sealed class VehicleAvailabilityResult
             : Conflicts.Count == 1
                 ? Conflicts[0].Reason
                 : $"{Conflicts[0].Reason} (+{Conflicts.Count - 1} xung đột khác)";
+
+    public override string ToString() => $"{LicensePlate} · {DisplayName} ({AvailabilityLabel})";
 }

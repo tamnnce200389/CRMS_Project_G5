@@ -7,7 +7,12 @@
       FontFamily="Segoe UI">
     <Page.Resources>
         <Style TargetType="Button" BasedOn="{StaticResource StaffButton}"/>
-        <Style TargetType="DataGridCell" BasedOn="{StaticResource AdminCell}"/>
+        <Style TargetType="DataGridCell" BasedOn="{StaticResource AdminCell}">
+            <Setter Property="Padding" Value="10,0"/>
+        </Style>
+        <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+            <Setter Property="Padding" Value="10,12"/>
+        </Style>
     </Page.Resources>
 
 
@@ -54,7 +59,8 @@
                         <TextBox Height="42"
                                  Padding="12,8"
                                  Text="{Binding SearchText,
-                                     UpdateSourceTrigger=PropertyChanged}"/>
+                                     UpdateSourceTrigger=PropertyChanged}"
+                                 AutomationProperties.Name="Tìm kiếm phương tiện"/>
                     </StackPanel>
 
                     <StackPanel Grid.Column="1"
@@ -66,7 +72,14 @@
 
                         <ComboBox Style="{StaticResource RoundedComboBox}" Height="42"
                                   ItemsSource="{Binding StatusOptions}"
-                                  SelectedItem="{Binding SelectedStatus}"/>
+                                  SelectedItem="{Binding SelectedStatus}"
+                                  AutomationProperties.Name="Trạng thái xe">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Converter={StaticResource VietnameseLabel}}"/>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
                     </StackPanel>
 
                     <Button Grid.Column="2"
@@ -123,7 +136,8 @@
                               Background="{StaticResource Surface}"
                               BorderThickness="0"
                               GridLinesVisibility="Horizontal"
-                              HeadersVisibility="Column">
+                              HeadersVisibility="Column"
+                              AutomationProperties.Name="Danh sách phương tiện">
 
                         <DataGrid.Columns>
 
@@ -145,7 +159,7 @@
 
                             <DataGridTextColumn Header="SỐ GHẾ"
                                                 Binding="{Binding SeatCount}"
-                                                Width="75"/>
+                                                Width="80"/>
 
                             <DataGridTextColumn Header="GIÁ / NGÀY"
                                                 Binding="{Binding DailyRate,
@@ -153,7 +167,7 @@
                                                 Width="*"/>
 
                             <DataGridTextColumn Header="TRẠNG THÁI"
-                                                Binding="{Binding OperationalStatus}"
+                                                Binding="{Binding OperationalStatus, Converter={StaticResource VietnameseLabel}}"
                                                 Width="*"/>
 
                         </DataGrid.Columns>

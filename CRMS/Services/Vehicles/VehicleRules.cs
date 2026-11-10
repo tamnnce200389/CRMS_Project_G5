@@ -10,8 +10,12 @@ public static class VehicleRules
         @"^[A-Z0-9][A-Z0-9\-\.\s]{1,18}[A-Z0-9]$",
         RegexOptions.Compiled);
 
-    private static readonly Regex VnDotThousandsRegex = new(
-        @"^[+-]?\d{1,3}(\.\d{3})+(,\d{1,2})?$",
+    private static readonly Regex VnMultiDotThousandsRegex = new(
+        @"^[+-]?[1-9]\d{0,2}(\.\d{3}){2,}(,\d{1,2})?$",
+        RegexOptions.Compiled);
+
+    private static readonly Regex VnSingleDotThousandsRegex = new(
+        @"^[+-]?[1-9]\d{0,2}\.\d00(,\d{1,2})?$",
         RegexOptions.Compiled);
 
     private static readonly Regex VnDecimalCommaRegex = new(
@@ -19,7 +23,11 @@ public static class VehicleRules
         RegexOptions.Compiled);
 
     private static readonly Regex UsCommaThousandsRegex = new(
-        @"^[+-]?\d{1,3}(,\d{3})+(\.\d+)?$",
+        @"^[+-]?[1-9]\d{0,2}(,\d{3})+(\.\d{1,2})?$",
+        RegexOptions.Compiled);
+
+    private static readonly Regex PlainAmountRegex = new(
+        @"^[+-]?\d+(\.\d{1,2})?$",
         RegexOptions.Compiled);
 
     private static readonly HashSet<string> AllowedTransmissions = new(StringComparer.Ordinal)
@@ -262,7 +270,7 @@ public static class VehicleRules
             return false;
 
         string normalized;
-        if (VnDotThousandsRegex.IsMatch(text))
+        if (VnMultiDotThousandsRegex.IsMatch(text) || VnSingleDotThousandsRegex.IsMatch(text))
         {
             normalized = text.Replace(".", string.Empty).Replace(',', '.');
         }
@@ -274,9 +282,13 @@ public static class VehicleRules
         {
             normalized = text.Replace(",", string.Empty);
         }
-        else
+        else if (PlainAmountRegex.IsMatch(text))
         {
             normalized = text;
+        }
+        else
+        {
+            return false;
         }
 
         return decimal.TryParse(

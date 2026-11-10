@@ -244,6 +244,11 @@ public sealed class VehicleService : IVehicleService
                 await SyncLongTermRatesAsync(db, targetVehicleId, clean.DailyRate);
             }
 
+            if (existing is null)
+            {
+                await EnsureSearchCatalogEntryAsync(db, targetVehicleId);
+            }
+
             await tx.CommitAsync();
             return targetVehicleId;
         }
@@ -459,6 +464,44 @@ WHEN MATCHED THEN
 WHEN NOT MATCHED THEN
     INSERT (VehicleId, DurationMonths, BaseMonthlyRate, DiscountPercent, IsActive, UpdatedAt)
     VALUES ({vehicleId}, src.DurationMonths, {baseMonthly}, src.DiscountPercent, 1, SYSUTCDATETIME());");
+    }
+
+    private static async Task EnsureSearchCatalogEntryAsync(CrmsContext db, long vehicleId)
+    {
+        // shortcut: binds new vehicles to the default verified fleet owner & active city location so Guest/Customer catalog sees them immediately
+        await db.Database.ExecuteSqlInterpolatedAsync($@"
+IF OBJECT_ID(N'dbo.VehicleSearchProfiles', N'U') IS NOT NULL
+   AND OBJECT_ID(N'dbo.VehicleRentalModes', N'U') IS NOT NULL
+BEGIN
+    DECLARE @OwnerId BIGINT = (
+        SELECT TOP (1) OwnerId
+        FROM dbo.VehicleOwners
+        WHERE IsActive = 1 AND IsVerified = 1
+        ORDER BY OwnerId);
+
+    DECLARE @LocationId BIGINT = (
+        SELECT TOP (1) l.LocationId
+        FROM dbo.RentalLocations l
+        INNER JOIN dbo.Cities c ON c.CityId = l.CityId
+        WHERE l.IsActive = 1 AND c.IsActive = 1
+        ORDER BY l.LocationId);
+
+    IF @OwnerId IS NOT NULL AND @LocationId IS NOT NULL
+    BEGIN
+        IF NOT EXISTS (SELECT 1 FROM dbo.VehicleSearchProfiles WHERE VehicleId = {vehicleId})
+        BEGIN
+            INSERT INTO dbo.VehicleSearchProfiles (VehicleId, OwnerId, LocationId, IsPublished, VerifiedAt, UpdatedAt)
+            VALUES ({vehicleId}, @OwnerId, @LocationId, 1, SYSUTCDATETIME(), SYSUTCDATETIME());
+        END;
+
+        MERGE dbo.VehicleRentalModes AS target
+        USING (VALUES ('SelfDrive'), ('LongTerm')) AS src(RentalMode)
+        ON target.VehicleId = {vehicleId} AND target.RentalMode = src.RentalMode
+        WHEN NOT MATCHED THEN
+            INSERT (VehicleId, RentalMode, IsEnabled, VerifiedAt)
+            VALUES ({vehicleId}, src.RentalMode, 1, SYSUTCDATETIME());
+    END;
+END;");
     }
 
     private static bool IsUniqueConstraintViolation(DbUpdateException ex) =>

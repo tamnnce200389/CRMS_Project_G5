@@ -100,7 +100,9 @@ public static class MaintenanceRules
 
     public static (MaintenanceUpdateRequest Normalized, DateTime StartUtc, DateTime EndUtc) ValidateUpdate(
         MaintenanceUpdateRequest request,
-        string currentStatus)
+        string currentStatus,
+        DateTime? nowUtc = null,
+        DateTime? existingStartUtc = null)
     {
         ArgumentNullException.ThrowIfNull(request);
 
@@ -118,6 +120,17 @@ public static class MaintenanceRules
 
         if (endUtc <= startUtc)
             throw new InvalidOperationException("Thời gian kết thúc bảo trì phải sau thời gian bắt đầu.");
+
+        if (nextStatus == "Scheduled" && nowUtc.HasValue)
+        {
+            var nowSec = TruncateToSeconds(nowUtc.Value);
+            var startChanged = !existingStartUtc.HasValue || startUtc != TruncateToSeconds(existingStartUtc.Value);
+            if (startChanged && startUtc <= nowSec)
+            {
+                throw new InvalidOperationException(
+                    "Lịch bảo trì đặt trước phải có thời gian bắt đầu ở tương lai (hoặc chuyển sang Đang bảo trì).");
+            }
+        }
 
         var normalized = request with
         {

@@ -29,12 +29,15 @@ public sealed class MaintenanceListItem
     public bool CanStart => IsScheduled;
     public bool CanComplete => IsScheduled || IsInProgress;
     public bool CanCancel => IsScheduled || IsInProgress;
+
+    public override string ToString() => $"{ReferenceCode} · {LicensePlate}";
 }
 
 public sealed record MaintenanceFilter(
     string? Keyword = null,
     long? VehicleId = null,
-    string? MaintenanceStatus = null);
+    string? MaintenanceStatus = null,
+    int MaxRecords = 500);
 
 public sealed record MaintenanceScheduleRequest(
     long VehicleId,

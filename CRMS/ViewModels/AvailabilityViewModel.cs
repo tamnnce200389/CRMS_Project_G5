@@ -9,8 +9,15 @@ using CRMS.Services.Vehicles;
 
 namespace CRMS.ViewModels;
 
-public sealed record AvailabilityCategoryOption(int? CategoryId, string Label);
-public sealed record AvailabilityVehicleOption(long? VehicleId, string Label);
+public sealed record AvailabilityCategoryOption(int? CategoryId, string Label)
+{
+    public override string ToString() => Label;
+}
+
+public sealed record AvailabilityVehicleOption(long? VehicleId, string Label)
+{
+    public override string ToString() => Label;
+}
 
 public sealed class AvailabilityViewModel : BaseViewModel
 {
@@ -151,6 +158,7 @@ public sealed class AvailabilityViewModel : BaseViewModel
             if (_isLoading == value) return;
             _isLoading = value;
             OnPropertyChanged();
+            CommandManager.InvalidateRequerySuggested();
         }
     }
 
@@ -228,6 +236,9 @@ public sealed class AvailabilityViewModel : BaseViewModel
 
     public async Task InitializeAsync()
     {
+        if (IsLoading)
+            return;
+
         try
         {
             IsLoading = true;
@@ -256,6 +267,15 @@ public sealed class AvailabilityViewModel : BaseViewModel
             SelectedVehicleOption = _initialVehicleId.HasValue
                 ? VehicleOptions.FirstOrDefault(x => x.VehicleId == _initialVehicleId.Value) ?? VehicleOptions[0]
                 : VehicleOptions[0];
+
+            if (TryComposePeriod(out var startLocal, out var endLocal, out var validationError))
+            {
+                await CheckAvailabilityCoreAsync(startLocal, endLocal);
+            }
+            else
+            {
+                ErrorMessage = validationError;
+            }
         }
         catch (Exception ex)
         {
@@ -265,8 +285,6 @@ public sealed class AvailabilityViewModel : BaseViewModel
         {
             IsLoading = false;
         }
-
-        await CheckAvailabilityAsync();
     }
 
     public async Task CheckAvailabilityAsync()
@@ -284,31 +302,7 @@ public sealed class AvailabilityViewModel : BaseViewModel
         {
             IsLoading = true;
             ErrorMessage = string.Empty;
-
-            var categoryId = SelectedCategoryOption?.CategoryId;
-            var vehicleId = SelectedVehicleOption?.VehicleId;
-
-            var list = await _availabilityService.CheckFleetAvailabilityAsync(
-                startLocal,
-                endLocal,
-                categoryId: categoryId,
-                vehicleId: vehicleId,
-                includeSuspendedVehicles: true,
-                requireFutureStart: false);
-
-            var previousId = SelectedResult?.VehicleId;
-            Results.Clear();
-            foreach (var item in list)
-                Results.Add(item);
-
-            CheckedPeriodLabel = $"{startLocal:dd/MM/yyyy HH:mm} → {endLocal:dd/MM/yyyy HH:mm}";
-            RefreshFilteredView();
-
-            SelectedResult = ResultsView.Cast<VehicleAvailabilityResult>()
-                                 .FirstOrDefault(x => x.VehicleId == previousId)
-                             ?? ResultsView.Cast<VehicleAvailabilityResult>().FirstOrDefault();
-
-            StatusMessage = $"Đã kiểm tra {TotalCheckedCount} xe trong khoảng [{startLocal:dd/MM/yyyy HH:mm}, {endLocal:dd/MM/yyyy HH:mm}): {AvailableCount} xe trống, {UnavailableCount} xe không khả dụng.";
+            await CheckAvailabilityCoreAsync(startLocal, endLocal);
         }
         catch (Exception ex)
         {
@@ -318,8 +312,35 @@ public sealed class AvailabilityViewModel : BaseViewModel
         finally
         {
             IsLoading = false;
-            CommandManager.InvalidateRequerySuggested();
         }
+    }
+
+    private async Task CheckAvailabilityCoreAsync(DateTime startLocal, DateTime endLocal)
+    {
+        var categoryId = SelectedCategoryOption?.CategoryId;
+        var vehicleId = SelectedVehicleOption?.VehicleId;
+
+        var list = await _availabilityService.CheckFleetAvailabilityAsync(
+            startLocal,
+            endLocal,
+            categoryId: categoryId,
+            vehicleId: vehicleId,
+            includeSuspendedVehicles: true,
+            requireFutureStart: false);
+
+        var previousId = SelectedResult?.VehicleId;
+        Results.Clear();
+        foreach (var item in list)
+            Results.Add(item);
+
+        CheckedPeriodLabel = $"{startLocal:dd/MM/yyyy HH:mm} → {endLocal:dd/MM/yyyy HH:mm}";
+        RefreshFilteredView();
+
+        SelectedResult = ResultsView.Cast<VehicleAvailabilityResult>()
+                             .FirstOrDefault(x => x.VehicleId == previousId)
+                         ?? ResultsView.Cast<VehicleAvailabilityResult>().FirstOrDefault();
+
+        StatusMessage = $"Đã kiểm tra {TotalCheckedCount} xe trong khoảng [{startLocal:dd/MM/yyyy HH:mm}, {endLocal:dd/MM/yyyy HH:mm}): {AvailableCount} xe trống, {UnavailableCount} xe không khả dụng.";
     }
 
     private async Task ResetFiltersAsync()
@@ -350,7 +371,7 @@ public sealed class AvailabilityViewModel : BaseViewModel
         OnPropertyChanged(nameof(UnavailableCount));
         OnPropertyChanged(nameof(FilteredCount));
 
-        if (SelectedResult != null && !ResultsView.Cast<VehicleAvailabilityResult>().Contains(SelectedResult))
+        if (SelectedResult is null || !ResultsView.Cast<VehicleAvailabilityResult>().Contains(SelectedResult))
         {
             SelectedResult = ResultsView.Cast<VehicleAvailabilityResult>().FirstOrDefault();
         }

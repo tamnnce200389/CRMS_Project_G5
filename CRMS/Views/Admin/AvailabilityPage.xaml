@@ -5,10 +5,15 @@
       Title="Kiểm tra lịch trống phương tiện">
     <Page.Resources>
         <Style TargetType="Button" BasedOn="{StaticResource AdminButtonBase}"/>
-        <Style TargetType="DataGridCell" BasedOn="{StaticResource AdminCell}"/>
+        <Style TargetType="DataGridCell" BasedOn="{StaticResource AdminCell}">
+            <Setter Property="Padding" Value="9,0"/>
+        </Style>
+        <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+            <Setter Property="Padding" Value="9,12"/>
+        </Style>
     </Page.Resources>
 
-    <Grid Margin="30,22">
+    <Grid Margin="28,22">
         <Grid.Resources>
             <Style x:Key="CompactDatePicker" TargetType="DatePicker">
                 <Setter Property="Height" Value="38" />
@@ -341,7 +346,9 @@
                                 Padding="16,0"
                                 Margin="0,0,10,0" />
 
-                        <Button Content="Kiểm tra lịch trống"
+                        <Button x:Name="CheckAvailabilityButton"
+                                AutomationProperties.AutomationId="CheckAvailabilityButton"
+                                Content="Kiểm tra lịch trống"
                                 Command="{Binding CheckAvailabilityCommand}"
                                 Height="38"
                                 Padding="20,0" />
@@ -402,7 +409,7 @@
         <!-- 4. MASTER-DETAIL RESULTS -->
         <Grid Grid.Row="3">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="1.75*" />
+                <ColumnDefinition Width="1.82*" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
@@ -429,9 +436,9 @@
                               RowHeight="56"
                               AutomationProperties.Name="Kết quả kiểm tra lịch trống">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="BIỂN SỐ" Binding="{Binding LicensePlate}" Width="120" />
+                            <DataGridTextColumn Header="BIỂN SỐ" Binding="{Binding LicensePlate}" Width="126" />
 
-                            <DataGridTemplateColumn Header="PHƯƠNG TIỆN" SortMemberPath="Brand" Width="155">
+                            <DataGridTemplateColumn Header="PHƯƠNG TIỆN" SortMemberPath="Brand" Width="138">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <StackPanel>
@@ -447,9 +454,9 @@
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
 
-                            <DataGridTextColumn Header="GIÁ/NGÀY" Binding="{Binding DailyRate, StringFormat={}{0:N0}}" Width="104" />
+                            <DataGridTextColumn Header="GIÁ/NGÀY" Binding="{Binding DailyRate, StringFormat={}{0:N0}}" Width="94" />
 
-                            <DataGridTemplateColumn Header="KẾT LUẬN" SortMemberPath="IsAvailable" Width="148">
+                            <DataGridTemplateColumn Header="KẾT LUẬN" SortMemberPath="IsAvailable" Width="132">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <Border CornerRadius="5" Padding="9,4" HorizontalAlignment="Left">
@@ -480,7 +487,7 @@
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
 
-                            <DataGridTemplateColumn Header="NGUYÊN NHÂN / GHI CHÚ" Width="*" MinWidth="185">
+                            <DataGridTemplateColumn Header="NGUYÊN NHÂN / GHI CHÚ" Width="*" MinWidth="140">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <TextBlock Text="{Binding SummaryReason}"

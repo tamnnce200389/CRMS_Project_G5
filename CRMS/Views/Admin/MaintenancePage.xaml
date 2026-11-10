@@ -4,10 +4,15 @@
       Title="Quản lý bảo trì phương tiện">
     <Page.Resources>
         <Style TargetType="Button" BasedOn="{StaticResource AdminButtonBase}"/>
-        <Style TargetType="DataGridCell" BasedOn="{StaticResource AdminCell}"/>
+        <Style TargetType="DataGridCell" BasedOn="{StaticResource AdminCell}">
+            <Setter Property="Padding" Value="8,0"/>
+        </Style>
+        <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+            <Setter Property="Padding" Value="8,12"/>
+        </Style>
     </Page.Resources>
 
-    <Grid Margin="28,18">
+    <Grid Margin="26,18">
         <Grid.Resources>
             <Style x:Key="CompactDatePicker" TargetType="DatePicker">
                 <Setter Property="Height" Value="34" />
@@ -162,12 +167,12 @@
         <!-- 4. MASTER-DETAIL SPLIT -->
         <Grid Grid.Row="3">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="1.65*" />
+                <ColumnDefinition Width="1.92*" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
             <!-- LEFT: MAINTENANCE RECORDS DATAGRID -->
-            <Border Style="{StaticResource Card}" Padding="0" Margin="0,0,16,0" ClipToBounds="True">
+            <Border Style="{StaticResource Card}" Padding="0" Margin="0,0,14,0" ClipToBounds="True">
                 <Grid Margin="1">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -189,9 +194,9 @@
                               RowHeight="58"
                               AutomationProperties.Name="Danh sách phiếu bảo trì">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="MÃ" Binding="{Binding ReferenceCode}" Width="72" />
+                            <DataGridTextColumn Header="MÃ" Binding="{Binding ReferenceCode}" Width="64" />
 
-                            <DataGridTemplateColumn Header="PHƯƠNG TIỆN" SortMemberPath="LicensePlate" Width="136">
+                            <DataGridTemplateColumn Header="PHƯƠNG TIỆN" SortMemberPath="LicensePlate" Width="128">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <StackPanel>
@@ -217,12 +222,12 @@
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
 
-                            <DataGridTextColumn Header="CHI PHÍ · VNĐ" Binding="{Binding Cost, StringFormat={}{0:N0}}" Width="104" />
+                            <DataGridTextColumn Header="CHI PHÍ" Binding="{Binding Cost, StringFormat={}{0:N0}}" Width="90" />
 
-                            <DataGridTemplateColumn Header="TRẠNG THÁI" SortMemberPath="MaintenanceStatus" Width="122">
+                            <DataGridTemplateColumn Header="TRẠNG THÁI" SortMemberPath="MaintenanceStatus" Width="114">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <Border CornerRadius="5" Padding="9,4" HorizontalAlignment="Left">
+                                        <Border CornerRadius="5" Padding="8,4" HorizontalAlignment="Left">
                                             <Border.Style>
                                                 <Style TargetType="Border">
                                                     <Setter Property="Background" Value="#F1F5F9" />
@@ -264,7 +269,7 @@
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
 
-                            <DataGridTemplateColumn Header="HẠNG MỤC BẢO TRÌ" Width="*" MinWidth="148">
+                            <DataGridTemplateColumn Header="HẠNG MỤC BẢO TRÌ" Width="*" MinWidth="96">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <TextBlock Text="{Binding Description}"
@@ -363,7 +368,8 @@
                             <StackPanel Margin="0,0,8,0">
                                 <TextBlock Text="Ngày bắt đầu *" FontSize="11.5" FontWeight="SemiBold" Margin="0,0,0,4" />
                                 <DatePicker SelectedDate="{Binding StartDate, Mode=TwoWay}"
-                                            Style="{StaticResource CompactDatePicker}" />
+                                            Style="{StaticResource CompactDatePicker}"
+                                            AutomationProperties.Name="Ngày bắt đầu bảo trì" />
                             </StackPanel>
 
                             <StackPanel Grid.Column="1">
@@ -371,7 +377,8 @@
                                 <ComboBox ItemsSource="{Binding TimeOptions}"
                                           SelectedItem="{Binding SelectedStartTime, Mode=TwoWay}"
                                           Height="34"
-                                          Padding="10,6" />
+                                          Padding="10,6"
+                                          AutomationProperties.Name="Giờ bắt đầu bảo trì" />
                             </StackPanel>
                         </Grid>
 
@@ -385,7 +392,8 @@
                             <StackPanel Margin="0,0,8,0">
                                 <TextBlock Text="Ngày kết thúc dự kiến *" FontSize="11.5" FontWeight="SemiBold" Margin="0,0,0,4" />
                                 <DatePicker SelectedDate="{Binding EndDate, Mode=TwoWay}"
-                                            Style="{StaticResource CompactDatePicker}" />
+                                            Style="{StaticResource CompactDatePicker}"
+                                            AutomationProperties.Name="Ngày kết thúc bảo trì" />
                             </StackPanel>
 
                             <StackPanel Grid.Column="1">
@@ -393,7 +401,8 @@
                                 <ComboBox ItemsSource="{Binding TimeOptions}"
                                           SelectedItem="{Binding SelectedEndTime, Mode=TwoWay}"
                                           Height="34"
-                                          Padding="10,6" />
+                                          Padding="10,6"
+                                          AutomationProperties.Name="Giờ kết thúc bảo trì" />
                             </StackPanel>
                         </Grid>
 

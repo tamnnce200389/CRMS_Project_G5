@@ -10,7 +10,12 @@
         Background="{StaticResource CustomerBackground}">
     <Window.Resources>
         <Style TargetType="Button" BasedOn="{StaticResource AdminButtonBase}"/>
-        <Style TargetType="DataGridCell" BasedOn="{StaticResource AdminCell}"/>
+        <Style TargetType="DataGridCell" BasedOn="{StaticResource AdminCell}">
+            <Setter Property="Padding" Value="9,0"/>
+        </Style>
+        <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+            <Setter Property="Padding" Value="9,12"/>
+        </Style>
     </Window.Resources>
 
 
@@ -67,11 +72,12 @@
                     <DataGrid Grid.Row="1"
                               ItemsSource="{Binding Categories}"
                               SelectedItem="{Binding SelectedCategory, Mode=TwoWay}"
-                              RowHeight="48">
+                              RowHeight="48"
+                              AutomationProperties.Name="Danh sách loại xe">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="MÃ" Binding="{Binding CategoryId}" Width="58" />
+                            <DataGridTextColumn Header="MÃ" Binding="{Binding CategoryId}" Width="56" />
                             <DataGridTextColumn Header="TÊN LOẠI XE" Binding="{Binding CategoryName}" Width="*" MinWidth="120" />
-                            <DataGridTextColumn Header="XE HOẠT ĐỘNG" Binding="{Binding ActiveVehicles}" Width="115" />
+                            <DataGridTextColumn Header="XE HOẠT ĐỘNG" Binding="{Binding ActiveVehicles}" Width="118" />
                             <DataGridTemplateColumn Header="TRẠNG THÁI" SortMemberPath="IsActive" Width="128">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
@@ -119,7 +125,8 @@
                         <TextBox Text="{Binding CategoryName, UpdateSourceTrigger=PropertyChanged}"
                                  MaxLength="80"
                                  Height="38"
-                                 Margin="0,0,0,14" />
+                                 Margin="0,0,0,14"
+                                 AutomationProperties.Name="Tên loại xe" />
 
                         <TextBlock Text="Mô tả" FontWeight="SemiBold" FontSize="12" Margin="0,0,0,6" />
                         <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}"
@@ -129,7 +136,8 @@
                                  VerticalContentAlignment="Top"
                                  TextWrapping="Wrap"
                                  AcceptsReturn="True"
-                                 Margin="0,0,0,14" />
+                                 Margin="0,0,0,14"
+                                 AutomationProperties.Name="Mô tả loại xe" />
 
                         <CheckBox Content="Loại xe đang hoạt động"
                                   IsChecked="{Binding IsActive, Mode=TwoWay}"

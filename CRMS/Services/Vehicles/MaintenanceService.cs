@@ -50,12 +50,16 @@ public sealed class MaintenanceService : IMaintenanceService
                 m.Vehicle.Model.Contains(kw));
         }
 
+        // shortcut: caps history at 500 active/recent rows; add paging if archive grows larger
+        var cap = filter.MaxRecords > 0 ? filter.MaxRecords : 500;
+
         var rows = await query
             .OrderBy(m =>
                 m.MaintenanceStatus == "InProgress" ? 0 :
                 m.MaintenanceStatus == "Scheduled" ? 1 :
                 m.MaintenanceStatus == "Completed" ? 2 : 3)
             .ThenByDescending(m => m.StartAt)
+            .Take(cap)
             .Select(m => new
             {
                 m.MaintenanceId,
@@ -146,7 +150,12 @@ public sealed class MaintenanceService : IMaintenanceService
         // Reload current state under per-vehicle exclusive transaction lock
         await db.Entry(existing).ReloadAsync();
 
-        var (normalized, startUtc, endUtc) = MaintenanceRules.ValidateUpdate(request, existing.MaintenanceStatus);
+        var nowUtc = DateTime.UtcNow;
+        var (normalized, startUtc, endUtc) = MaintenanceRules.ValidateUpdate(
+            request,
+            existing.MaintenanceStatus,
+            nowUtc,
+            existing.StartAt);
 
         if (normalized.MaintenanceStatus is "Scheduled" or "InProgress")
         {
@@ -155,7 +164,7 @@ public sealed class MaintenanceService : IMaintenanceService
                 existing.VehicleId,
                 startUtc,
                 endUtc,
-                DateTime.UtcNow,
+                nowUtc,
                 excludeMaintenanceId: existing.MaintenanceId);
         }
 
@@ -209,7 +218,8 @@ public sealed class MaintenanceService : IMaintenanceService
 
         try
         {
-            await using var cmd = new SqlCommand("dbo.usp_ScheduleMaintenance", conn)
+            await using var sqlTx = (SqlTransaction)await conn.BeginTransactionAsync(IsolationLevel.ReadCommitted);
+            await using var cmd = new SqlCommand("dbo.usp_ScheduleMaintenance", conn, sqlTx)
             {
                 CommandType = CommandType.StoredProcedure
             };
@@ -233,7 +243,8 @@ public sealed class MaintenanceService : IMaintenanceService
             {
                 await using var costCmd = new SqlCommand(
                     "UPDATE dbo.MaintenanceRecords SET Cost = @Cost WHERE MaintenanceId = @Id",
-                    conn);
+                    conn,
+                    sqlTx);
                 costCmd.Parameters.Add(new SqlParameter("@Cost", SqlDbType.Decimal)
                 {
                     Precision = 18,
@@ -244,6 +255,7 @@ public sealed class MaintenanceService : IMaintenanceService
                 await costCmd.ExecuteNonQueryAsync();
             }
 
+            await sqlTx.CommitAsync();
             return maintenanceId;
         }
         catch (SqlException ex) when (ex.Number is >= 51400 and <= 51406)
