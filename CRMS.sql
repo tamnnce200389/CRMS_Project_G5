@@ -1,10 +1,11 @@
 ﻿/* CRMS - FULL CORRECTED SQL, 2026-11-05. SQL Server 2019+.
    Target: CRMS. Run in one SSMS query/connection, outside any existing transaction.
-   Default: upgrade schema/procedures, preserve existing data; do NOT insert demo data.
-   For a DEMO database only: change @IncludeDemoData from 0 to 1 below.
+   Default: group development/demo setup, including sample data where missing.
+   Re-running preserves existing rows; installed search/QA fixtures are not recreated.
+   Set @IncludeDemoData=0 only for a schema upgrade without sample data.
    Demo mode includes the original 29 cars + search metadata + synthetic QA financial history.
    The final section assigns the bundled exterior/interior photos to those 29 cars.
-   On a new DEMO database, set @IncludeDemoData=1 to create the matching vehicles.
+   A new database receives the matching vehicles without editing this file.
    QR schema update 2026-11-10: includes Bookings.IsDemo and DemoPayments for the Staff-verified 1,000 VND flow.
    This single script installs/upgrades the QR schema; no extra SQL file is required.
    Existing synthetic data is preserved, not automatically removed from reports.
@@ -24,7 +25,7 @@ USE [CRMS];
 GO
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
-DECLARE @IncludeDemoData bit = 0; -- 0: existing database; 1: DEMO DATA ONLY
+DECLARE @IncludeDemoData bit = 1; -- Default for group demo: seed missing samples; 0: schema upgrade only
 IF @@TRANCOUNT<>0 THROW 53900,'Run this full script outside an existing transaction.',1;
 DECLARE @DemoAlreadyInstalled bit=CASE WHEN EXISTS(
  SELECT 1 FROM sys.extended_properties WHERE name=N'CRMS.QaScenariosVersion'

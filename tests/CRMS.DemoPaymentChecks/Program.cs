@@ -100,7 +100,8 @@ try
     await Exec(master, $"CREATE DATABASE [{dbName}]"); created = true;
     var sql = await File.ReadAllTextAsync(source); const string marker = "USE [CRMS];";
     int index = sql.IndexOf(marker, StringComparison.Ordinal); if (index < 0) throw new Exception("Missing schema boundary");
-    sql = sql[(index + marker.Length)..].Replace("DECLARE @IncludeDemoData bit = 0;", "DECLARE @IncludeDemoData bit = 1;");
+    sql = sql[(index + marker.Length)..];
+    Check(sql.Contains("DECLARE @IncludeDemoData bit = 1;"), "Shared SQL enables sample data by default without teammates editing the file");
     if (Regex.IsMatch(sql, @"(?im)^\s*(USE\s|CREATE\s+DATABASE|DROP\s+DATABASE)")) throw new Exception("Unsafe schema switching");
     foreach (var batch in Regex.Split(sql, @"(?im)^\s*GO\s*\r?$").Where(b => !string.IsNullOrWhiteSpace(b))) await Exec(connection, batch);
     using (var db = Create())
@@ -267,6 +268,8 @@ try
     var beforeRerun = await FinancialSnapshot();
     foreach (var batch in Regex.Split(upgradeSql, @"(?im)^\s*GO\s*\r?$").Where(b => !string.IsNullOrWhiteSpace(b))) await Exec(connection, batch);
     Check(await FinancialSnapshot() == beforeRerun, "Re-running full CRMS.sql preserves existing booking states, QR receipts, real payments and refunds");
+    foreach (var batch in Regex.Split(sql, @"(?im)^\s*GO\s*\r?$").Where(b => !string.IsNullOrWhiteSpace(b))) await Exec(connection, batch);
+    Check(await FinancialSnapshot() == beforeRerun, "Re-running the default sample-enabled SQL creates no duplicate bookings or payments and preserves verified QR receipts");
     Console.WriteLine($"{passed} demo checks passed, including real SQL transactions.");
 }
 finally
