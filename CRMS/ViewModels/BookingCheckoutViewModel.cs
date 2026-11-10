@@ -28,6 +28,7 @@ public sealed class BookingCheckoutViewModel : BaseViewModel
     private bool _completed;
     private bool _voucherApplied;
     private bool _voucherResultUncertain;
+    private bool _voucherFailed;
 
     private string _depositMethod = "Cash";
 
@@ -81,6 +82,7 @@ public sealed class BookingCheckoutViewModel : BaseViewModel
             OnPropertyChanged();
             OnPropertyChanged(nameof(CanClose));
             OnPropertyChanged(nameof(CanChooseDepositMethod));
+            OnPropertyChanged(nameof(CanContinueWithoutVoucher));
             CommandManager.InvalidateRequerySuggested();
         }
     }
@@ -89,6 +91,14 @@ public sealed class BookingCheckoutViewModel : BaseViewModel
 
     public bool CanChooseDepositMethod =>
         !IsBusy && !_attempted && Result == null;
+
+    public bool CanContinueWithoutVoucher =>
+        !IsBusy &&
+        !_completed &&
+        !_voucherApplied &&
+        !_voucherResultUncertain &&
+        _voucherFailed &&
+        Result != null;
 
     public string Status
     {
@@ -119,6 +129,7 @@ public sealed class BookingCheckoutViewModel : BaseViewModel
                 return;
 
             _depositMethod = value;
+
             OnPropertyChanged();
             OnPropertyChanged(nameof(IsDemoSelection));
             OnPropertyChanged(nameof(DepositCaption));
@@ -142,11 +153,13 @@ public sealed class BookingCheckoutViewModel : BaseViewModel
             _voucherCode = value ?? "";
             OnPropertyChanged();
 
+            // Khi khach sua ma, cho phep thu lai.
             _selectedVoucherCode = "";
+            _voucherFailed = false;
+
             VoucherMessage = "";
 
-            OnPropertyChanged(nameof(DiscountLabel));
-            CommandManager.InvalidateRequerySuggested();
+            NotifyVoucherStateChanged();
         }
     }
 
@@ -169,6 +182,7 @@ public sealed class BookingCheckoutViewModel : BaseViewModel
 
     public ICommand ConfirmCommand { get; }
     public ICommand ApplyVoucherCommand { get; }
+    public ICommand ContinueWithoutVoucherCommand { get; }
 
     public event Action? Completed;
 
@@ -192,7 +206,10 @@ public sealed class BookingCheckoutViewModel : BaseViewModel
 
         ConfirmCommand = new RelayCommand(
             async _ => await ConfirmAsync(),
-            _ => !IsBusy && !_completed && !_voucherResultUncertain);
+            _ => !IsBusy &&
+                 !_completed &&
+                 !_voucherResultUncertain &&
+                 !_voucherFailed);
 
         ApplyVoucherCommand = new RelayCommand(
             _ => SelectVoucher(),
@@ -200,6 +217,17 @@ public sealed class BookingCheckoutViewModel : BaseViewModel
                  !_completed &&
                  !_voucherApplied &&
                  !_voucherResultUncertain);
+
+        ContinueWithoutVoucherCommand = new RelayCommand(
+            async _ => await ContinueWithoutVoucherAsync(),
+            _ => CanContinueWithoutVoucher);
+    }
+
+    private void NotifyVoucherStateChanged()
+    {
+        OnPropertyChanged(nameof(DiscountLabel));
+        OnPropertyChanged(nameof(CanContinueWithoutVoucher));
+        CommandManager.InvalidateRequerySuggested();
     }
 
     private void SelectVoucher()
@@ -209,26 +237,31 @@ public sealed class BookingCheckoutViewModel : BaseViewModel
         if (string.IsNullOrWhiteSpace(code))
         {
             _selectedVoucherCode = "";
+            _voucherFailed = false;
+
             VoucherMessage = "Vui lòng nhập mã Voucher.";
-            OnPropertyChanged(nameof(DiscountLabel));
+            NotifyVoucherStateChanged();
             return;
         }
 
         if (code.Length > 40)
         {
             _selectedVoucherCode = "";
+            _voucherFailed = false;
+
             VoucherMessage = "Mã Voucher tối đa 40 ký tự.";
-            OnPropertyChanged(nameof(DiscountLabel));
+            NotifyVoucherStateChanged();
             return;
         }
 
         _selectedVoucherCode = code;
+        _voucherFailed = false;
 
         VoucherMessage =
             $"Đã ghi nhận mã {_selectedVoucherCode}. " +
             "Mã sẽ được kiểm tra khi xác nhận đặt xe.";
 
-        OnPropertyChanged(nameof(DiscountLabel));
+        NotifyVoucherStateChanged();
     }
 
     private async Task<BookingCreated> CreateOrRecoverAsync()
@@ -342,30 +375,38 @@ public sealed class BookingCheckoutViewModel : BaseViewModel
 
             _discountAmount = discount;
             _voucherApplied = true;
+            _voucherFailed = false;
 
             VoucherMessage =
                 $"Áp dụng thành công! Giảm {discount:N0} ₫.";
 
             await RefreshBookingAsync();
 
-            OnPropertyChanged(nameof(DiscountLabel));
+            NotifyVoucherStateChanged();
             return true;
         }
         catch (SqlException ex) when (
             ex.Number is >= 51100 and <= 51107)
         {
+            _voucherFailed = true;
+
             VoucherMessage = VoucherError(ex);
 
             Status =
-                "Đơn đã được tạo nhưng Voucher chưa được áp dụng. " +
-                "Bạn có thể nhập mã khác và thử lại, " +
-                "hoặc xóa mã để tiếp tục với giá gốc.";
+                "Voucher không áp dụng được. " +
+                "Đơn đã được tạo nhưng chưa hoàn tất bước xác nhận. " +
+                "Bạn có thể sửa mã Voucher rồi thử lại, " +
+                "hoặc chọn tiếp tục với giá gốc.";
 
+            NotifyVoucherStateChanged();
             return false;
         }
         catch (Exception ex)
         {
+            // Ket qua co the khong chac chan:
+            // khong tu dong ap lai de tranh giam gia hai lan.
             _voucherResultUncertain = true;
+            _voucherFailed = false;
 
             VoucherMessage =
                 "Chưa xác định được Voucher đã áp dụng hay chưa: " +
@@ -376,15 +417,43 @@ public sealed class BookingCheckoutViewModel : BaseViewModel
                 "Vui lòng kiểm tra đơn thuê trước khi thử lại, " +
                 "để tránh áp dụng mã nhiều lần.";
 
-            CommandManager.InvalidateRequerySuggested();
+            NotifyVoucherStateChanged();
             return false;
         }
     }
 
+    private async Task ContinueWithoutVoucherAsync()
+    {
+        if (!CanContinueWithoutVoucher)
+            return;
+
+        // Bo qua Voucher theo lua chon cua khach.
+        // Khong tao lai don, khong reset Result.
+        _selectedVoucherCode = "";
+        _voucherCode = "";
+        _voucherFailed = false;
+        _discountAmount = 0;
+
+        OnPropertyChanged(nameof(VoucherCode));
+
+        VoucherMessage =
+            "Bạn đã chọn tiếp tục với giá gốc, " +
+            "không sử dụng Voucher.";
+
+        NotifyVoucherStateChanged();
+
+        await ConfirmAsync();
+    }
+
     public async Task ConfirmAsync()
     {
-        if (IsBusy || _completed || _voucherResultUncertain)
+        if (IsBusy ||
+            _completed ||
+            _voucherResultUncertain ||
+            _voucherFailed)
+        {
             return;
+        }
 
         IsBusy = true;
 
@@ -393,9 +462,12 @@ public sealed class BookingCheckoutViewModel : BaseViewModel
             if (Result == null)
             {
                 _attempted = true;
-                OnPropertyChanged(nameof(CanChooseDepositMethod));
 
-                Status = "Đang kiểm tra lịch trống và tạo đơn...";
+                OnPropertyChanged(
+                    nameof(CanChooseDepositMethod));
+
+                Status =
+                    "Đang kiểm tra lịch trống và tạo đơn...";
 
                 Result = await CreateOrRecoverAsync();
 
@@ -405,9 +477,11 @@ public sealed class BookingCheckoutViewModel : BaseViewModel
             }
 
             if (!_voucherApplied &&
-                !string.IsNullOrWhiteSpace(_selectedVoucherCode))
+                !string.IsNullOrWhiteSpace(
+                    _selectedVoucherCode))
             {
-                bool applied = await ApplySelectedVoucherAsync();
+                bool applied =
+                    await ApplySelectedVoucherAsync();
 
                 if (!applied)
                     return;
@@ -434,6 +508,8 @@ public sealed class BookingCheckoutViewModel : BaseViewModel
             }
 
             _completed = true;
+            NotifyVoucherStateChanged();
+
             Completed?.Invoke();
         }
         catch (SqlException ex) when (
@@ -453,7 +529,8 @@ public sealed class BookingCheckoutViewModel : BaseViewModel
             ex.Number is 1205 or 51003)
         {
             Status =
-                "Hệ thống đang bận. Bạn có thể thử xác nhận lại.";
+                "Hệ thống đang bận. " +
+                "Bạn có thể thử xác nhận lại.";
         }
         catch (InvalidOperationException ex)
         {
@@ -461,7 +538,8 @@ public sealed class BookingCheckoutViewModel : BaseViewModel
         }
         catch (Exception ex)
         {
-            Status = "Chưa thể xác nhận đơn: " + ex.Message;
+            Status =
+                "Chưa thể xác nhận đơn: " + ex.Message;
         }
         finally
         {

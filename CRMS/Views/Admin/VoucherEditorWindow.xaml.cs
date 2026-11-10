@@ -11,7 +11,32 @@ namespace CRMS.Views.Admin
     {
         private readonly Voucher? _originalVoucher;
 
+        // Mui gio Viet Nam (UTC+7)
+        private static readonly TimeZoneInfo VietnamTimeZone =
+            TimeZoneInfo.FindSystemTimeZoneById(
+                "SE Asia Standard Time");
+
         public Voucher? ResultVoucher { get; private set; }
+
+        // Chuyen UTC sang gio Viet Nam
+        private static DateTime ToVietnamTime(DateTime utcTime)
+        {
+            return TimeZoneInfo.ConvertTimeFromUtc(
+                DateTime.SpecifyKind(
+                    utcTime,
+                    DateTimeKind.Utc),
+                VietnamTimeZone);
+        }
+
+        // Chuyen gio Viet Nam sang UTC
+        private static DateTime ToUtcTime(DateTime vietnamTime)
+        {
+            return TimeZoneInfo.ConvertTimeToUtc(
+                DateTime.SpecifyKind(
+                    vietnamTime,
+                    DateTimeKind.Unspecified),
+                VietnamTimeZone);
+        }
 
         public VoucherEditorWindow(Voucher? voucher = null)
         {
@@ -24,8 +49,13 @@ namespace CRMS.Views.Admin
                 Title = "Thêm Voucher";
                 txtTitle.Text = "Thêm Voucher mới";
 
-                dpStartsAt.SelectedDate = DateTime.Today;
-                dpEndsAt.SelectedDate = DateTime.Today.AddDays(30);
+                DateTime todayVietnam =
+                    ToVietnamTime(DateTime.UtcNow).Date;
+
+                dpStartsAt.SelectedDate = todayVietnam;
+
+                dpEndsAt.SelectedDate =
+                    todayVietnam.AddDays(30);
 
                 txtMinimumOrder.Text = "0";
                 txtPerCustomerLimit.Text = "1";
@@ -53,8 +83,12 @@ namespace CRMS.Views.Admin
                     voucher.MinimumOrderAmount.ToString(
                         CultureInfo.InvariantCulture);
 
-                dpStartsAt.SelectedDate = voucher.StartsAt.Date;
-                dpEndsAt.SelectedDate = voucher.EndsAt.Date;
+                // UTC -> Viet Nam khi hien thi
+                dpStartsAt.SelectedDate =
+                    ToVietnamTime(voucher.StartsAt).Date;
+
+                dpEndsAt.SelectedDate =
+                    ToVietnamTime(voucher.EndsAt).Date;
 
                 txtUsageLimit.Text =
                     voucher.UsageLimit?.ToString() ?? "";
@@ -66,12 +100,16 @@ namespace CRMS.Views.Admin
             }
         }
 
-        private void Cancel_Click(object sender, RoutedEventArgs e)
+        private void Cancel_Click(
+            object sender,
+            RoutedEventArgs e)
         {
             DialogResult = false;
         }
 
-        private void Save_Click(object sender, RoutedEventArgs e)
+        private void Save_Click(
+            object sender,
+            RoutedEventArgs e)
         {
             string code = txtVoucherCode.Text.Trim();
 
@@ -79,6 +117,7 @@ namespace CRMS.Views.Admin
                 (cboDiscountType.SelectedItem as ComboBoxItem)?
                 .Content?.ToString() ?? "Percent";
 
+            // Kiem tra ma Voucher
             if (string.IsNullOrWhiteSpace(code))
             {
                 ShowError("Vui lòng nhập mã Voucher.");
@@ -91,6 +130,7 @@ namespace CRMS.Views.Admin
                 return;
             }
 
+            // Kiem tra gia tri giam
             if (!decimal.TryParse(
                     txtDiscountValue.Text,
                     NumberStyles.Number,
@@ -98,23 +138,28 @@ namespace CRMS.Views.Admin
                     out decimal discountValue))
             {
                 ShowError(
-                    "Giá trị giảm không hợp lệ. Ví dụ: 10 hoặc 100000.");
+                    "Giá trị giảm không hợp lệ. " +
+                    "Ví dụ: 10 hoặc 100000.");
                 return;
             }
 
+            // Kiem tra don hang toi thieu
             if (!decimal.TryParse(
                     txtMinimumOrder.Text,
                     NumberStyles.Number,
                     CultureInfo.InvariantCulture,
                     out decimal minimumOrder))
             {
-                ShowError("Giá trị đơn hàng tối thiểu không hợp lệ.");
+                ShowError(
+                    "Giá trị đơn hàng tối thiểu không hợp lệ.");
                 return;
             }
 
+            // Kiem tra muc giam toi da
             decimal? maxDiscount = null;
 
-            if (!string.IsNullOrWhiteSpace(txtMaxDiscount.Text))
+            if (!string.IsNullOrWhiteSpace(
+                    txtMaxDiscount.Text))
             {
                 if (!decimal.TryParse(
                         txtMaxDiscount.Text,
@@ -122,65 +167,93 @@ namespace CRMS.Views.Admin
                         CultureInfo.InvariantCulture,
                         out decimal maxValue))
                 {
-                    ShowError("Mức giảm tối đa không hợp lệ.");
+                    ShowError(
+                        "Mức giảm tối đa không hợp lệ.");
                     return;
                 }
 
                 maxDiscount = maxValue;
             }
 
+            // Kiem tra tong luot su dung
             int? usageLimit = null;
 
-            if (!string.IsNullOrWhiteSpace(txtUsageLimit.Text))
+            if (!string.IsNullOrWhiteSpace(
+                    txtUsageLimit.Text))
             {
                 if (!int.TryParse(
                         txtUsageLimit.Text,
                         out int usage))
                 {
-                    ShowError("Tổng lượt sử dụng phải là số nguyên.");
+                    ShowError(
+                        "Tổng lượt sử dụng phải là số nguyên.");
                     return;
                 }
 
                 usageLimit = usage;
             }
 
+            // Kiem tra gioi han moi khach
             if (!int.TryParse(
                     txtPerCustomerLimit.Text,
                     out int perCustomerLimit))
             {
-                ShowError("Giới hạn mỗi khách phải là số nguyên.");
+                ShowError(
+                    "Giới hạn mỗi khách phải là số nguyên.");
                 return;
             }
 
+            // Kiem tra ngay
             if (!dpStartsAt.SelectedDate.HasValue ||
                 !dpEndsAt.SelectedDate.HasValue)
             {
                 ShowError(
-                    "Vui lòng chọn ngày bắt đầu và ngày kết thúc.");
+                    "Vui lòng chọn ngày bắt đầu " +
+                    "và ngày kết thúc.");
                 return;
             }
 
-            // Lay ngay tu DatePicker
-            DateTime startsAt =
+            // Ngay nguoi dung chon la ngay Viet Nam
+            DateTime startsAtVietnam =
                 dpStartsAt.SelectedDate.Value.Date;
 
-            DateTime endsAt =
+            DateTime endsAtVietnam =
                 dpEndsAt.SelectedDate.Value.Date;
 
             if (_originalVoucher != null)
             {
-                // Khi sua: giu nguyen gio, phut, giay cu
-                startsAt = startsAt.Add(
-                    _originalVoucher.StartsAt.TimeOfDay);
+                // Lay gio Viet Nam cua Voucher cu
+                DateTime originalStartVietnam =
+                    ToVietnamTime(
+                        _originalVoucher.StartsAt);
 
-                endsAt = endsAt.Add(
-                    _originalVoucher.EndsAt.TimeOfDay);
+                DateTime originalEndVietnam =
+                    ToVietnamTime(
+                        _originalVoucher.EndsAt);
+
+                // Giu nguyen gio, phut, giay Viet Nam
+                startsAtVietnam = startsAtVietnam.Add(
+                    originalStartVietnam.TimeOfDay);
+
+                endsAtVietnam = endsAtVietnam.Add(
+                    originalEndVietnam.TimeOfDay);
             }
             else
             {
-                // Khi them moi: ket thuc luc 23:59:59
-                endsAt = endsAt.AddDays(1).AddSeconds(-1);
+                // Voucher moi:
+                // Bat dau luc 00:00:00
+                // Ket thuc luc 23:59:59
+                endsAtVietnam =
+                    endsAtVietnam.AddDays(1)
+                                 .AddSeconds(-1);
             }
+
+            // Chuyen gio Viet Nam -> UTC de luu SQL
+            DateTime startsAt =
+                ToUtcTime(startsAtVietnam);
+
+            DateTime endsAt =
+                ToUtcTime(endsAtVietnam);
 
             if (endsAt <= startsAt)
             {
@@ -189,6 +262,7 @@ namespace CRMS.Views.Admin
                 return;
             }
 
+            // Kiem tra gia tri giam
             if (discountValue <= 0)
             {
                 ShowError(
@@ -234,6 +308,7 @@ namespace CRMS.Views.Admin
                 return;
             }
 
+            // Tao Voucher voi thoi gian UTC
             ResultVoucher = new Voucher
             {
                 VoucherId =
@@ -257,7 +332,8 @@ namespace CRMS.Views.Admin
 
                 PerCustomerLimit = perCustomerLimit,
 
-                IsActive = chkIsActive.IsChecked == true,
+                IsActive =
+                    chkIsActive.IsChecked == true,
 
                 RowVersion =
                     _originalVoucher?.RowVersion

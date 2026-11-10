@@ -53,13 +53,15 @@
                            FontSize="18"
                            FontWeight="SemiBold"/>
 
-                <!-- DEPOSIT METHOD: DEV -->
+                <!-- DEPOSIT METHOD -->
                 <TextBlock Text="Phương thức đặt cọc"
                            FontSize="15"
                            FontWeight="SemiBold"
                            Margin="0,18,0,8"/>
 
-                <ComboBox SelectedValue="{Binding DepositMethod, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                <ComboBox SelectedValue="{Binding DepositMethod,
+                                                  Mode=TwoWay,
+                                                  UpdateSourceTrigger=PropertyChanged}"
                           SelectedValuePath="Tag"
                           IsEnabled="{Binding CanChooseDepositMethod}"
                           Padding="10"
@@ -74,7 +76,7 @@
 
                 </ComboBox>
 
-                <!-- TV7 - F21: APPLY VOUCHER -->
+                <!-- TV7 - F21: VOUCHER -->
                 <Separator Margin="0,20,0,16"/>
 
                 <TextBlock Text="Mã giảm giá"
@@ -89,7 +91,9 @@
                     </Grid.ColumnDefinitions>
 
                     <TextBox Grid.Column="0"
-                             Text="{Binding VoucherCode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             Text="{Binding VoucherCode,
+                                            Mode=TwoWay,
+                                            UpdateSourceTrigger=PropertyChanged}"
                              Height="38"
                              Padding="10,6"
                              VerticalContentAlignment="Center"
@@ -122,6 +126,20 @@
                 <Button Content="Xác nhận tạo đơn"
                         Style="{StaticResource CustomerButton}"
                         Command="{Binding ConfirmCommand}"/>
+
+                <!-- P2: CONTINUE WITHOUT VOUCHER -->
+                <Button Content="Tiếp tục với giá gốc (không dùng Voucher)"
+                        Command="{Binding ContinueWithoutVoucherCommand}"
+                        IsEnabled="{Binding CanContinueWithoutVoucher}"
+                        Height="42"
+                        Margin="0,12,0,0"
+                        Padding="12,6"
+                        Background="#F1F5F9"
+                        Foreground="#0F172A"
+                        BorderBrush="#CBD5E1"
+                        BorderThickness="1"
+                        FontWeight="SemiBold"
+                        HorizontalContentAlignment="Center"/>
 
             </StackPanel>
 
