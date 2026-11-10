@@ -365,3 +365,8 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+# Fody - auto-generated XML schema
+FodyWeavers.xsd
+
+# CRMS.Tests - Local configuration
+/CRMS.Tests/App.config

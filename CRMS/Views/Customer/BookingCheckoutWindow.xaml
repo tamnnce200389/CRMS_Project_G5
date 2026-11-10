@@ -1,25 +1,149 @@
 <Window x:Class="CRMS.Views.Customer.BookingCheckoutWindow"
- xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
- Title="Xác nhận thuê xe" Width="580" Height="700" FontSize="14" Foreground="{StaticResource CustomerInk}" ResizeMode="NoResize" WindowStartupLocation="CenterOwner" Background="{StaticResource CustomerBackground}">
- <Border Margin="24" Padding="24" Background="White" CornerRadius="16">
-  <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-  <StackPanel>
-   <TextBlock Text="Xác nhận thuê xe" Style="{StaticResource PageTitle}"/>
-   <TextBlock Text="{Binding VehicleName}" FontSize="20" FontWeight="SemiBold" Margin="0,16,0,6"/>
-   <TextBlock Text="{Binding RentalLabel}"/>
-   <TextBlock Text="{Binding PeriodLabel}" Margin="0,8,0,20"/>
-   <TextBlock Text="Tổng tiền thuê" Style="{StaticResource Subtitle}"/>
-   <TextBlock Text="{Binding TotalLabel}" FontSize="24" FontWeight="Bold" Foreground="{StaticResource CustomerInk}"/>
-   <TextBlock Text="{Binding DepositCaption}" Margin="0,12,0,3"/>
-   <TextBlock Text="{Binding DepositLabel}" FontSize="18" FontWeight="SemiBold"/>
-   <TextBlock Text="Phương thức đặt cọc" Margin="0,16,0,6"/>
-   <ComboBox SelectedValue="{Binding DepositMethod, Mode=TwoWay}" SelectedValuePath="Tag" IsEnabled="{Binding CanChooseDepositMethod}" Padding="10" MinHeight="42">
-    <ComboBoxItem Content="Tiền mặt · Nhân viên xác nhận" Tag="Cash"/>
-    <ComboBoxItem Content="QR demo · Chỉ chuyển thử nghiệm 1.000đ" Tag="Demo" IsEnabled="{Binding DemoPaymentsEnabled}"/>
-   </ComboBox>
-   <TextBlock Text="{Binding Status}" TextWrapping="Wrap" Margin="0,16,0,16" MinHeight="44"/>
-   <Button Content="Xác nhận tạo đơn" Style="{StaticResource CustomerButton}" Command="{Binding ConfirmCommand}"/>
-  </StackPanel>
-  </ScrollViewer>
- </Border>
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Xác nhận thuê xe"
+        Width="580"
+        Height="740"
+        MinHeight="620"
+        FontSize="14"
+        Foreground="{StaticResource CustomerInk}"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource CustomerBackground}">
+
+    <Border Margin="24"
+            Padding="24"
+            Background="White"
+            CornerRadius="16">
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+
+            <StackPanel>
+
+                <!-- HEADER -->
+                <TextBlock Text="Xác nhận thuê xe"
+                           Style="{StaticResource PageTitle}"/>
+
+                <!-- VEHICLE -->
+                <TextBlock Text="{Binding VehicleName}"
+                           FontSize="20"
+                           FontWeight="SemiBold"
+                           Margin="0,16,0,6"/>
+
+                <TextBlock Text="{Binding RentalLabel}"/>
+
+                <TextBlock Text="{Binding PeriodLabel}"
+                           Margin="0,8,0,20"/>
+
+                <!-- TOTAL -->
+                <TextBlock Text="Tổng tiền thuê"
+                           Style="{StaticResource Subtitle}"/>
+
+                <TextBlock Text="{Binding TotalLabel}"
+                           FontSize="24"
+                           FontWeight="Bold"
+                           Foreground="{StaticResource CustomerInk}"/>
+
+                <!-- DEPOSIT -->
+                <TextBlock Text="{Binding DepositCaption}"
+                           Margin="0,12,0,3"/>
+
+                <TextBlock Text="{Binding DepositLabel}"
+                           FontSize="18"
+                           FontWeight="SemiBold"/>
+
+                <!-- DEPOSIT METHOD -->
+                <TextBlock Text="Phương thức đặt cọc"
+                           FontSize="15"
+                           FontWeight="SemiBold"
+                           Margin="0,18,0,8"/>
+
+                <ComboBox SelectedValue="{Binding DepositMethod,
+                                                  Mode=TwoWay,
+                                                  UpdateSourceTrigger=PropertyChanged}"
+                          SelectedValuePath="Tag"
+                          IsEnabled="{Binding CanChooseDepositMethod}"
+                          Padding="10"
+                          MinHeight="42">
+
+                    <ComboBoxItem Content="Tiền mặt · Nhân viên xác nhận"
+                                  Tag="Cash"/>
+
+                    <ComboBoxItem Content="QR demo · Chỉ chuyển thử nghiệm 1.000đ"
+                                  Tag="Demo"
+                                  IsEnabled="{Binding DemoPaymentsEnabled}"/>
+
+                </ComboBox>
+
+                <!-- TV7 - F21: VOUCHER -->
+                <Separator Margin="0,20,0,16"/>
+
+                <TextBlock Text="Mã giảm giá"
+                           FontSize="15"
+                           FontWeight="SemiBold"
+                           Margin="0,0,0,8"/>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBox Grid.Column="0"
+                             Text="{Binding VoucherCode,
+                                            Mode=TwoWay,
+                                            UpdateSourceTrigger=PropertyChanged}"
+                             Height="38"
+                             Padding="10,6"
+                             VerticalContentAlignment="Center"
+                             Margin="0,0,10,0"/>
+
+                    <Button Grid.Column="1"
+                            Content="Áp dụng"
+                            Width="100"
+                            Height="38"
+                            Command="{Binding ApplyVoucherCommand}"/>
+                </Grid>
+
+                <TextBlock Text="{Binding VoucherMessage}"
+                           TextWrapping="Wrap"
+                           Margin="0,8,0,0"/>
+
+                <TextBlock Text="{Binding DiscountLabel}"
+                           FontWeight="SemiBold"
+                           Margin="0,8,0,0"/>
+
+                <!-- STATUS -->
+                <Separator Margin="0,18,0,16"/>
+
+                <TextBlock Text="{Binding Status}"
+                           TextWrapping="Wrap"
+                           Margin="0,0,0,16"
+                           MinHeight="44"/>
+
+                <!-- CONFIRM -->
+                <Button Content="Xác nhận tạo đơn"
+                        Style="{StaticResource CustomerButton}"
+                        Command="{Binding ConfirmCommand}"/>
+
+                <!-- P2: CONTINUE WITHOUT VOUCHER -->
+                <Button Content="Tiếp tục với giá gốc (không dùng Voucher)"
+                        Command="{Binding ContinueWithoutVoucherCommand}"
+                        IsEnabled="{Binding CanContinueWithoutVoucher}"
+                        Height="42"
+                        Margin="0,12,0,0"
+                        Padding="12,6"
+                        Background="#F1F5F9"
+                        Foreground="#0F172A"
+                        BorderBrush="#CBD5E1"
+                        BorderThickness="1"
+                        FontWeight="SemiBold"
+                        HorizontalContentAlignment="Center"/>
+
+            </StackPanel>
+
+        </ScrollViewer>
+
+    </Border>
 </Window>
