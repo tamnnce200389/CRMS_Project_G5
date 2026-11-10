@@ -1,6 +1,6 @@
 using System.Windows;
 
-namespace CRMS.Models;
+namespace CRMS.ViewModels;
 
 public sealed record SeasonalDestination(
     string Name, string Region, string Highlight, string Duration,

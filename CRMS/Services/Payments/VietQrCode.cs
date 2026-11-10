@@ -1,9 +1,6 @@
 using System.Globalization;
-using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Windows.Media.Imaging;
-using QRCoder;
 
 namespace CRMS.Services.Payments;
 
@@ -41,14 +38,4 @@ public static class VietQrCode
         return crc.ToString("X4", CultureInfo.InvariantCulture);
     }
 
-    public static BitmapSource CreateImage(string payload)
-    {
-        using var data = QRCodeGenerator.GenerateQrCode(payload, QRCodeGenerator.ECCLevel.M);
-        using var qr = new PngByteQRCode(data);
-        using var stream = new MemoryStream(qr.GetGraphic(8));
-        var bitmap = new BitmapImage();
-        bitmap.BeginInit(); bitmap.CacheOption = BitmapCacheOption.OnLoad; bitmap.StreamSource = stream; bitmap.EndInit();
-        bitmap.Freeze();
-        return bitmap;
-    }
 }

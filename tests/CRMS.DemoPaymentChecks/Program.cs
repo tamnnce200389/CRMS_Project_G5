@@ -57,7 +57,7 @@ Check(BookingStatusRules.EffectiveStatus("PendingDeposit", clock, clock) == "Exp
     "Only pending holds expire at the deadline; already-confirmed rentals keep their status");
 var expiredTrip = new CRMS.Dtos.CustomerTrip("QA-PENDING-CASH", "Fixture", clock, clock.AddDays(1), 4000000,
     "PendingDeposit", IsDemo: true, DepositDeadlineUtc: clock.AddDays(-1));
-Check(expiredTrip.StatusLabel == "Hết hạn đặt cọc" && expiredTrip.DemoPaymentAction == "Xem trạng thái demo",
+Check(new TripItemViewModel(expiredTrip).StatusLabel == "Hết hạn đặt cọc" && new TripItemViewModel(expiredTrip).EffectiveStatus == "Expired",
     "Customer sample trips derive expired labels and stop inviting a new demo transfer");
 var expiredSummary = new PaymentSummary(1, "QA-EXPIRED", "PendingDeposit", 4000000, 0, 2000000, 0, 0, 0, 0, false,
     DepositDeadlineUtc: clock.AddDays(-1));
@@ -83,6 +83,7 @@ using (var vm = new DemoPaymentViewModel(1, fake, false))
 }
 
 await StaffConfirmationChecks.Run(Check);
+await RefactorRegressionChecks.Run(Check);
 if (!args.Contains("--integration")) { Console.WriteLine($"{passed} demo checks passed. Add --integration <CRMS.sql path> for isolated SQL checks."); return; }
 var source = args.FirstOrDefault(a => a.EndsWith(".sql", StringComparison.OrdinalIgnoreCase)) ?? throw new ArgumentException("Pass CRMS.sql path.");
 var dbName = "CRMS_DemoPay_Test_" + Guid.NewGuid().ToString("N");
@@ -161,8 +162,8 @@ try
     var tripSession = new FixedCustomerSession(customer.UserId);
     var tripsVm = new MyBookingsViewModel(new BookingQueryService(Create, tripSession), tripSession);
     await tripsVm.LoadAsync();
-    var trip = tripsVm.Bookings.Single(t => t.BookingId == order.BookingId);
-    Check(trip.IsDemo && trip.DepositMethod == "Cash" && trip.DepositDeadlineUtc == order.DepositDeadline && trip.DemoPaymentAction == "Thanh toán QR demo",
+    var trip = tripsVm.Bookings.Single(t => t.Trip.BookingId == order.BookingId);
+    Check(trip.Trip.IsDemo && trip.Trip.DepositMethod == "Cash" && trip.Trip.DepositDeadlineUtc == order.DepositDeadline && trip.EffectiveStatus == "PendingDeposit",
         "MVVM booking query retains demo action, booking ID and deposit deadline after merging dev");
     using var liveCustomer = new DemoPaymentViewModel(order.BookingId, new DemoPaymentService(Create, () => customer.UserId, options), true);
     await liveCustomer.RefreshAsync();
@@ -180,8 +181,8 @@ try
     session = await payments.GetSessionAsync(order.BookingId);
     Check(!receipt.NeedsManualRefund && session.IsSuccessful && session.BookingStatus == "Confirmed" && session.ActualReceived == 1000, "Staff receipt confirmation atomically marks demo successful and booking Confirmed");
     tripsVm.UpdatePaymentSession(session);
-    Check(tripsVm.Bookings.Single(t => t.BookingId == order.BookingId).StatusLabel == "Đã xác nhận" &&
-        tripsVm.Bookings.Single(t => t.BookingId == order.BookingId).DemoPaymentAction == "Xem biên nhận demo",
+    Check(tripsVm.Bookings.Single(t => t.Trip.BookingId == order.BookingId).StatusLabel == "Đã xác nhận" &&
+        tripsVm.Bookings.Single(t => t.Trip.BookingId == order.BookingId).EffectiveStatus == "Confirmed",
         "MVVM trip list immediately receives the confirmed QR status without closing the payment screen");
     await liveCustomer.RefreshAsync(waitForCurrent: true);
     Check(liveCustomer.LastRefreshSucceeded && liveCustomer.IsSuccessful && liveCustomer.StatusCheckResult.Contains("Đặt cọc demo thành công") &&
@@ -255,6 +256,43 @@ try
             .SumAsync(p => p.PaymentType == "Refund" ? -p.Amount : p.Amount);
         Check(dashboard.NetCashCollected == net, "Admin financial dashboard excludes demo cash flows");
     }
+    var csv = new ReportService(Create).BuildCsv(report);
+    Check(csv.Contains(normal.BookingCode) && !csv.Contains(order.BookingCode) && !csv.Contains(second.BookingCode),
+        "CSV retains real financial rows and excludes demo receipts/refunds");
+    var csvFixture = new RevenueReportResult { Rows = [new RevenueReportRow { BookingCode = "=TEST", VehicleName = "Xe, \"A\"", DepositPaid = 2000, RefundPaid = 1000 }] };
+    var fixtureCsv = new ReportService(Create).BuildCsv(csvFixture);
+    Check(fixtureCsv.Contains("\"'=TEST\"") && fixtureCsv.Contains("\"Xe, \"\"A\"\"\"") && fixtureCsv.Contains("2000.00,0.00,1000.00,1000.00"),
+        "CSV preserves formula protection, quotes and invariant monetary formatting");
+    var fromUtc = DateTime.SpecifyKind(today.AddHours(-7), DateTimeKind.Utc);
+    var endUtc = fromUtc.AddDays(1);
+    using (var db = Create())
+    {
+        var paidAt = await db.Payments.Where(p => p.BookingId == normal.BookingId).Select(p => p.PaidAt).SingleAsync();
+        await db.Payments.Where(p => p.BookingId == normal.BookingId).ExecuteUpdateAsync(s => s.SetProperty(p => p.PaidAt, fromUtc));
+        var startReport = await new ReportService(Create).GetRevenueReportAsync(today, today);
+        var startDashboard = await new DashboardService(Create).GetOverviewAsync(today, today);
+        await db.Payments.Where(p => p.BookingId == normal.BookingId).ExecuteUpdateAsync(s => s.SetProperty(p => p.PaidAt, endUtc));
+        var endReport = await new ReportService(Create).GetRevenueReportAsync(today, today);
+        var endDashboard = await new DashboardService(Create).GetOverviewAsync(today, today);
+        Check(startReport.Rows.Any(r => r.BookingId == normal.BookingId) && endReport.Rows.All(r => r.BookingId != normal.BookingId) &&
+            startDashboard.NetCashCollected - endDashboard.NetCashCollected == normal.DepositAmount,
+            "Report and dashboard retain inclusive Vietnam midnight and exclusive next midnight boundaries");
+        await db.Payments.Where(p => p.BookingId == normal.BookingId).ExecuteUpdateAsync(s => s.SetProperty(p => p.PaidAt, paidAt));
+    }
+    async Task RejectAccess(Func<Task> call, string name)
+    {
+        try { await call(); } catch (UnauthorizedAccessException) { Check(true, name); return; }
+        throw new Exception("FAIL accepted unauthorized access: " + name);
+    }
+    CurrentUserService.Instance.SetUser(staff);
+    await RejectAccess(async () => { await new DashboardService(Create).GetOverviewAsync(today, today); }, "Staff cannot read financial dashboard");
+    await RejectAccess(async () => { await new ReportService(Create).GetRevenueReportAsync(today, today); }, "Staff cannot read financial report");
+    var operations = await new DashboardService(Create).GetStaffOverviewAsync(today, today);
+    using (var db = Create()) Check(operations.TotalBookings == await db.Bookings.CountAsync(b => b.CreatedAt >= fromUtc && b.CreatedAt < endUtc),
+        "Staff retains operational counts for the Vietnam date range");
+    CurrentUserService.Instance.SetUser(customer);
+    await RejectAccess(async () => { await new DashboardService(Create).GetStaffOverviewAsync(today, today); }, "Customer cannot read Staff dashboard");
+    CurrentUserService.Instance.SetUser(admin);
     async Task<string> FinancialSnapshot()
     {
         using var db = Create();

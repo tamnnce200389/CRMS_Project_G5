@@ -110,7 +110,7 @@ public sealed class DemoPaymentViewModel : BaseViewModel, IDisposable
             var changed = _session != session || _publishedStatus != session.EffectiveBookingStatus;
             _session = session;
             _fresh = true;
-            QrImage = CanShowQr ? VietQrCode.CreateImage(VietQrCode.CreatePayload(session.BankBin, session.AccountNumber, session.TransferContent)) : null;
+            QrImage = CanShowQr ? QrImageRenderer.Create(VietQrCode.CreatePayload(session.BankBin, session.AccountNumber, session.TransferContent)) : null;
             Message = IsSuccessful ? "Staff đã kiểm tra và xác nhận khoản thực nhận 1.000đ. Cọc mô phỏng được xác nhận; không ghi nhận đã thu thật số tiền cọc này."
                 : session.PaymentStatus == "Success" ? "Khoản thực nhận đã được ghi sổ nhưng đơn đã hủy/hết hạn. Liên hệ Staff để đối soát hoàn khoản tiền thực nhận."
                 : !_enabled ? "Chế độ thanh toán demo đang tắt. Không tiếp tục chuyển tiền."

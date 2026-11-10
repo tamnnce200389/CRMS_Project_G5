@@ -24,17 +24,28 @@
                         <StackPanel>
                             <DockPanel>
                                 <Border DockPanel.Dock="Right" Background="{StaticResource CustomerBackground}" CornerRadius="7" Padding="12,7" VerticalAlignment="Center"><TextBlock Text="{Binding StatusLabel}" Foreground="{StaticResource CustomerMuted}" FontWeight="SemiBold" FontSize="12"/></Border>
-                                <StackPanel><TextBlock Text="{Binding BookingCode}" Foreground="{StaticResource CustomerMuted}" FontSize="12"/><TextBlock Text="{Binding VehicleName}" FontSize="20" FontWeight="SemiBold" Margin="0,5,0,0"/><TextBlock Text="{Binding BillingLabel}" Foreground="{StaticResource CustomerMuted}" Margin="0,4,0,8"/></StackPanel>
+                                <StackPanel><TextBlock Text="{Binding Trip.BookingCode}" Foreground="{StaticResource CustomerMuted}" FontSize="12"/><TextBlock Text="{Binding Trip.VehicleName}" FontSize="20" FontWeight="SemiBold" Margin="0,5,0,0"/><TextBlock Text="{Binding BillingLabel}" Foreground="{StaticResource CustomerMuted}" Margin="0,4,0,8"/></StackPanel>
                             </DockPanel>
                             <Border Height="1" Background="{StaticResource CustomerLine}" Margin="0,18"/>
                             <Grid>
                                 <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                                 <StackPanel><TextBlock Text="Nhận xe" Foreground="{StaticResource CustomerMuted}" FontSize="12"/><TextBlock Text="{Binding StartLocal, StringFormat={}{0:HH:mm · dd/MM/yyyy}}" Margin="0,7,0,0"/></StackPanel>
                                 <StackPanel Grid.Column="1"><TextBlock Text="Trả xe" Foreground="{StaticResource CustomerMuted}" FontSize="12"/><TextBlock Text="{Binding EndLocal, StringFormat={}{0:HH:mm · dd/MM/yyyy}}" Margin="0,7,0,0"/></StackPanel>
-                                <StackPanel Grid.Column="2"><TextBlock Text="Tổng tiền thuê" Foreground="{StaticResource CustomerMuted}" FontSize="12"/><TextBlock Text="{Binding TotalAmount, StringFormat={}{0:N0} đ}" FontWeight="SemiBold" Margin="0,7,0,0"/></StackPanel>
+                                <StackPanel Grid.Column="2"><TextBlock Text="Tổng tiền thuê" Foreground="{StaticResource CustomerMuted}" FontSize="12"/><TextBlock Text="{Binding Trip.TotalAmount, StringFormat={}{0:N0} đ}" FontWeight="SemiBold" Margin="0,7,0,0"/></StackPanel>
                                 <StackPanel Grid.Column="3" Orientation="Horizontal" Margin="16,0,0,0">
-                                    <Button Content="{Binding DemoPaymentAction}" Style="{StaticResource CustomerButton}" Click="DemoPayment_Click" Visibility="{Binding IsDemo, Converter={StaticResource VisibleBool}}" Margin="0,0,8,0"/>
-                                    <Button Content="Xem thanh toán" Style="{StaticResource SecondaryButton}" Click="Payment_Click" Tag="{Binding BookingCode}"/>
+                                    <Button x:Name="TripPaymentButton" Click="DemoPayment_Click" Visibility="{Binding Trip.IsDemo, Converter={StaticResource VisibleBool}}" Margin="0,0,8,0">
+                                        <Button.Style>
+                                            <Style TargetType="Button" BasedOn="{StaticResource CustomerButton}">
+                                                <Setter Property="Content" Value="Xem biên nhận demo"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding EffectiveStatus}" Value="PendingDeposit"><Setter Property="Content" Value="Thanh toán"/></DataTrigger>
+                                                    <DataTrigger Binding="{Binding EffectiveStatus}" Value="Expired"><Setter Property="Content" Value="Xem trạng thái demo"/></DataTrigger>
+                                                    <DataTrigger Binding="{Binding EffectiveStatus}" Value="Cancelled"><Setter Property="Content" Value="Xem trạng thái demo"/></DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                    </Button>
+                                    <Button Content="Xem thanh toán" Style="{StaticResource SecondaryButton}" Click="Payment_Click" Tag="{Binding Trip.BookingCode}"/>
                                 </StackPanel>
                             </Grid>
                         </StackPanel>
