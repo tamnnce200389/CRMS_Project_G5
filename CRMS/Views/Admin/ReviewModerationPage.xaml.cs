@@ -3,14 +3,14 @@ using System;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using CRMS.Repositories;
 using CRMS.Services;
 
 namespace CRMS.Views.Admin
 {
     public partial class ReviewModerationPage : Page
     {
-        private readonly ReviewModerationRepository _repository = new();
+        // F23 - Su dung Service thay cho Repository
+        private readonly ReviewModerationService _service = new();
 
         private bool _isBusy;
 
@@ -43,7 +43,7 @@ namespace CRMS.Views.Admin
                     "Đang tải danh sách đánh giá...";
 
                 var reviews =
-                    await _repository.GetAllReviewsAsync();
+                    await _service.GetAllReviewsAsync();
 
                 ReviewsDataGrid.ItemsSource = reviews;
 
@@ -57,7 +57,8 @@ namespace CRMS.Views.Admin
                 ReviewsDataGrid.ItemsSource = null;
 
                 StatusTextBlock.Text =
-                    "Không thể tải đánh giá: " + ex.Message;
+                    "Không thể tải đánh giá: " +
+                    ex.GetBaseException().Message;
             }
             finally
             {
@@ -97,6 +98,7 @@ namespace CRMS.Views.Admin
                     "Thông báo",
                     MessageBoxButton.OK,
                     MessageBoxImage.Information);
+
                 return;
             }
 
@@ -109,7 +111,9 @@ namespace CRMS.Views.Admin
             if (confirm != MessageBoxResult.Yes)
                 return;
 
-            await UpdateReviewAsync(review.ReviewId, true);
+            await UpdateReviewAsync(
+                review.ReviewId,
+                true);
         }
 
         // F23 - An danh gia
@@ -136,6 +140,7 @@ namespace CRMS.Views.Admin
                     "Thông báo",
                     MessageBoxButton.OK,
                     MessageBoxImage.Information);
+
                 return;
             }
 
@@ -148,7 +153,9 @@ namespace CRMS.Views.Admin
             if (confirm != MessageBoxResult.Yes)
                 return;
 
-            await UpdateReviewAsync(review.ReviewId, false);
+            await UpdateReviewAsync(
+                review.ReviewId,
+                false);
         }
 
         // Kiem tra quyen Admin
@@ -178,7 +185,12 @@ namespace CRMS.Views.Admin
             long reviewId,
             bool approve)
         {
+            if (_isBusy)
+                return;
+
             SetBusy(true);
+
+            bool success = false;
 
             try
             {
@@ -187,12 +199,14 @@ namespace CRMS.Views.Admin
 
                 if (approve)
                 {
-                    await _repository.ApproveReviewAsync(reviewId);
+                    await _service.ApproveReviewAsync(reviewId);
                 }
                 else
                 {
-                    await _repository.HideReviewAsync(reviewId);
+                    await _service.HideReviewAsync(reviewId);
                 }
+
+                success = true;
 
                 MessageBox.Show(
                     approve
@@ -204,8 +218,12 @@ namespace CRMS.Views.Admin
             }
             catch (Exception ex)
             {
+                StatusTextBlock.Text =
+                    "Không thể cập nhật đánh giá: " +
+                    ex.GetBaseException().Message;
+
                 MessageBox.Show(
-                    ex.Message,
+                    ex.GetBaseException().Message,
                     "Không thể cập nhật đánh giá",
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
@@ -215,7 +233,10 @@ namespace CRMS.Views.Admin
                 SetBusy(false);
             }
 
-            await LoadReviewsAsync();
+            if (success)
+            {
+                await LoadReviewsAsync();
+            }
         }
 
         // Khoa thao tac trong khi xu ly
