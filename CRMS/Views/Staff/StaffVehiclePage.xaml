@@ -59,8 +59,7 @@
                         <TextBox Height="42"
                                  Padding="12,8"
                                  Text="{Binding SearchText,
-                                     UpdateSourceTrigger=PropertyChanged}"
-                                 AutomationProperties.Name="Tìm kiếm phương tiện"/>
+                                     UpdateSourceTrigger=PropertyChanged}"/>
                     </StackPanel>
 
                     <StackPanel Grid.Column="1"
@@ -72,8 +71,7 @@
 
                         <ComboBox Style="{StaticResource RoundedComboBox}" Height="42"
                                   ItemsSource="{Binding StatusOptions}"
-                                  SelectedItem="{Binding SelectedStatus}"
-                                  AutomationProperties.Name="Trạng thái xe">
+                                  SelectedItem="{Binding SelectedStatus}">
                             <ComboBox.ItemTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Converter={StaticResource VietnameseLabel}}"/>
@@ -136,8 +134,7 @@
                               Background="{StaticResource Surface}"
                               BorderThickness="0"
                               GridLinesVisibility="Horizontal"
-                              HeadersVisibility="Column"
-                              AutomationProperties.Name="Danh sách phương tiện">
+                              HeadersVisibility="Column">
 
                         <DataGrid.Columns>
 

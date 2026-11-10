@@ -32,7 +32,6 @@
                         Orientation="Horizontal"
                         VerticalAlignment="Center">
                 <Button x:Name="OpenAvailabilityToolbarButton"
-                        AutomationProperties.AutomationId="OpenAvailabilityToolbarButton"
                         Content="Kiểm tra lịch trống"
                         Command="{Binding OpenAvailabilityCommand}"
                         Background="White"
@@ -135,8 +134,7 @@
                 <TextBlock Text="Tìm kiếm xe" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,7" />
                 <Grid>
                     <TextBox Height="40"
-                             Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                             AutomationProperties.Name="Tìm kiếm xe" />
+                             Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" />
                     <TextBlock Text="Nhập biển số, hãng, mẫu hoặc loại xe…"
                                Margin="14,0"
                                Foreground="#8B97AA"
@@ -160,16 +158,14 @@
                 <TextBlock Text="Loại xe" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,7" />
                 <ComboBox ItemsSource="{Binding CategoryOptions}"
                           SelectedItem="{Binding SelectedCategoryFilter}"
-                          Height="40"
-                          AutomationProperties.Name="Loại xe" />
+                          Height="40" />
             </StackPanel>
 
             <StackPanel Grid.Column="2">
                 <TextBlock Text="Trạng thái" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,7" />
                 <ComboBox ItemsSource="{Binding StatusOptions}"
                           SelectedItem="{Binding SelectedStatus}"
-                          Height="40"
-                          AutomationProperties.Name="Trạng thái xe">
+                          Height="40">
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding Converter={StaticResource VietnameseLabel}}" />
@@ -200,8 +196,7 @@
                           ItemsSource="{Binding VehiclesView}"
                           SelectedItem="{Binding SelectedVehicle, Mode=TwoWay}"
                           MouseDoubleClick="VehiclesGrid_MouseDoubleClick"
-                          RowHeight="60"
-                          AutomationProperties.Name="Danh sách xe">
+                          RowHeight="60">
                     <DataGrid.Columns>
                         <DataGridTemplateColumn Header="ẢNH" Width="66" IsReadOnly="True">
                             <DataGridTemplateColumn.CellTemplate>

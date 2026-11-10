@@ -1,73 +1,176 @@
-namespace CRMS.Services.Vehicles;
+using System;
+using System.Collections.Generic;
 
-public enum AvailabilityConflictType
+namespace CRMS.Services.Vehicles
 {
-    VehicleNotFound,
-    VehicleSuspended,
-    CategoryInactive,
-    BookingInUse,
-    BookingConfirmed,
-    BookingPendingDeposit,
-    Maintenance,
-    CalendarBlock
-}
+    public enum AvailabilityConflictType
+    {
+        VehicleNotFound,
+        VehicleSuspended,
+        CategoryInactive,
+        BookingInUse,
+        BookingConfirmed,
+        BookingPendingDeposit,
+        Maintenance,
+        CalendarBlock
+    }
 
-public sealed record AvailabilityConflict(
-    AvailabilityConflictType Type,
-    string Title,
-    string Reason,
-    DateTime? StartAtLocal = null,
-    DateTime? EndAtLocal = null,
-    string? ReferenceCode = null)
-{
-    public bool HasReferenceCode => !string.IsNullOrWhiteSpace(ReferenceCode);
-}
+    public class AvailabilityConflict
+    {
+        public AvailabilityConflictType Type { get; set; }
+        public string Title { get; set; } = string.Empty;
+        public string Reason { get; set; } = string.Empty;
+        public DateTime? StartAtLocal { get; set; }
+        public DateTime? EndAtLocal { get; set; }
+        public string? ReferenceCode { get; set; }
 
-public sealed record BookingConflictSnapshot(
-    string BookingCode,
-    string BookingStatus,
-    DateTime StartAtUtc,
-    DateTime EndAtUtc,
-    DateTime DepositDeadlineUtc);
+        public bool HasReferenceCode
+        {
+            get { return !string.IsNullOrWhiteSpace(ReferenceCode); }
+        }
 
-public sealed record MaintenanceConflictSnapshot(
-    long MaintenanceId,
-    string MaintenanceStatus,
-    DateTime StartAtUtc,
-    DateTime EndAtUtc,
-    string Description);
+        public AvailabilityConflict()
+        {
+        }
 
-public sealed class VehicleAvailabilityResult
-{
-    public long VehicleId { get; init; }
-    public int CategoryId { get; init; }
-    public string CategoryName { get; init; } = string.Empty;
-    public string LicensePlate { get; init; } = string.Empty;
-    public string Brand { get; init; } = string.Empty;
-    public string Model { get; init; } = string.Empty;
-    public byte SeatCount { get; init; }
-    public string Transmission { get; init; } = string.Empty;
-    public string FuelType { get; init; } = string.Empty;
-    public decimal DailyRate { get; init; }
-    public string OperationalStatus { get; init; } = "Active";
-    public string? PrimaryImageUrl { get; init; }
-    public DateTime StartAtLocal { get; init; }
-    public DateTime EndAtLocal { get; init; }
-    public IReadOnlyList<AvailabilityConflict> Conflicts { get; init; } = Array.Empty<AvailabilityConflict>();
+        public AvailabilityConflict(
+            AvailabilityConflictType type,
+            string title,
+            string reason,
+            DateTime? startAtLocal = null,
+            DateTime? endAtLocal = null,
+            string? referenceCode = null)
+        {
+            Type = type;
+            Title = title;
+            Reason = reason;
+            StartAtLocal = startAtLocal;
+            EndAtLocal = endAtLocal;
+            ReferenceCode = referenceCode;
+        }
+    }
 
-    public bool IsAvailable => Conflicts.Count == 0;
-    public bool HasConflicts => Conflicts.Count > 0;
-    public int ConflictCount => Conflicts.Count;
-    public string DisplayName => $"{Brand} {Model}".Trim();
-    public string PeriodText => $"{StartAtLocal:dd/MM/yyyy HH:mm} → {EndAtLocal:dd/MM/yyyy HH:mm}";
-    public string AvailabilityLabel => IsAvailable ? "Khả dụng" : "Không khả dụng";
+    public class BookingConflictSnapshot
+    {
+        public string BookingCode { get; set; } = string.Empty;
+        public string BookingStatus { get; set; } = string.Empty;
+        public DateTime StartAtUtc { get; set; }
+        public DateTime EndAtUtc { get; set; }
+        public DateTime DepositDeadlineUtc { get; set; }
 
-    public string SummaryReason =>
-        IsAvailable
-            ? "Sẵn sàng nhận lịch đặt trong khoảng giờ đã chọn."
-            : Conflicts.Count == 1
-                ? Conflicts[0].Reason
-                : $"{Conflicts[0].Reason} (+{Conflicts.Count - 1} xung đột khác)";
+        public BookingConflictSnapshot()
+        {
+        }
 
-    public override string ToString() => $"{LicensePlate} · {DisplayName} ({AvailabilityLabel})";
+        public BookingConflictSnapshot(
+            string bookingCode,
+            string bookingStatus,
+            DateTime startAtUtc,
+            DateTime endAtUtc,
+            DateTime depositDeadlineUtc)
+        {
+            BookingCode = bookingCode;
+            BookingStatus = bookingStatus;
+            StartAtUtc = startAtUtc;
+            EndAtUtc = endAtUtc;
+            DepositDeadlineUtc = depositDeadlineUtc;
+        }
+    }
+
+    public class MaintenanceConflictSnapshot
+    {
+        public long MaintenanceId { get; set; }
+        public string MaintenanceStatus { get; set; } = string.Empty;
+        public DateTime StartAtUtc { get; set; }
+        public DateTime EndAtUtc { get; set; }
+        public string Description { get; set; } = string.Empty;
+
+        public MaintenanceConflictSnapshot()
+        {
+        }
+
+        public MaintenanceConflictSnapshot(
+            long maintenanceId,
+            string maintenanceStatus,
+            DateTime startAtUtc,
+            DateTime endAtUtc,
+            string description)
+        {
+            MaintenanceId = maintenanceId;
+            MaintenanceStatus = maintenanceStatus;
+            StartAtUtc = startAtUtc;
+            EndAtUtc = endAtUtc;
+            Description = description;
+        }
+    }
+
+    public class VehicleAvailabilityResult
+    {
+        public long VehicleId { get; set; }
+        public int CategoryId { get; set; }
+        public string CategoryName { get; set; } = string.Empty;
+        public string LicensePlate { get; set; } = string.Empty;
+        public string Brand { get; set; } = string.Empty;
+        public string Model { get; set; } = string.Empty;
+        public byte SeatCount { get; set; }
+        public string Transmission { get; set; } = string.Empty;
+        public string FuelType { get; set; } = string.Empty;
+        public decimal DailyRate { get; set; }
+        public string OperationalStatus { get; set; } = "Active";
+        public string? PrimaryImageUrl { get; set; }
+        public DateTime StartAtLocal { get; set; }
+        public DateTime EndAtLocal { get; set; }
+        public IList<AvailabilityConflict> Conflicts { get; set; } = new List<AvailabilityConflict>();
+
+        public bool IsAvailable
+        {
+            get { return Conflicts.Count == 0; }
+        }
+
+        public bool HasConflicts
+        {
+            get { return Conflicts.Count > 0; }
+        }
+
+        public int ConflictCount
+        {
+            get { return Conflicts.Count; }
+        }
+
+        public string DisplayName
+        {
+            get { return $"{Brand} {Model}".Trim(); }
+        }
+
+        public string PeriodText
+        {
+            get { return $"{StartAtLocal:dd/MM/yyyy HH:mm} → {EndAtLocal:dd/MM/yyyy HH:mm}"; }
+        }
+
+        public string AvailabilityLabel
+        {
+            get { return IsAvailable ? "Khả dụng" : "Không khả dụng"; }
+        }
+
+        public string SummaryReason
+        {
+            get
+            {
+                if (IsAvailable)
+                {
+                    return "Sẵn sàng nhận lịch đặt trong khoảng giờ đã chọn.";
+                }
+                if (Conflicts.Count == 1)
+                {
+                    return Conflicts[0].Reason;
+                }
+                return $"{Conflicts[0].Reason} (+{Conflicts.Count - 1} xung đột khác)";
+            }
+        }
+
+        public override string ToString()
+        {
+            return $"{LicensePlate} · {DisplayName} ({AvailabilityLabel})";
+        }
+    }
 }

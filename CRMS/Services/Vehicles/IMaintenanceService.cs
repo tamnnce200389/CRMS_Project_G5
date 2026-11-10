@@ -1,16 +1,20 @@
-namespace CRMS.Services.Vehicles;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
-public interface IMaintenanceService
+namespace CRMS.Services.Vehicles
 {
-    Task<List<MaintenanceListItem>> GetMaintenanceRecordsAsync(MaintenanceFilter? filter = null);
+    public interface IMaintenanceService
+    {
+        Task<List<MaintenanceListItem>> GetMaintenanceRecordsAsync(MaintenanceFilter? filter = null);
 
-    Task<long> ScheduleMaintenanceAsync(MaintenanceScheduleRequest request);
+        Task<long> ScheduleMaintenanceAsync(MaintenanceScheduleRequest request);
 
-    Task UpdateMaintenanceAsync(MaintenanceUpdateRequest request);
+        Task UpdateMaintenanceAsync(MaintenanceUpdateRequest request);
 
-    Task ChangeStatusAsync(
-        long maintenanceId,
-        string nextStatus,
-        decimal? finalCost = null,
-        string? updatedDescription = null);
+        Task ChangeStatusAsync(
+            long maintenanceId,
+            string nextStatus,
+            decimal? finalCost = null,
+            string? updatedDescription = null);
+    }
 }

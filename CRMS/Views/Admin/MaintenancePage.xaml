@@ -119,8 +119,7 @@
                 <TextBlock Text="Tìm kiếm phiếu bảo trì" FontSize="11.5" FontWeight="SemiBold" Margin="0,0,0,5" />
                 <Grid>
                     <TextBox Height="38"
-                             Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                             AutomationProperties.Name="Tìm kiếm phiếu bảo trì" />
+                             Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" />
                     <TextBlock Text="Nhập mã phiếu, biển số, hãng xe hoặc nội dung hạng mục…"
                                Margin="14,0"
                                Foreground="#8B97AA"
@@ -145,16 +144,14 @@
                 <ComboBox ItemsSource="{Binding VehicleFilterOptions}"
                           SelectedItem="{Binding SelectedVehicleFilter, Mode=TwoWay}"
                           DisplayMemberPath="Label"
-                          Height="38"
-                          AutomationProperties.Name="Lọc theo phương tiện" />
+                          Height="38" />
             </StackPanel>
 
             <StackPanel Grid.Column="2">
                 <TextBlock Text="Trạng thái bảo trì" FontSize="11.5" FontWeight="SemiBold" Margin="0,0,0,5" />
                 <ComboBox ItemsSource="{Binding StatusFilterOptions}"
                           SelectedItem="{Binding SelectedStatusFilter, Mode=TwoWay}"
-                          Height="38"
-                          AutomationProperties.Name="Lọc theo trạng thái bảo trì">
+                          Height="38">
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding Converter={StaticResource VietnameseLabel}}" />
@@ -191,8 +188,7 @@
                     <DataGrid Grid.Row="1"
                               ItemsSource="{Binding RecordsView}"
                               SelectedItem="{Binding SelectedRecord, Mode=TwoWay}"
-                              RowHeight="58"
-                              AutomationProperties.Name="Danh sách phiếu bảo trì">
+                              RowHeight="58">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="MÃ" Binding="{Binding ReferenceCode}" Width="64" />
 
@@ -349,8 +345,7 @@
                                   IsEnabled="{Binding IsCreateMode}"
                                   Height="34"
                                   Padding="10,6"
-                                  Margin="0,0,0,7"
-                                  AutomationProperties.Name="Chọn xe cần bảo trì" />
+                                  Margin="0,0,0,7" />
 
                         <CheckBox Content="Đưa xe vào bảo trì ngay (trạng thái Đang bảo trì)"
                                   IsChecked="{Binding StartImmediately, Mode=TwoWay}"
@@ -368,8 +363,7 @@
                             <StackPanel Margin="0,0,8,0">
                                 <TextBlock Text="Ngày bắt đầu *" FontSize="11.5" FontWeight="SemiBold" Margin="0,0,0,4" />
                                 <DatePicker SelectedDate="{Binding StartDate, Mode=TwoWay}"
-                                            Style="{StaticResource CompactDatePicker}"
-                                            AutomationProperties.Name="Ngày bắt đầu bảo trì" />
+                                            Style="{StaticResource CompactDatePicker}" />
                             </StackPanel>
 
                             <StackPanel Grid.Column="1">
@@ -377,8 +371,7 @@
                                 <ComboBox ItemsSource="{Binding TimeOptions}"
                                           SelectedItem="{Binding SelectedStartTime, Mode=TwoWay}"
                                           Height="34"
-                                          Padding="10,6"
-                                          AutomationProperties.Name="Giờ bắt đầu bảo trì" />
+                                          Padding="10,6" />
                             </StackPanel>
                         </Grid>
 
@@ -392,8 +385,7 @@
                             <StackPanel Margin="0,0,8,0">
                                 <TextBlock Text="Ngày kết thúc dự kiến *" FontSize="11.5" FontWeight="SemiBold" Margin="0,0,0,4" />
                                 <DatePicker SelectedDate="{Binding EndDate, Mode=TwoWay}"
-                                            Style="{StaticResource CompactDatePicker}"
-                                            AutomationProperties.Name="Ngày kết thúc bảo trì" />
+                                            Style="{StaticResource CompactDatePicker}" />
                             </StackPanel>
 
                             <StackPanel Grid.Column="1">
@@ -401,8 +393,7 @@
                                 <ComboBox ItemsSource="{Binding TimeOptions}"
                                           SelectedItem="{Binding SelectedEndTime, Mode=TwoWay}"
                                           Height="34"
-                                          Padding="10,6"
-                                          AutomationProperties.Name="Giờ kết thúc bảo trì" />
+                                          Padding="10,6" />
                             </StackPanel>
                         </Grid>
 
@@ -411,8 +402,7 @@
                                  IsEnabled="{Binding IsFormEditable}"
                                  Height="34"
                                  Padding="10,6"
-                                 Margin="0,0,0,7"
-                                 AutomationProperties.Name="Chi phí bảo trì" />
+                                 Margin="0,0,0,7" />
 
                         <TextBlock Text="Mô tả hạng mục công việc *" FontSize="11.5" FontWeight="SemiBold" Margin="0,0,0,4" />
                         <TextBox Text="{Binding DescriptionInput, UpdateSourceTrigger=PropertyChanged}"
@@ -422,8 +412,7 @@
                                  TextWrapping="Wrap"
                                  VerticalContentAlignment="Top"
                                  Padding="10,5"
-                                 Margin="0,0,0,7"
-                                 AutomationProperties.Name="Mô tả hạng mục bảo trì" />
+                                 Margin="0,0,0,7" />
 
                         <!-- Validation Error -->
                         <Border Background="#FEF2F2"

@@ -1,13 +1,17 @@
-namespace CRMS.Services.Vehicles;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
-public interface IVehicleService
+namespace CRMS.Services.Vehicles
 {
-    Task<List<VehicleListItem>> GetVehiclesAsync(VehicleFilter? filter = null);
-    Task<VehicleDetailsDto?> GetVehicleDetailsAsync(long vehicleId);
-    Task<long> SaveVehicleAsync(VehicleUpsertRequest request);
-    Task SetVehicleStatusAsync(long vehicleId, string operationalStatus);
+    public interface IVehicleService
+    {
+        Task<List<VehicleListItem>> GetVehiclesAsync(VehicleFilter? filter = null);
+        Task<VehicleDetailsDto?> GetVehicleDetailsAsync(long vehicleId);
+        Task<long> SaveVehicleAsync(VehicleUpsertRequest request);
+        Task SetVehicleStatusAsync(long vehicleId, string operationalStatus);
 
-    Task<List<CategoryListItem>> GetCategoriesAsync(bool includeInactive = true);
-    Task<int> SaveCategoryAsync(CategoryUpsertRequest request);
-    Task SetCategoryActiveAsync(int categoryId, bool isActive);
+        Task<List<CategoryListItem>> GetCategoriesAsync(bool includeInactive = true);
+        Task<int> SaveCategoryAsync(CategoryUpsertRequest request);
+        Task SetCategoryActiveAsync(int categoryId, bool isActive);
+    }
 }

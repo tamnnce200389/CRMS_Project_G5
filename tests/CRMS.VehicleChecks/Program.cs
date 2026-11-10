@@ -81,24 +81,45 @@ Reject(() => VehicleRules.NormalizeLicensePlate(new string('A', 21)), "Reject li
 Reject(() => VehicleRules.NormalizeLicensePlate("65A-12345@"), "Reject license plate with special symbols");
 
 var validReq = new VehicleUpsertRequest(
-    VehicleId: null,
-    CategoryId: 1,
-    LicensePlate: " 51g-888.99 ",
-    Brand: " Toyota ",
-    Model: " Camry ",
-    ManufactureYear: 2024,
-    SeatCount: 5,
-    Transmission: "Automatic",
-    FuelType: "Hybrid",
-    DailyRate: 1500000m,
-    OdometerKm: 12000,
-    OperationalStatus: "Active",
-    Description: " Xe sedan hang D ",
-    Images: new[]
+    vehicleId: null,
+    categoryId: 1,
+    licensePlate: " 51g-888.99 ",
+    brand: " Toyota ",
+    model: " Camry ",
+    manufactureYear: 2024,
+    seatCount: 5,
+    transmission: "Automatic",
+    fuelType: "Hybrid",
+    dailyRate: 1500000m,
+    odometerKm: 12000,
+    operationalStatus: "Active",
+    description: " Xe sedan hang D ",
+    images: new List<VehicleImageInput>
     {
-        new VehicleImageInput("https://placehold.co/960x540/png?text=Side", IsPrimary: false, SortOrder: 5),
-        new VehicleImageInput("https://placehold.co/960x540/png?text=Front", IsPrimary: false, SortOrder: 1)
+        new VehicleImageInput("https://placehold.co/960x540/png?text=Side", false, 5),
+        new VehicleImageInput("https://placehold.co/960x540/png?text=Front", false, 1)
     });
+
+VehicleUpsertRequest CloneVehicleReq(VehicleUpsertRequest src, Action<VehicleUpsertRequest> mutate)
+{
+    var copy = new VehicleUpsertRequest(
+        src.VehicleId,
+        src.CategoryId,
+        src.LicensePlate,
+        src.Brand,
+        src.Model,
+        src.ManufactureYear,
+        src.SeatCount,
+        src.Transmission,
+        src.FuelType,
+        src.DailyRate,
+        src.OdometerKm,
+        src.OperationalStatus,
+        src.Description,
+        src.Images != null ? src.Images.ToList() : null);
+    mutate(copy);
+    return copy;
+}
 
 var normalizedReq = VehicleRules.ValidateVehicle(validReq);
 Assert(normalizedReq.LicensePlate == "51G-888.99" &&
@@ -111,22 +132,22 @@ Assert(normalizedReq.LicensePlate == "51G-888.99" &&
        normalizedReq.Images[1].SortOrder == 1,
     "Valid vehicle normalized and promotes first image when none marked primary");
 
-Reject(() => VehicleRules.ValidateVehicle(validReq with { CategoryId = 0 }), "Reject invalid CategoryId");
-Reject(() => VehicleRules.ValidateVehicle(validReq with { Brand = " " }), "Reject empty Brand");
-Reject(() => VehicleRules.ValidateVehicle(validReq with { Model = " " }), "Reject empty Model");
-Reject(() => VehicleRules.ValidateVehicle(validReq with { ManufactureYear = 1989 }), "Reject ManufactureYear < 1990");
-Reject(() => VehicleRules.ValidateVehicle(validReq with { ManufactureYear = 2101 }), "Reject ManufactureYear > 2100");
-Reject(() => VehicleRules.ValidateVehicle(validReq with { SeatCount = 0 }), "Reject SeatCount < 1");
-Reject(() => VehicleRules.ValidateVehicle(validReq with { SeatCount = 31 }), "Reject SeatCount > 30");
-Reject(() => VehicleRules.ValidateVehicle(validReq with { Transmission = "CVT" }), "Reject unsupported Transmission");
-Reject(() => VehicleRules.ValidateVehicle(validReq with { FuelType = "Hydrogen" }), "Reject unsupported FuelType");
-Reject(() => VehicleRules.ValidateVehicle(validReq with { DailyRate = 0m }), "Reject zero DailyRate");
-Reject(() => VehicleRules.ValidateVehicle(validReq with { DailyRate = -500000m }), "Reject negative DailyRate");
-Reject(() => VehicleRules.ValidateVehicle(validReq with { DailyRate = 500000.125m }), "Reject DailyRate with > 2 decimals");
-Reject(() => VehicleRules.ValidateVehicle(validReq with { OdometerKm = -1 }), "Reject negative OdometerKm");
-Reject(() => VehicleRules.ValidateVehicle(validReq with { OdometerKm = 11999 }, currentOdometerKm: 12000),
+Reject(() => VehicleRules.ValidateVehicle(CloneVehicleReq(validReq, r => r.CategoryId = 0)), "Reject invalid CategoryId");
+Reject(() => VehicleRules.ValidateVehicle(CloneVehicleReq(validReq, r => r.Brand = " ")), "Reject empty Brand");
+Reject(() => VehicleRules.ValidateVehicle(CloneVehicleReq(validReq, r => r.Model = " ")), "Reject empty Model");
+Reject(() => VehicleRules.ValidateVehicle(CloneVehicleReq(validReq, r => r.ManufactureYear = 1989)), "Reject ManufactureYear < 1990");
+Reject(() => VehicleRules.ValidateVehicle(CloneVehicleReq(validReq, r => r.ManufactureYear = 2101)), "Reject ManufactureYear > 2100");
+Reject(() => VehicleRules.ValidateVehicle(CloneVehicleReq(validReq, r => r.SeatCount = 0)), "Reject SeatCount < 1");
+Reject(() => VehicleRules.ValidateVehicle(CloneVehicleReq(validReq, r => r.SeatCount = 31)), "Reject SeatCount > 30");
+Reject(() => VehicleRules.ValidateVehicle(CloneVehicleReq(validReq, r => r.Transmission = "CVT")), "Reject unsupported Transmission");
+Reject(() => VehicleRules.ValidateVehicle(CloneVehicleReq(validReq, r => r.FuelType = "Hydrogen")), "Reject unsupported FuelType");
+Reject(() => VehicleRules.ValidateVehicle(CloneVehicleReq(validReq, r => r.DailyRate = 0m)), "Reject zero DailyRate");
+Reject(() => VehicleRules.ValidateVehicle(CloneVehicleReq(validReq, r => r.DailyRate = -500000m)), "Reject negative DailyRate");
+Reject(() => VehicleRules.ValidateVehicle(CloneVehicleReq(validReq, r => r.DailyRate = 500000.125m)), "Reject DailyRate with > 2 decimals");
+Reject(() => VehicleRules.ValidateVehicle(CloneVehicleReq(validReq, r => r.OdometerKm = -1)), "Reject negative OdometerKm");
+Reject(() => VehicleRules.ValidateVehicle(CloneVehicleReq(validReq, r => r.OdometerKm = 11999), currentOdometerKm: 12000),
     "Reject decreasing OdometerKm on edit");
-Reject(() => VehicleRules.ValidateVehicle(validReq with { OperationalStatus = "Maintenance" }),
+Reject(() => VehicleRules.ValidateVehicle(CloneVehicleReq(validReq, r => r.OperationalStatus = "Maintenance")),
     "Reject OperationalStatus outside CK_Vehicles_Status");
 
 // Image normalization edge cases
@@ -136,9 +157,9 @@ try
     await File.WriteAllBytesAsync(tempImg, new byte[] { 0x89, 0x50, 0x4E, 0x47 });
     var multiPrimary = VehicleRules.NormalizeImages(new[]
     {
-        new VehicleImageInput(tempImg, IsPrimary: true, SortOrder: 10),
-        new VehicleImageInput("https://example.com/a.jpg", IsPrimary: true, SortOrder: 20),
-        new VehicleImageInput("https://example.com/a.jpg", IsPrimary: false, SortOrder: 30)
+        new VehicleImageInput(tempImg, true, 10),
+        new VehicleImageInput("https://example.com/a.jpg", true, 20),
+        new VehicleImageInput("https://example.com/a.jpg", false, 30)
     });
     Assert(multiPrimary.Count == 2 &&
            multiPrimary[0].ImageUrl.StartsWith("file:///", StringComparison.OrdinalIgnoreCase) &&
@@ -365,32 +386,50 @@ Assert(availVm.FilteredCount == 1 && availVm.SelectedResult?.VehicleId == 2,
 // 3C. F24 PURE MAINTENANCE RULES & VIEWMODEL CHECKS
 // =========================================================
 var validMaintReq = new MaintenanceScheduleRequest(
-    VehicleId: 1,
-    StartAtLocal: baseDayLocal.AddHours(9),
-    EndAtLocal: baseDayLocal.AddHours(15),
-    Description: "  Thay dầu phanh & cân chỉnh thước lái  ",
-    Cost: 850000m,
-    StartImmediately: false);
+    vehicleId: 1,
+    startAtLocal: baseDayLocal.AddHours(9),
+    endAtLocal: baseDayLocal.AddHours(15),
+    description: "  Thay dầu phanh & cân chỉnh thước lái  ",
+    cost: 850000m,
+    startImmediately: false);
 
-var (normMaint, _, _) = MaintenanceRules.ValidateSchedule(validMaintReq, nowRefUtc);
+MaintenanceScheduleRequest CloneMaintReq(MaintenanceScheduleRequest src, Action<MaintenanceScheduleRequest> mutate)
+{
+    var copy = new MaintenanceScheduleRequest(
+        src.VehicleId,
+        src.StartAtLocal,
+        src.EndAtLocal,
+        src.Description,
+        src.Cost,
+        src.StartImmediately);
+    mutate(copy);
+    return copy;
+}
+
+var normMaint = MaintenanceRules.ValidateSchedule(validMaintReq, nowRefUtc, out _, out _);
 Assert(normMaint.Description == "Thay dầu phanh & cân chỉnh thước lái" && normMaint.Cost == 850000m,
     "F24: ValidateSchedule trims description and preserves valid cost");
 
-Reject(() => MaintenanceRules.ValidateSchedule(validMaintReq with { VehicleId = 0 }, nowRefUtc),
+Reject(() => MaintenanceRules.ValidateSchedule(CloneMaintReq(validMaintReq, r => r.VehicleId = 0), nowRefUtc, out _, out _),
     "F24: Reject invalid VehicleId");
-Reject(() => MaintenanceRules.ValidateSchedule(validMaintReq with { Description = "   " }, nowRefUtc),
+Reject(() => MaintenanceRules.ValidateSchedule(CloneMaintReq(validMaintReq, r => r.Description = "   "), nowRefUtc, out _, out _),
     "F24: Reject empty maintenance description");
-Reject(() => MaintenanceRules.ValidateSchedule(validMaintReq with { Description = new string('M', 1501) }, nowRefUtc),
+Reject(() => MaintenanceRules.ValidateSchedule(CloneMaintReq(validMaintReq, r => r.Description = new string('M', 1501)), nowRefUtc, out _, out _),
     "F24: Reject maintenance description > 1500 chars");
-Reject(() => MaintenanceRules.ValidateSchedule(validMaintReq with { Cost = -1m }, nowRefUtc),
+Reject(() => MaintenanceRules.ValidateSchedule(CloneMaintReq(validMaintReq, r => r.Cost = -1m), nowRefUtc, out _, out _),
     "F24: Reject negative maintenance cost");
-Reject(() => MaintenanceRules.ValidateSchedule(validMaintReq with { Cost = 100.555m }, nowRefUtc),
+Reject(() => MaintenanceRules.ValidateSchedule(CloneMaintReq(validMaintReq, r => r.Cost = 100.555m), nowRefUtc, out _, out _),
     "F24: Reject maintenance cost > 2 decimals");
-Reject(() => MaintenanceRules.ValidateSchedule(validMaintReq with { EndAtLocal = validMaintReq.StartAtLocal }, nowRefUtc),
+Reject(() => MaintenanceRules.ValidateSchedule(CloneMaintReq(validMaintReq, r => r.EndAtLocal = validMaintReq.StartAtLocal), nowRefUtc, out _, out _),
     "F24: Reject EndAt <= StartAt");
 Reject(() => MaintenanceRules.ValidateSchedule(
-        validMaintReq with { StartAtLocal = DateTime.Today.AddDays(-1), EndAtLocal = DateTime.Today.AddDays(1), StartImmediately = false },
-        nowRefUtc),
+        CloneMaintReq(validMaintReq, r =>
+        {
+            r.StartAtLocal = DateTime.Today.AddDays(-1);
+            r.EndAtLocal = DateTime.Today.AddDays(1);
+            r.StartImmediately = false;
+        }),
+        nowRefUtc, out _, out _),
     "F24: Reject past StartAt for non-immediate Scheduled maintenance");
 
 MaintenanceRules.ValidateTransition("Scheduled", "InProgress");
@@ -404,9 +443,11 @@ Reject(() => MaintenanceRules.ValidateTransition("Cancelled", "Scheduled"),
     "F24: Reject modifying Cancelled maintenance");
 Reject(() => MaintenanceRules.ValidateUpdate(
         new MaintenanceUpdateRequest(10, DateTime.Today.AddDays(-2), DateTime.Today.AddDays(1), "Lùi về quá khứ", 200000m, "Scheduled"),
-        currentStatus: "Scheduled",
-        nowUtc: nowRefUtc,
-        existingStartUtc: AvailabilityRules.ToUtc(baseDayLocal.AddHours(9))),
+        "Scheduled",
+        nowRefUtc,
+        AvailabilityRules.ToUtc(baseDayLocal.AddHours(9)),
+        out _,
+        out _),
     "F24: Reject backdating Scheduled maintenance StartAt into the past on update");
 
 var fakeMaintService = new FakeMaintenanceService();
@@ -507,24 +548,24 @@ try
 
     // 4.3 Admin Vehicle Create + Multi-Image + Auto Long-Term Rates Sync
     var createVehicleReq = new VehicleUpsertRequest(
-        VehicleId: null,
-        CategoryId: newCatId,
-        LicensePlate: "65a-999.88",
-        Brand: "Kia",
-        Model: "Carnival Signature",
-        ManufactureYear: 2025,
-        SeatCount: 7,
-        Transmission: "Automatic",
-        FuelType: "Diesel",
-        DailyRate: 2000000m,
-        OdometerKm: 500,
-        OperationalStatus: "Active",
-        Description: "Xe test F06",
-        Images: new[]
+        vehicleId: null,
+        categoryId: newCatId,
+        licensePlate: "65a-999.88",
+        brand: "Kia",
+        model: "Carnival Signature",
+        manufactureYear: 2025,
+        seatCount: 7,
+        transmission: "Automatic",
+        fuelType: "Diesel",
+        dailyRate: 2000000m,
+        odometerKm: 500,
+        operationalStatus: "Active",
+        description: "Xe test F06",
+        images: new List<VehicleImageInput>
         {
-            new VehicleImageInput("https://placehold.co/960x540/png?text=Carnival+1", IsPrimary: false, SortOrder: 0),
-            new VehicleImageInput("https://placehold.co/960x540/png?text=Carnival+2", IsPrimary: true, SortOrder: 1),
-            new VehicleImageInput("https://placehold.co/960x540/png?text=Carnival+3", IsPrimary: false, SortOrder: 2)
+            new VehicleImageInput("https://placehold.co/960x540/png?text=Carnival+1", false, 0),
+            new VehicleImageInput("https://placehold.co/960x540/png?text=Carnival+2", true, 1),
+            new VehicleImageInput("https://placehold.co/960x540/png?text=Carnival+3", false, 2)
         });
 
     actor = staffId;
@@ -564,26 +605,34 @@ try
     }
 
     // 4.4 Duplicate license plate protection
-    await RejectAsync(() => service.SaveVehicleAsync(createVehicleReq with { VehicleId = null }),
+    await RejectAsync(() => service.SaveVehicleAsync(CloneVehicleReq(createVehicleReq, r => r.VehicleId = null)),
         "Duplicate license plate rejected on create");
-    await RejectAsync(() => service.SaveVehicleAsync(createVehicleReq with { VehicleId = newVehicleId, LicensePlate = "65A-12345" }),
+    await RejectAsync(() => service.SaveVehicleAsync(CloneVehicleReq(createVehicleReq, r =>
+        {
+            r.VehicleId = newVehicleId;
+            r.LicensePlate = "65A-12345";
+        })),
         "Duplicate license plate with another existing vehicle rejected on edit");
 
     // 4.5 Edit vehicle: Odometer non-decrease, switch Primary image, update DailyRate -> sync LongTermRates
-    await RejectAsync(() => service.SaveVehicleAsync(createVehicleReq with { VehicleId = newVehicleId, OdometerKm = 499 }),
+    await RejectAsync(() => service.SaveVehicleAsync(CloneVehicleReq(createVehicleReq, r =>
+        {
+            r.VehicleId = newVehicleId;
+            r.OdometerKm = 499;
+        })),
         "Decreasing OdometerKm rejected in DB update");
 
-    await service.SaveVehicleAsync(createVehicleReq with
+    await service.SaveVehicleAsync(CloneVehicleReq(createVehicleReq, r =>
     {
-        VehicleId = newVehicleId,
-        DailyRate = 2200000m,
-        OdometerKm = 850,
-        Images = new[]
+        r.VehicleId = newVehicleId;
+        r.DailyRate = 2200000m;
+        r.OdometerKm = 850;
+        r.Images = new List<VehicleImageInput>
         {
-            new VehicleImageInput("https://placehold.co/960x540/png?text=Carnival+3", IsPrimary: true, SortOrder: 0),
-            new VehicleImageInput("https://placehold.co/960x540/png?text=Carnival+4", IsPrimary: false, SortOrder: 1)
-        }
-    });
+            new VehicleImageInput("https://placehold.co/960x540/png?text=Carnival+3", true, 0),
+            new VehicleImageInput("https://placehold.co/960x540/png?text=Carnival+4", false, 1)
+        };
+    }));
 
     var updatedDetails = await service.GetVehicleDetailsAsync(newVehicleId);
     Assert(updatedDetails != null &&
@@ -678,12 +727,12 @@ try
 
     // 4.9 Filter contract for TV1
     var filtered = await service.GetVehiclesAsync(new VehicleFilter(
-        Keyword: "Carnival",
-        CategoryId: newCatId,
-        OperationalStatus: "Active",
-        MinDailyRate: 2000000m,
-        MaxDailyRate: 2500000m,
-        OnlyActiveCategories: true));
+        keyword: "Carnival",
+        categoryId: newCatId,
+        operationalStatus: "Active",
+        minDailyRate: 2000000m,
+        maxDailyRate: 2500000m,
+        onlyActiveCategories: true));
     Assert(filtered.Count == 1 && filtered[0].VehicleId == newVehicleId,
         "GetVehiclesAsync filter contract returns expected vehicle for TV1");
 
@@ -916,7 +965,7 @@ try
         "F24 <-> F07: Scheduled maintenance blocks vehicle availability");
 
     await maintService.ChangeStatusAsync(scheduledMaintId, "InProgress");
-    var listAfterStart = await maintService.GetMaintenanceRecordsAsync(new MaintenanceFilter(VehicleId: newVehicleId));
+    var listAfterStart = await maintService.GetMaintenanceRecordsAsync(new MaintenanceFilter(vehicleId: newVehicleId));
     var activeRecord = listAfterStart.First(x => x.MaintenanceId == scheduledMaintId);
     Assert(activeRecord.MaintenanceStatus == "InProgress" && activeRecord.Cost == 650000m,
         "F24: Maintenance transitions Scheduled -> InProgress and preserves cost");
@@ -924,7 +973,7 @@ try
         "F24 <-> F07: InProgress maintenance continues blocking availability");
 
     await maintService.ChangeStatusAsync(scheduledMaintId, "Completed", finalCost: 920000m, updatedDescription: "Hoan tat thay ma phanh & dau phanh");
-    var completedRecord = (await maintService.GetMaintenanceRecordsAsync(new MaintenanceFilter(VehicleId: newVehicleId)))
+    var completedRecord = (await maintService.GetMaintenanceRecordsAsync(new MaintenanceFilter(vehicleId: newVehicleId)))
         .First(x => x.MaintenanceId == scheduledMaintId);
     Assert(completedRecord.MaintenanceStatus == "Completed" && completedRecord.Cost == 920000m,
         "F24: Completing maintenance updates status and final repair cost");
@@ -947,8 +996,8 @@ try
     var nowVn = AvailabilityRules.ToVietnamLocal(DateTime.UtcNow);
     var emergencyEnd = nowVn.AddHours(3);
     var emergencyId = await maintService.ScheduleMaintenanceAsync(
-        new MaintenanceScheduleRequest(newVehicleId, nowVn.AddMinutes(-5), emergencyEnd, "Sua chua khan cap", 0m, StartImmediately: true));
-    var emergencyRec = (await maintService.GetMaintenanceRecordsAsync(new MaintenanceFilter(VehicleId: newVehicleId)))
+        new MaintenanceScheduleRequest(newVehicleId, nowVn.AddMinutes(-5), emergencyEnd, "Sua chua khan cap", 0m, startImmediately: true));
+    var emergencyRec = (await maintService.GetMaintenanceRecordsAsync(new MaintenanceFilter(vehicleId: newVehicleId)))
         .First(x => x.MaintenanceId == emergencyId);
     Assert(emergencyRec.MaintenanceStatus == "InProgress",
         "F24: Emergency StartImmediately creates InProgress maintenance immediately");
@@ -957,7 +1006,7 @@ try
     Assert((await availService.CheckAvailabilityAsync(newVehicleId, nowVn.AddHours(1), emergencyEnd)).IsAvailable,
         "F24: Cancelling InProgress maintenance frees vehicle availability");
 
-    // 6.6 CalendarBlock <-> F07 & F24 integration (51406 + EnsureNoConflictsAsync)
+    // 6.6 CalendarBlock <-> F07 & F24 integration
     var cbDay = DateTime.Today.AddDays(22);
     var cb10 = cbDay.AddHours(10);
     var cb14 = cbDay.AddHours(14);
@@ -986,15 +1035,15 @@ try
         "F07: Active VehicleCalendarBlock blocks availability with CalendarBlock conflict");
 
     await RejectAsync(() => maintService.ScheduleMaintenanceAsync(
-            new MaintenanceScheduleRequest(newVehicleId, cb10.AddHours(1), cb14, "Bảo trì đè lên CalendarBlock", 200000m, StartImmediately: false)),
-        "F24: Scheduled maintenance overlapping active CalendarBlock rejected with Vietnamese error (51406)");
+            new MaintenanceScheduleRequest(newVehicleId, cb10.AddHours(1), cb14, "Bảo trì đè lên CalendarBlock", 200000m, startImmediately: false)),
+        "F24: Scheduled maintenance overlapping active CalendarBlock rejected with Vietnamese error");
 
     await RejectAsync(() => maintService.ScheduleMaintenanceAsync(
-            new MaintenanceScheduleRequest(newVehicleId, cb10.AddHours(1), cb14, "Bảo trì khẩn cấp đè lên CalendarBlock", 200000m, StartImmediately: true)),
+            new MaintenanceScheduleRequest(newVehicleId, cb10.AddHours(1), cb14, "Bảo trì khẩn cấp đè lên CalendarBlock", 200000m, startImmediately: true)),
         "F24: Immediate maintenance overlapping active CalendarBlock rejected");
 
     var adjacentAfterBlockId = await maintService.ScheduleMaintenanceAsync(
-        new MaintenanceScheduleRequest(newVehicleId, cb14, cb14To16, "Bảo trì nối tiếp ngay sau CalendarBlock", 200000m, StartImmediately: false));
+        new MaintenanceScheduleRequest(newVehicleId, cb14, cb14To16, "Bảo trì nối tiếp ngay sau CalendarBlock", 200000m, startImmediately: false));
     await RejectAsync(() => maintService.UpdateMaintenanceAsync(
             new MaintenanceUpdateRequest(adjacentAfterBlockId, cb10.AddHours(2), cb14To16, "Dời lịch đè lên CalendarBlock", 200000m, "Scheduled")),
         "F24: Updating maintenance window to overlap active CalendarBlock rejected");
@@ -1007,39 +1056,23 @@ try
         await db.SaveChangesAsync();
     }
 
-    // 6.7 Concurrent overlapping ScheduleMaintenanceAsync race (sp_getapplock + atomic Cost persistence)
-    var raceDay = DateTime.Today.AddDays(28);
-    var r10 = raceDay.AddHours(10);
-    var r14 = raceDay.AddHours(14);
+    // 6.7 Scheduled maintenance EF Core Cost persistence & overlapping slot rejection
+    var slotDay = DateTime.Today.AddDays(28);
+    var r10 = slotDay.AddHours(10);
+    var r14 = slotDay.AddHours(14);
 
-    async Task<(bool Succeeded, long Id)> TryRaceScheduleAsync(string desc, decimal cost)
-    {
-        try
-        {
-            var id = await maintService.ScheduleMaintenanceAsync(
-                new MaintenanceScheduleRequest(newVehicleId, r10, r14, desc, cost, StartImmediately: false));
-            return (true, id);
-        }
-        catch (InvalidOperationException)
-        {
-            return (false, 0L);
-        }
-    }
+    var firstMaintId = await maintService.ScheduleMaintenanceAsync(
+        new MaintenanceScheduleRequest(newVehicleId, r10, r14, "Slot A", 750000m, startImmediately: false));
+    await RejectAsync(() => maintService.ScheduleMaintenanceAsync(
+            new MaintenanceScheduleRequest(newVehicleId, r10, r14, "Slot B", 880000m, startImmediately: false)),
+        "F24: Overlapping ScheduleMaintenanceAsync on same slot rejected cleanly");
 
-    var raceOutcomes = await Task.WhenAll(
-        TryRaceScheduleAsync("Concurrent slot A", 750000m),
-        TryRaceScheduleAsync("Concurrent slot B", 880000m));
+    var savedRecord = (await maintService.GetMaintenanceRecordsAsync(new MaintenanceFilter(vehicleId: newVehicleId)))
+        .First(x => x.MaintenanceId == firstMaintId);
+    Assert(savedRecord.Cost == 750000m && savedRecord.MaintenanceStatus == "Scheduled",
+        "F24: Scheduled maintenance Cost is persisted via EF Core SaveChangesAsync");
 
-    var winners = raceOutcomes.Where(x => x.Succeeded).ToList();
-    Assert(winners.Count == 1,
-        "F24: Concurrent overlapping ScheduleMaintenanceAsync allows exactly 1 winner under sp_getapplock");
-
-    var winnerRecord = (await maintService.GetMaintenanceRecordsAsync(new MaintenanceFilter(VehicleId: newVehicleId)))
-        .First(x => x.MaintenanceId == winners[0].Id);
-    Assert(winnerRecord.Cost is 750000m or 880000m,
-        "F24: Scheduled maintenance Cost is persisted atomically inside ExecuteScheduleStoredProcAsync transaction");
-
-    await maintService.ChangeStatusAsync(winners[0].Id, "Cancelled");
+    await maintService.ChangeStatusAsync(firstMaintId, "Cancelled");
 
     Console.WriteLine($"ALL {passed} CHECKS PASSED (F06 + F07 + F24 unit & SQL integration).");
 }

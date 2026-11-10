@@ -72,8 +72,7 @@
                     <DataGrid Grid.Row="1"
                               ItemsSource="{Binding Categories}"
                               SelectedItem="{Binding SelectedCategory, Mode=TwoWay}"
-                              RowHeight="48"
-                              AutomationProperties.Name="Danh sách loại xe">
+                              RowHeight="48">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="MÃ" Binding="{Binding CategoryId}" Width="56" />
                             <DataGridTextColumn Header="TÊN LOẠI XE" Binding="{Binding CategoryName}" Width="*" MinWidth="120" />
@@ -125,8 +124,7 @@
                         <TextBox Text="{Binding CategoryName, UpdateSourceTrigger=PropertyChanged}"
                                  MaxLength="80"
                                  Height="38"
-                                 Margin="0,0,0,14"
-                                 AutomationProperties.Name="Tên loại xe" />
+                                 Margin="0,0,0,14" />
 
                         <TextBlock Text="Mô tả" FontWeight="SemiBold" FontSize="12" Margin="0,0,0,6" />
                         <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}"
@@ -136,8 +134,7 @@
                                  VerticalContentAlignment="Top"
                                  TextWrapping="Wrap"
                                  AcceptsReturn="True"
-                                 Margin="0,0,0,14"
-                                 AutomationProperties.Name="Mô tả loại xe" />
+                                 Margin="0,0,0,14" />
 
                         <CheckBox Content="Loại xe đang hoạt động"
                                   IsChecked="{Binding IsActive, Mode=TwoWay}"

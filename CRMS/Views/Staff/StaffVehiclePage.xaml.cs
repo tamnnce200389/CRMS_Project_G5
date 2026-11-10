@@ -1,7 +1,6 @@
-﻿
-using CRMS.ViewModels;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
+using CRMS.ViewModels;
 
 namespace CRMS.Views.Staff
 {
@@ -12,20 +11,20 @@ namespace CRMS.Views.Staff
         public StaffVehiclePage()
         {
             InitializeComponent();
-
             Loaded += StaffVehiclePage_Loaded;
         }
 
-        private async void StaffVehiclePage_Loaded(
-            object sender,
-            RoutedEventArgs e)
+        private async void StaffVehiclePage_Loaded(object sender, RoutedEventArgs e)
         {
             if (_loaded)
+            {
                 return;
+            }
 
             _loaded = true;
 
-            if (DataContext is VehicleViewModel vm)
+            VehicleViewModel? vm = DataContext as VehicleViewModel;
+            if (vm != null)
             {
                 await vm.LoadVehiclesAsync();
             }

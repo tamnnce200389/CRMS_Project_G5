@@ -253,31 +253,27 @@
                     <StackPanel Margin="0,0,10,0">
                         <TextBlock Text="Ngày nhận xe" FontSize="11.5" FontWeight="SemiBold" Margin="0,0,0,5" />
                         <DatePicker SelectedDate="{Binding StartDate, Mode=TwoWay}"
-                                    Style="{StaticResource CompactDatePicker}"
-                                    AutomationProperties.Name="Ngày nhận xe" />
+                                    Style="{StaticResource CompactDatePicker}" />
                     </StackPanel>
 
                     <StackPanel Grid.Column="1" Margin="0,0,14,0">
                         <TextBlock Text="Giờ nhận" FontSize="11.5" FontWeight="SemiBold" Margin="0,0,0,5" />
                         <ComboBox ItemsSource="{Binding TimeOptions}"
                                   SelectedItem="{Binding SelectedStartTime, Mode=TwoWay}"
-                                  Height="38"
-                                  AutomationProperties.Name="Giờ nhận xe" />
+                                  Height="38" />
                     </StackPanel>
 
                     <StackPanel Grid.Column="2" Margin="0,0,10,0">
                         <TextBlock Text="Ngày trả xe" FontSize="11.5" FontWeight="SemiBold" Margin="0,0,0,5" />
                         <DatePicker SelectedDate="{Binding EndDate, Mode=TwoWay}"
-                                    Style="{StaticResource CompactDatePicker}"
-                                    AutomationProperties.Name="Ngày trả xe" />
+                                    Style="{StaticResource CompactDatePicker}" />
                     </StackPanel>
 
                     <StackPanel Grid.Column="3" Margin="0,0,14,0">
                         <TextBlock Text="Giờ trả" FontSize="11.5" FontWeight="SemiBold" Margin="0,0,0,5" />
                         <ComboBox ItemsSource="{Binding TimeOptions}"
                                   SelectedItem="{Binding SelectedEndTime, Mode=TwoWay}"
-                                  Height="38"
-                                  AutomationProperties.Name="Giờ trả xe" />
+                                  Height="38" />
                     </StackPanel>
 
                     <StackPanel Grid.Column="4">
@@ -285,8 +281,7 @@
                         <ComboBox ItemsSource="{Binding VehicleOptions}"
                                   SelectedItem="{Binding SelectedVehicleOption, Mode=TwoWay}"
                                   DisplayMemberPath="Label"
-                                  Height="38"
-                                  AutomationProperties.Name="Chọn phương tiện" />
+                                  Height="38" />
                     </StackPanel>
                 </Grid>
 
@@ -303,16 +298,14 @@
                         <ComboBox ItemsSource="{Binding CategoryOptions}"
                                   SelectedItem="{Binding SelectedCategoryOption, Mode=TwoWay}"
                                   DisplayMemberPath="Label"
-                                  Height="38"
-                                  AutomationProperties.Name="Lọc loại xe" />
+                                  Height="38" />
                     </StackPanel>
 
                     <StackPanel Grid.Column="1" Margin="0,0,14,0">
                         <TextBlock Text="Lọc trạng thái kết quả" FontSize="11.5" FontWeight="SemiBold" Margin="0,0,0,5" />
                         <ComboBox ItemsSource="{Binding AvailabilityFilterOptions}"
                                   SelectedItem="{Binding SelectedAvailabilityFilter, Mode=TwoWay}"
-                                  Height="38"
-                                  AutomationProperties.Name="Lọc trạng thái khả dụng" />
+                                  Height="38" />
                     </StackPanel>
 
                     <!-- Validation Error Banner (if any) -->
@@ -347,7 +340,6 @@
                                 Margin="0,0,10,0" />
 
                         <Button x:Name="CheckAvailabilityButton"
-                                AutomationProperties.AutomationId="CheckAvailabilityButton"
                                 Content="Kiểm tra lịch trống"
                                 Command="{Binding CheckAvailabilityCommand}"
                                 Height="38"
@@ -433,8 +425,7 @@
                     <DataGrid Grid.Row="1"
                               ItemsSource="{Binding ResultsView}"
                               SelectedItem="{Binding SelectedResult, Mode=TwoWay}"
-                              RowHeight="56"
-                              AutomationProperties.Name="Kết quả kiểm tra lịch trống">
+                              RowHeight="56">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="BIỂN SỐ" Binding="{Binding LicensePlate}" Width="126" />
 
