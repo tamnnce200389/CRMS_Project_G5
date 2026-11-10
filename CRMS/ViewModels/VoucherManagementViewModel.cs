@@ -7,7 +7,6 @@ using System.Windows.Input;
 using CRMS.Data;
 using CRMS.Helpers;
 using CRMS.Models;
-using CRMS.Repositories;
 using CRMS.Services;
 using CRMS.Views.Admin;
 
@@ -42,6 +41,9 @@ namespace CRMS.ViewModels
             get => _isBusy;
             set
             {
+                if (_isBusy == value)
+                    return;
+
                 _isBusy = value;
                 OnPropertyChanged();
                 CommandManager.InvalidateRequerySuggested();
@@ -55,6 +57,9 @@ namespace CRMS.ViewModels
             get => _statusMessage;
             set
             {
+                if (_statusMessage == value)
+                    return;
+
                 _statusMessage = value;
                 OnPropertyChanged();
             }
@@ -66,10 +71,10 @@ namespace CRMS.ViewModels
         public ICommand DisableCommand { get; }
         public ICommand EnableCommand { get; }
 
-        public VoucherManagementViewModel(CrmsContext db)
+        // Constructor moi: khong can Repository
+        public VoucherManagementViewModel()
         {
-            var repository = new VoucherRepository(db);
-            _service = new VoucherService(repository);
+            _service = new VoucherService();
 
             RefreshCommand = new RelayCommand(
                 async _ => await LoadAsync(),
@@ -90,15 +95,26 @@ namespace CRMS.ViewModels
                 async _ => await SetActiveAsync(false),
                 _ => !IsBusy &&
                      SelectedVoucher != null &&
-                     SelectedVoucher.IsActive);
+                     SelectedVoucher.IsActive &&
+                     CurrentUserService.Instance.IsAdmin);
 
             EnableCommand = new RelayCommand(
                 async _ => await SetActiveAsync(true),
                 _ => !IsBusy &&
                      SelectedVoucher != null &&
-                     !SelectedVoucher.IsActive);
+                     !SelectedVoucher.IsActive &&
+                     CurrentUserService.Instance.IsAdmin);
         }
 
+        // Giu constructor cu de tuong thich voi View
+        // DbContext khong duoc luu lau dai trong ViewModel
+        public VoucherManagementViewModel(CrmsContext db)
+            : this()
+        {
+            ArgumentNullException.ThrowIfNull(db);
+        }
+
+        // F20 - Tai danh sach Voucher
         public async Task LoadAsync()
         {
             if (IsBusy)
@@ -108,7 +124,8 @@ namespace CRMS.ViewModels
             {
                 Vouchers.Clear();
                 SelectedVoucher = null;
-                StatusMessage = "Chỉ Admin được quản lý Voucher.";
+                StatusMessage =
+                    "Chỉ Admin được quản lý Voucher.";
                 return;
             }
 
@@ -121,15 +138,20 @@ namespace CRMS.ViewModels
                 Vouchers.Clear();
 
                 foreach (var voucher in data)
+                {
                     Vouchers.Add(voucher);
+                }
 
                 SelectedVoucher = null;
-                StatusMessage = $"Đã tải {Vouchers.Count} Voucher.";
+
+                StatusMessage =
+                    $"Đã tải {Vouchers.Count} Voucher.";
             }
             catch (Exception ex)
             {
                 StatusMessage =
-                    "Lỗi tải Voucher: " + ex.GetBaseException().Message;
+                    "Lỗi tải Voucher: " +
+                    ex.GetBaseException().Message;
             }
             finally
             {
@@ -137,9 +159,11 @@ namespace CRMS.ViewModels
             }
         }
 
+        // F20 - Them Voucher
         private async Task AddVoucherAsync()
         {
-            if (IsBusy || !CurrentUserService.Instance.IsAdmin)
+            if (IsBusy ||
+                !CurrentUserService.Instance.IsAdmin)
                 return;
 
             var window = new VoucherEditorWindow
@@ -152,19 +176,23 @@ namespace CRMS.ViewModels
                 return;
 
             IsBusy = true;
+
             bool success = false;
             string message;
 
             try
             {
-                await _service.AddAsync(window.ResultVoucher);
+                await _service.AddAsync(
+                    window.ResultVoucher);
+
                 success = true;
                 message = "Thêm Voucher thành công.";
             }
             catch (Exception ex)
             {
-                message = "Lỗi thêm Voucher: " +
-                          ex.GetBaseException().Message;
+                message =
+                    "Lỗi thêm Voucher: " +
+                    ex.GetBaseException().Message;
             }
             finally
             {
@@ -172,7 +200,9 @@ namespace CRMS.ViewModels
             }
 
             if (success)
+            {
                 await LoadAsync();
+            }
 
             StatusMessage = message;
 
@@ -180,10 +210,12 @@ namespace CRMS.ViewModels
                 message,
                 "Quản lý Voucher",
                 MessageBoxButton.OK,
-                success ? MessageBoxImage.Information
-                        : MessageBoxImage.Warning);
+                success
+                    ? MessageBoxImage.Information
+                    : MessageBoxImage.Warning);
         }
 
+        // F20 - Sua Voucher
         private async Task EditVoucherAsync()
         {
             if (IsBusy ||
@@ -203,19 +235,24 @@ namespace CRMS.ViewModels
                 return;
 
             IsBusy = true;
+
             bool success = false;
             string message;
 
             try
             {
-                await _service.UpdateAsync(window.ResultVoucher);
+                await _service.UpdateAsync(
+                    window.ResultVoucher);
+
                 success = true;
-                message = "Cập nhật Voucher thành công.";
+                message =
+                    "Cập nhật Voucher thành công.";
             }
             catch (Exception ex)
             {
-                message = "Lỗi sửa Voucher: " +
-                          ex.GetBaseException().Message;
+                message =
+                    "Lỗi sửa Voucher: " +
+                    ex.GetBaseException().Message;
             }
             finally
             {
@@ -223,7 +260,9 @@ namespace CRMS.ViewModels
             }
 
             if (success)
+            {
                 await LoadAsync();
+            }
 
             StatusMessage = message;
 
@@ -231,10 +270,12 @@ namespace CRMS.ViewModels
                 message,
                 "Quản lý Voucher",
                 MessageBoxButton.OK,
-                success ? MessageBoxImage.Information
-                        : MessageBoxImage.Warning);
+                success
+                    ? MessageBoxImage.Information
+                    : MessageBoxImage.Warning);
         }
 
+        // F20 - Kich hoat / Vo hieu hoa
         private async Task SetActiveAsync(bool isActive)
         {
             if (IsBusy || SelectedVoucher == null)
@@ -250,6 +291,7 @@ namespace CRMS.ViewModels
             var voucher = SelectedVoucher;
 
             IsBusy = true;
+
             bool success = false;
             string message;
 
@@ -261,12 +303,16 @@ namespace CRMS.ViewModels
                     voucher.RowVersion);
 
                 success = true;
-                message = "Cập nhật trạng thái Voucher thành công.";
+
+                message = isActive
+                    ? "Kích hoạt Voucher thành công."
+                    : "Vô hiệu hóa Voucher thành công.";
             }
             catch (Exception ex)
             {
-                message = "Lỗi cập nhật: " +
-                          ex.GetBaseException().Message;
+                message =
+                    "Lỗi cập nhật: " +
+                    ex.GetBaseException().Message;
             }
             finally
             {
@@ -274,7 +320,9 @@ namespace CRMS.ViewModels
             }
 
             if (success)
+            {
                 await LoadAsync();
+            }
 
             StatusMessage = message;
         }

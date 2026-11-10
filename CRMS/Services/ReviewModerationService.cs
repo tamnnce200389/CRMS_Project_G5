@@ -4,10 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CRMS.Data;
-using CRMS.Services;
 using Microsoft.EntityFrameworkCore;
 
-namespace CRMS.Repositories
+namespace CRMS.Services
 {
     // Du lieu hien thi tren giao dien Admin
     public sealed class ReviewModerationItem
@@ -27,7 +26,8 @@ namespace CRMS.Repositories
         public DateTime CreatedAt { get; set; }
     }
 
-    public class ReviewModerationRepository
+    // F23 - Review Moderation
+    public class ReviewModerationService
     {
         // Kiem tra quyen Admin
         private static void RequireAdmin()
@@ -50,7 +50,7 @@ namespace CRMS.Repositories
         {
             RequireAdmin();
 
-            using var db = CrmsContextFactory.Create();
+            await using var db = CrmsContextFactory.Create();
 
             return await (
                 from review in db.Reviews.AsNoTracking()
@@ -95,7 +95,7 @@ namespace CRMS.Repositories
                     "Mã đánh giá không hợp lệ.");
             }
 
-            using var db = CrmsContextFactory.Create();
+            await using var db = CrmsContextFactory.Create();
 
             var review = await db.Reviews
                 .SingleOrDefaultAsync(r =>
@@ -115,7 +115,7 @@ namespace CRMS.Repositories
 
             review.IsVisible = isVisible;
 
-            // Kiem tra lai phien Admin truoc khi ghi
+            // Kiem tra lai quyen Admin truoc khi luu
             RequireAdmin();
 
             await db.SaveChangesAsync();

@@ -1,26 +1,27 @@
 ﻿
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using CRMS.Repositories;
 using CRMS.Services;
 
 namespace CRMS.Views
 {
     public partial class WriteReviewWindow : Window
     {
-        private readonly ReviewRepository _repository = new();
+        // F22 - Su dung Service thay cho Repository
+        private readonly ReviewService _service = new();
 
         private bool _isBusy;
 
         public WriteReviewWindow()
         {
             InitializeComponent();
+
             Loaded += WriteReviewWindow_Loaded;
         }
 
+        // Tu dong tai don thue khi mo cua so
         private async void WriteReviewWindow_Loaded(
             object sender,
             RoutedEventArgs e)
@@ -28,18 +29,22 @@ namespace CRMS.Views
             await LoadBookingsAsync();
         }
 
+        // F22 - Lay danh sach don Completed chua danh gia
         private async Task LoadBookingsAsync()
         {
+            if (_isBusy)
+                return;
+
             SetBusy(true);
 
             try
             {
                 var bookingIds =
-                    await _repository.GetReviewableBookingIdsAsync();
+                    await _service.GetReviewableBookingIdsAsync();
 
                 BookingComboBox.ItemsSource = bookingIds;
 
-                // ComboBox hien thi truc tiep BookingId.
+                // Hien thi truc tiep BookingId
                 BookingComboBox.DisplayMemberPath = "";
                 BookingComboBox.SelectedValuePath = "";
 
@@ -52,14 +57,19 @@ namespace CRMS.Views
                 }
                 else
                 {
+                    BookingComboBox.SelectedIndex = -1;
+
                     StatusTextBlock.Text =
                         "Bạn không có đơn thuê nào đủ điều kiện đánh giá.";
                 }
             }
             catch (Exception ex)
             {
+                BookingComboBox.ItemsSource = null;
+
                 StatusTextBlock.Text =
-                    "Không thể tải đơn thuê: " + ex.Message;
+                    "Không thể tải đơn thuê: " +
+                    ex.GetBaseException().Message;
             }
             finally
             {
@@ -67,6 +77,7 @@ namespace CRMS.Views
             }
         }
 
+        // F22 - Gui danh gia
         private async void Submit_Click(
             object sender,
             RoutedEventArgs e)
@@ -74,6 +85,7 @@ namespace CRMS.Views
             if (_isBusy)
                 return;
 
+            // Kiem tra Booking
             if (BookingComboBox.SelectedItem is not long bookingId)
             {
                 MessageBox.Show(
@@ -81,29 +93,41 @@ namespace CRMS.Views
                     "Thông báo",
                     MessageBoxButton.OK,
                     MessageBoxImage.Warning);
+
                 return;
             }
 
+            // Kiem tra Rating
             if (RatingComboBox.SelectedItem is not ComboBoxItem ratingItem ||
-                !byte.TryParse(ratingItem.Tag?.ToString(), out byte rating))
+                !byte.TryParse(
+                    ratingItem.Tag?.ToString(),
+                    out byte rating) ||
+                rating < 1 ||
+                rating > 5)
             {
                 MessageBox.Show(
-                    "Vui lòng chọn số sao.",
+                    "Vui lòng chọn số sao từ 1 đến 5.",
                     "Thông báo",
                     MessageBoxButton.OK,
                     MessageBoxImage.Warning);
+
                 return;
             }
 
-            var customerId = CurrentUserService.Instance.UserId;
+            // Lay CustomerId tu phien dang nhap
+            var session = CurrentUserService.Instance;
 
-            if (!customerId.HasValue)
+            if (!session.IsLoggedIn ||
+                !session.IsCustomer ||
+                !session.UserId.HasValue ||
+                session.UserId.Value <= 0)
             {
                 MessageBox.Show(
-                    "Vui lòng đăng nhập.",
+                    "Vui lòng đăng nhập bằng tài khoản khách hàng.",
                     "Thông báo",
                     MessageBoxButton.OK,
                     MessageBoxImage.Warning);
+
                 return;
             }
 
@@ -111,8 +135,9 @@ namespace CRMS.Views
 
             try
             {
-                await _repository.AddReviewAsync(
-                    customerId.Value,
+                // Goi ReviewService de luu vao SQL Server
+                await _service.AddReviewAsync(
+                    session.UserId.Value,
                     bookingId,
                     rating,
                     CommentTextBox.Text);
@@ -128,10 +153,13 @@ namespace CRMS.Views
             }
             catch (Exception ex)
             {
-                StatusTextBlock.Text = ex.Message;
+                string message =
+                    ex.GetBaseException().Message;
+
+                StatusTextBlock.Text = message;
 
                 MessageBox.Show(
-                    ex.Message,
+                    message,
                     "Không thể gửi đánh giá",
                     MessageBoxButton.OK,
                     MessageBoxImage.Warning);
@@ -142,16 +170,22 @@ namespace CRMS.Views
             }
         }
 
+        // Dong cua so
         private void Cancel_Click(
             object sender,
             RoutedEventArgs e)
         {
+            if (_isBusy)
+                return;
+
             Close();
         }
 
+        // Khoa giao dien khi dang xu ly
         private void SetBusy(bool busy)
         {
             _isBusy = busy;
+
             SubmitButton.IsEnabled = !busy;
             BookingComboBox.IsEnabled = !busy;
             RatingComboBox.IsEnabled = !busy;
