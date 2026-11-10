@@ -85,7 +85,6 @@ using (var vm = new DemoPaymentViewModel(1, fake, false))
 await StaffConfirmationChecks.Run(Check);
 if (!args.Contains("--integration")) { Console.WriteLine($"{passed} demo checks passed. Add --integration <CRMS.sql path> for isolated SQL checks."); return; }
 var source = args.FirstOrDefault(a => a.EndsWith(".sql", StringComparison.OrdinalIgnoreCase)) ?? throw new ArgumentException("Pass CRMS.sql path.");
-var migrationPath = Path.Combine(Path.GetDirectoryName(source)!, "database", "20261109_demo_payments.sql");
 var dbName = "CRMS_DemoPay_Test_" + Guid.NewGuid().ToString("N");
 var master = new SqlConnectionStringBuilder { DataSource = Environment.GetEnvironmentVariable("CRMS_TEST_SERVER") ?? "localhost", InitialCatalog = "master", IntegratedSecurity = true, TrustServerCertificate = true, ConnectTimeout = 10 }.ConnectionString;
 var connection = new SqlConnectionStringBuilder(master) { InitialCatalog = dbName }.ConnectionString;
@@ -104,7 +103,24 @@ try
     sql = sql[(index + marker.Length)..].Replace("DECLARE @IncludeDemoData bit = 0;", "DECLARE @IncludeDemoData bit = 1;");
     if (Regex.IsMatch(sql, @"(?im)^\s*(USE\s|CREATE\s+DATABASE|DROP\s+DATABASE)")) throw new Exception("Unsafe schema switching");
     foreach (var batch in Regex.Split(sql, @"(?im)^\s*GO\s*\r?$").Where(b => !string.IsNullOrWhiteSpace(b))) await Exec(connection, batch);
-    var migration = await File.ReadAllTextAsync(migrationPath); await Exec(connection, migration); await Exec(connection, migration);
+    using (var db = Create())
+    {
+        Check(await db.Database.SqlQueryRaw<int>("SELECT COUNT(*) AS [Value] FROM sys.tables WHERE object_id=OBJECT_ID(N'dbo.DemoPayments')").SingleAsync() == 1 &&
+            !await db.Bookings.AnyAsync(b => b.IsDemo), "Full CRMS.sql alone creates the QR demo schema on a fresh database");
+    }
+    var legacyCounts = "SELECT CONCAT((SELECT COUNT(*) FROM dbo.Users),':',(SELECT COUNT(*) FROM dbo.Bookings),':',(SELECT COUNT(*) FROM dbo.Payments),':',(SELECT COALESCE(SUM(TotalAmount),0) FROM dbo.Bookings),':',(SELECT COALESCE(SUM(Amount),0) FROM dbo.Payments)) AS [Value]";
+    var upgradeSql = sql.Replace("DECLARE @IncludeDemoData bit = 1;", "DECLARE @IncludeDemoData bit = 0;");
+    string beforeUpgrade;
+    using (var db = Create()) beforeUpgrade = await db.Database.SqlQueryRaw<string>(legacyCounts).SingleAsync();
+    // Only this randomly named test database is downgraded to the previous schema.
+    if (!dbName.StartsWith("CRMS_DemoPay_Test_", StringComparison.Ordinal)) throw new Exception("Invalid test database name");
+    await Exec(connection, "DROP TABLE dbo.DemoPayments; ALTER TABLE dbo.Bookings DROP CONSTRAINT DF_Bookings_IsDemo; ALTER TABLE dbo.Bookings DROP COLUMN IsDemo;");
+    foreach (var batch in Regex.Split(upgradeSql, @"(?im)^\s*GO\s*\r?$").Where(b => !string.IsNullOrWhiteSpace(b))) await Exec(connection, batch);
+    using (var db = Create())
+    {
+        Check(await db.Database.SqlQueryRaw<string>(legacyCounts).SingleAsync() == beforeUpgrade && !await db.Bookings.AnyAsync(b => b.IsDemo) && !await db.DemoPayments.AnyAsync(),
+            "Full CRMS.sql upgrades an existing database without changing users, bookings or payment totals");
+    }
     User customer, other, staff, admin;
     long vehicle;
     using (var db = Create())
@@ -238,6 +254,19 @@ try
             .SumAsync(p => p.PaymentType == "Refund" ? -p.Amount : p.Amount);
         Check(dashboard.NetCashCollected == net, "Admin financial dashboard excludes demo cash flows");
     }
+    async Task<string> FinancialSnapshot()
+    {
+        using var db = Create();
+        var bookings = await db.Bookings.AsNoTracking().OrderBy(b => b.BookingId)
+            .Select(b => new { b.BookingId, b.BookingCode, b.IsDemo, b.BookingStatus, b.TotalAmount, b.DepositAmount, b.DepositDeadline, b.ConfirmedAt, b.UpdatedAt, b.RowVersion }).ToListAsync();
+        var receipts = await db.DemoPayments.AsNoTracking().OrderBy(p => p.DemoPaymentId).ToListAsync();
+        var payments = await db.Payments.AsNoTracking().OrderBy(p => p.PaymentId)
+            .Select(p => new { p.PaymentId, p.BookingId, p.PaymentType, p.PaymentMethod, p.Amount, p.PaymentStatus, p.PaidAt, p.VerifiedByUserId, p.IdempotencyKey, p.Note }).ToListAsync();
+        return System.Text.Json.JsonSerializer.Serialize(new { bookings, receipts, payments });
+    }
+    var beforeRerun = await FinancialSnapshot();
+    foreach (var batch in Regex.Split(upgradeSql, @"(?im)^\s*GO\s*\r?$").Where(b => !string.IsNullOrWhiteSpace(b))) await Exec(connection, batch);
+    Check(await FinancialSnapshot() == beforeRerun, "Re-running full CRMS.sql preserves existing booking states, QR receipts, real payments and refunds");
     Console.WriteLine($"{passed} demo checks passed, including real SQL transactions.");
 }
 finally

@@ -86,8 +86,6 @@ try
     sql = sql[(index + marker.Length)..].Replace("DECLARE @IncludeDemoData bit = 0;", "DECLARE @IncludeDemoData bit = 1;");
     if (Regex.IsMatch(sql, @"(?im)^\s*(USE\s|CREATE\s+DATABASE|DROP\s+DATABASE)")) throw new Exception("Unexpected database switching in schema.");
     foreach (var batch in Regex.Split(sql, @"(?im)^\s*GO\s*\r?$").Where(b => !string.IsNullOrWhiteSpace(b))) await Exec(connection, batch);
-    var demoMigration = Path.Combine(Path.GetDirectoryName(schemaPath)!, "database", "20261109_demo_payments.sql");
-    if (File.Exists(demoMigration)) await Exec(connection, await File.ReadAllTextAsync(demoMigration));
 
     int city, otherCity;
     long[] vehicles;
