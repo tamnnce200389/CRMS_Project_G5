@@ -50,7 +50,7 @@
             </DockPanel>
         </Border>
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-            <TabControl x:Name="RentalTabs" Margin="24,18" SelectionChanged="InputChanged" Foreground="{StaticResource CustomerInk}">
+            <TabControl x:Name="RentalTabs" SelectedIndex="{Binding SelectedTab, Mode=TwoWay}" Margin="24,18" Foreground="{StaticResource CustomerInk}">
                 <TabControl.Template><ControlTemplate TargetType="TabControl"><StackPanel>
                     <TabPanel IsItemsHost="True" Margin="0,0,0,14" HorizontalAlignment="Left"/>
                     <ContentPresenter x:Name="PART_SelectedContentHost" ContentSource="SelectedContent" TextElement.Foreground="{StaticResource CustomerInk}"/>
@@ -59,21 +59,21 @@
                     <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
                         <Border Grid.Column="0" Margin="0,0,6,0" Style="{StaticResource PickerCard}">
                             <StackPanel><TextBlock Text="Ngày nhận xe" Style="{StaticResource FieldTitle}"/>
-                                <Calendar x:Name="PickupCalendar" Language="vi-VN" FirstDayOfWeek="Monday" SelectionMode="SingleDate"
-                                          CalendarDayButtonStyle="{StaticResource RentalDay}" SelectedDatesChanged="InputChanged">
+                                <Calendar x:Name="PickupCalendar" SelectedDate="{Binding PickupDate, Mode=TwoWay}" DisplayDateStart="{Binding MinimumDate, Mode=OneWay}" Language="vi-VN" FirstDayOfWeek="Monday" SelectionMode="SingleDate"
+                                          CalendarDayButtonStyle="{StaticResource RentalDay}">
                                     <Calendar.CalendarItemStyle><Style TargetType="CalendarItem"><Setter Property="Background" Value="White"/><Setter Property="BorderThickness" Value="0"/></Style></Calendar.CalendarItemStyle>
                                 </Calendar>
                                 <TextBlock Text="Giờ nhận xe" Style="{StaticResource FieldTitle}" Margin="0,10,0,6"/>
-                                <ComboBox x:Name="DayPickupTime" Height="42" SelectionChanged="InputChanged"/>
+                                <ComboBox x:Name="DayPickupTime" ItemsSource="{Binding Times}" SelectedItem="{Binding PickupTime, Mode=TwoWay}" Height="42"/>
                             </StackPanel></Border>
                         <Border Grid.Column="1" Margin="6,0,0,0" Style="{StaticResource PickerCard}">
                             <StackPanel><TextBlock Text="Ngày trả xe" Style="{StaticResource FieldTitle}"/>
-                                <Calendar x:Name="ReturnCalendar" Language="vi-VN" FirstDayOfWeek="Monday" SelectionMode="SingleDate"
-                                          CalendarDayButtonStyle="{StaticResource RentalDay}" SelectedDatesChanged="InputChanged">
+                                <Calendar x:Name="ReturnCalendar" SelectedDate="{Binding ReturnDate, Mode=TwoWay}" DisplayDateStart="{Binding MinimumDate, Mode=OneWay}" Language="vi-VN" FirstDayOfWeek="Monday" SelectionMode="SingleDate"
+                                          CalendarDayButtonStyle="{StaticResource RentalDay}">
                                     <Calendar.CalendarItemStyle><Style TargetType="CalendarItem"><Setter Property="Background" Value="White"/><Setter Property="BorderThickness" Value="0"/></Style></Calendar.CalendarItemStyle>
                                 </Calendar>
                                 <TextBlock Text="Giờ trả xe" Style="{StaticResource FieldTitle}" Margin="0,10,0,6"/>
-                                <ComboBox x:Name="DayReturnTime" Height="42" SelectionChanged="InputChanged"/>
+                                <ComboBox x:Name="DayReturnTime" ItemsSource="{Binding Times}" SelectedItem="{Binding ReturnTime, Mode=TwoWay}" Height="42"/>
                             </StackPanel></Border>
                     </Grid>
                     <TextBlock Text="Thời gian thuê theo ngày tối đa 48 giờ." Foreground="{StaticResource MutedReadable}" Margin="2,12,0,0"/>
@@ -82,7 +82,7 @@
                     <Border Style="{StaticResource PickerCard}"><StackPanel>
                         <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
                             <StackPanel Margin="0,0,8,0"><TextBlock Text="Ngày nhận xe" Style="{StaticResource FieldTitle}"/>
-                                <DatePicker x:Name="HourlyDate" Height="42" Language="vi-VN" SelectedDateChanged="InputChanged">
+                                <DatePicker x:Name="HourlyDate" SelectedDate="{Binding HourDate, Mode=TwoWay}" DisplayDateStart="{Binding MinimumDate, Mode=OneWay}" Height="42" Language="vi-VN">
                                     <DatePicker.Template>
                                         <ControlTemplate TargetType="DatePicker">
                                             <Grid x:Name="PART_Root">
@@ -107,10 +107,10 @@
                                     </DatePicker.Template>
                                 </DatePicker></StackPanel>
                             <StackPanel Grid.Column="1" Margin="8,0,0,0"><TextBlock Text="Giờ nhận xe" Style="{StaticResource FieldTitle}"/>
-                                <ComboBox x:Name="HourlyPickupTime" Height="42" SelectionChanged="InputChanged"/></StackPanel>
+                                <ComboBox x:Name="HourlyPickupTime" ItemsSource="{Binding Times}" SelectedItem="{Binding HourTime, Mode=TwoWay}" Height="42"/></StackPanel>
                         </Grid>
                         <TextBlock Text="Thời lượng thuê" Style="{StaticResource FieldTitle}" Margin="0,18,0,8"/>
-                        <ComboBox x:Name="DurationCombo" Height="42" SelectionChanged="InputChanged">
+                        <ComboBox x:Name="DurationCombo" SelectedValuePath="Tag" SelectedValue="{Binding DurationHours, Mode=TwoWay}" Height="42">
                             <ComboBoxItem Content="1 giờ" Tag="1"/>
                             <ComboBoxItem Content="2 giờ" Tag="2"/>
                             <ComboBoxItem Content="4 giờ" Tag="4"/>
@@ -126,9 +126,10 @@
             </TabControl>
         </ScrollViewer>
         <Border Grid.Row="2" Background="White" Padding="24,14" BorderBrush="{StaticResource CustomerLine}" BorderThickness="0,1,0,0">
-            <DockPanel><StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center"><Button Content="Xác nhận thời gian" Style="{StaticResource StaffButton}" Click="Confirm_Click"/></StackPanel>
-                <TextBlock x:Name="SummaryText" FontWeight="SemiBold" Margin="0,0,14,0" Foreground="{StaticResource CustomerInk}" VerticalAlignment="Center" TextWrapping="Wrap"/>
+            <DockPanel><StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center"><Button Content="Xác nhận thời gian" Style="{StaticResource StaffButton}" Command="{Binding ConfirmCommand}"/></StackPanel>
+                <TextBlock x:Name="SummaryText" Text="{Binding Summary}" FontWeight="SemiBold" Margin="0,0,14,0" Foreground="{StaticResource CustomerInk}" VerticalAlignment="Center" TextWrapping="Wrap"/>
             </DockPanel>
         </Border>
     </Grid></Border>
 </Window>
+

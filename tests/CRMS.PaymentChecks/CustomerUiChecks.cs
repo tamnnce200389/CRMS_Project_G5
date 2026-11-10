@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -52,7 +52,7 @@ internal static class CustomerUiChecks
                 Check(main.IsGuest && main.CurrentPage is HomePage, "Guest starts on home");
                 Render("guest-1400", 1400);
                 Render("guest-1100", 1100, 680);
-                var home = (HomeViewModel)main.CurrentPage.DataContext;
+                var home = (HomeViewModel)((FrameworkElement)main.CurrentPage!).DataContext;
                 home.SelectModeCommand.Execute("WithDriver");
                 Check(home.IsWithDriver && !home.IsSelfDrive, "Driver tab selects the correct form");
                 Render("driver-1100", 1100);
@@ -99,13 +99,13 @@ internal static class CustomerUiChecks
                 Render("trips-empty-1100", 1100);
                 ((Border)trips.FindName("StatePanel")).Visibility = Visibility.Collapsed;
                 ((ItemsControl)trips.FindName("BookingsList")).ItemsSource = new[] {
-                    new MyBookingsPage.TripRow("DEMO-001", "Xe minh họa", new DateTime(2026,11,3,8,0,0), new DateTime(2026,11,4,8,0,0), 900000, "Confirmed") };
+                    new CRMS.Dtos.CustomerTrip("DEMO-001", "Xe minh họa", new DateTime(2026,11,3,8,0,0), new DateTime(2026,11,4,8,0,0), 900000, "Confirmed", "SelfDrive", "Day", 1) };
                 Render("trips-1100", 1100);
 
                 main.NavigateCommand.Execute("PaymentSummary");
                 Check(main.IsCustomerPayments, "Payment navigation state");
                 Render("payment-1100", 1100);
-                var payment = (PaymentWorkspaceViewModel)main.CurrentPage.DataContext;
+                var payment = (PaymentWorkspaceViewModel)((FrameworkElement)main.CurrentPage!).DataContext;
                 payment.BookingLookup = "DEMO-001";
                 var summary = new CRMS.Services.Payments.PaymentSummary(-1, "DEMO-001", "Confirmed", 900000, 0, 450000, 0, 450000, 0, 0, false);
                 typeof(PaymentWorkspaceViewModel).GetProperty("Summary")!.SetValue(payment, summary);

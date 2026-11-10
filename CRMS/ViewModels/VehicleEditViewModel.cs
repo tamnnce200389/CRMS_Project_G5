@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
 using System.Windows.Input;
@@ -263,7 +263,7 @@ public sealed class VehicleEditViewModel : BaseViewModel
         RemoveImageCommand = new RelayCommand(
             p => RemoveImage(p as VehicleImageItemViewModel ?? SelectedImage),
             p => !IsSaving && (p is VehicleImageItemViewModel || SelectedImage != null));
-        SaveCommand = new RelayCommand(async _ => await SaveAsync(), _ => !IsSaving);
+        SaveCommand = new AsyncRelayCommand(async _ => await SaveAsync(), _ => !IsSaving);
         CancelCommand = new RelayCommand(_ => RequestClose?.Invoke(false), _ => !IsSaving);
     }
 

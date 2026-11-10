@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
 using System.Windows.Data;
@@ -222,8 +222,8 @@ public sealed class AvailabilityViewModel : BaseViewModel
         ResultsView = CollectionViewSource.GetDefaultView(Results);
         ResultsView.Filter = FilterResultPredicate;
 
-        CheckAvailabilityCommand = new RelayCommand(async _ => await CheckAvailabilityAsync(), _ => !IsLoading);
-        ResetFilterCommand = new RelayCommand(async _ => await ResetFiltersAsync(), _ => !IsLoading);
+        CheckAvailabilityCommand = new AsyncRelayCommand(async _ => await CheckAvailabilityAsync(), _ => !IsLoading);
+        ResetFilterCommand = new AsyncRelayCommand(async _ => await ResetFiltersAsync(), _ => !IsLoading);
     }
 
     public async Task InitializeAsync()

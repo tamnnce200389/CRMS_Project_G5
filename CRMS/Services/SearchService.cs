@@ -5,138 +5,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CRMS.Services;
 
-public sealed class CarSearchItem
-{
-    public long VehicleId { get; set; }
-    public int CategoryId { get; set; }
-    public decimal? OwnerRating { get; set; }
-    public long OwnerReviewCount { get; set; }
-    public bool HasOwnerRating => OwnerRating.HasValue && OwnerReviewCount > 0;
-    public string OwnerRatingLabel => HasOwnerRating ? $"{OwnerRating:0.0} · {OwnerReviewCount} đánh giá" : "Chưa có đánh giá";
-    public bool SupportsInstant { get; set; }
-    public bool NoCollateral { get; set; }
-    public bool SupportsDelivery { get; set; }
-    public bool HasChildSeat { get; set; }
-    public bool SupportsFreeCityPickup { get; set; }
-    public bool HasFreePickup => QuoteUnit == "Trip" && (DeliveryFee == 0 || SupportsFreeCityPickup);
-    public bool IsHourlyQuote => QuoteUnit == "Hour";
-    public string HourlyPackageLabel => QuotedRate > 0 ? $"{EstimatedTripTotal:N0} ₫ · gói {EstimatedTripTotal / QuotedRate:0.##} giờ tính phí" : "";
-    public string Brand { get; set; } = "";
-    public string Model { get; set; } = "";
-    public string CategoryName { get; set; } = "";
-    public short ManufactureYear { get; set; }
-    public byte SeatCount { get; set; }
-    public string Transmission { get; set; } = "";
-    public string FuelType { get; set; } = "";
-    public decimal DailyRate { get; set; }
-    public string? ImageUrl { get; set; }
-    public string? DisplayPhotoUrl => Uri.TryCreate(ImageUrl, UriKind.Absolute, out var uri)
-        && string.Equals(uri.Host, "placehold.co", StringComparison.OrdinalIgnoreCase) ? null : ImageUrl;
-
-    public decimal LongTermBaseMonthlyRate { get; set; }
-    public decimal LongTermMonthlyRate { get; set; }
-    public decimal LongTermDiscountPercent { get; set; }
-    public decimal LongTermTotalPrice { get; set; }
-    public int DurationMonths { get; set; }
-    public decimal QuotedRate { get; set; }
-    public decimal EstimatedTripTotal { get; set; }
-    public string QuoteUnit { get; set; } = "Day";
-    public string PriceUnitLabel => QuoteUnit switch { "Hour" => "₫/giờ", "Month" => "₫/tháng", "Trip" => "₫/chuyến", _ => "₫/ngày" };
-    public string QuotedPriceLabel => $"{QuotedRate:N0} {PriceUnitLabel}";
-    public bool HasPromotion { get; set; }
-    public string PromotionNote => HasPromotion && QuoteUnit != "Month" ? "Có mã ưu đãi · kiểm tra điều kiện khi đặt" : "";
-    public string PriceNote => QuoteUnit is "Hour" or "Trip" ? "Giá tham khảo · chưa gồm phí phát sinh" : "Chưa gồm phí giao nhận và tiện ích";
-    // Fixed-trip offers remain quote-only; Day/Hour/Month use the atomic booking procedure.
-    public bool CanUseLegacyBooking { get; set; }
-    public decimal? DeliveryFee { get; set; }
-    public string CityName { get; set; } = "";
-}
-
-public sealed record CarSearchContext
-{
-    public int? PickupCityId { get; init; }
-    public int? DestinationCityId { get; init; }
-    public string RouteType { get; init; } = "InnerCity";
-    public string? Fuel { get; init; }
-    public string[] PurposeCodes { get; init; } = Array.Empty<string>();
-    public string? BudgetCode { get; init; }
-    public bool HourlyOnly { get; init; }
-    public bool ChildSeatOnly { get; init; }
-    public bool ExtendedTravelOnly { get; init; }
-    public bool SportOnly { get; init; }
-}
-
-public sealed record CarSearchFilter
-{
-    public string[] ChildSeatAgeCodes { get; init; } = Array.Empty<string>();
-    public string RentalMode { get; init; } = "SelfDrive";
-    public string? Keyword { get; init; }
-    public int? CategoryId { get; init; }
-    public string? Brand { get; init; }
-    public string? Transmission { get; init; }
-    public string? FuelType { get; init; }
-    public byte? Seats { get; init; }
-    public short? MinYear { get; init; }
-    public decimal? MinPrice { get; init; }
-    public decimal? MaxPrice { get; init; }
-    public string Sort { get; init; } = "Mặc định";
-    public bool DiscountOnly { get; init; }
-    public bool HourlyOnly { get; init; }
-    public bool DeliveryOnly { get; init; }
-    public bool FreeDeliveryOnly { get; init; }
-    public bool FreePickupInCityOnly { get; init; }
-    public bool HighlyRatedOnly { get; init; }
-    public bool InstantOnly { get; init; }
-    public bool NoCollateralOnly { get; init; }
-    public bool ChildSeatOnly { get; init; }
-    public bool ExtendedTravelOnly { get; init; }
-    public bool UnlimitedMileageOnly { get; init; }
-    public bool SportOnly { get; init; }
-    public string[] PurposeCodes { get; init; } = Array.Empty<string>();
-    public int? CityId { get; init; }
-    public int? DestinationCityId { get; init; }
-    public double? Latitude { get; init; }
-    public double? Longitude { get; init; }
-    public string RouteType { get; init; } = "InnerCity";
-    public int DurationMonths { get; init; } = 3;
-    public long? CustomerId { get; init; }
-    public DateTime? StartAtLocal { get; init; }
-    public DateTime? EndAtLocal { get; init; }
-
-    public void Validate()
-    {
-        if (ChildSeatAgeCodes.Any(code => code is not ("ChildSeat:0-12" or "ChildSeat:0-1" or "ChildSeat:1-4" or "ChildSeat:4-7" or "ChildSeat:7-12"))) throw new ArgumentException("Nhóm tuổi ghế trẻ em không hợp lệ.");
-        if (ChildSeatAgeCodes.Length > 0 && RentalMode != "SelfDrive") throw new ArgumentException("Lọc độ tuổi ghế trẻ em chỉ áp dụng xe tự lái.");
-        if (RentalMode is not ("SelfDrive" or "WithDriver" or "LongTerm")) throw new ArgumentException("Chế độ thuê không hợp lệ.");
-        if (MinPrice < 0 || MaxPrice < 0 || (MinPrice.HasValue && MaxPrice.HasValue && MinPrice > MaxPrice)) throw new ArgumentException("Khoảng giá không hợp lệ.");
-        if (Seats is < 1 or > 30 || MinYear is < 1990 || MinYear > DateTime.Now.Year) throw new ArgumentException("Số chỗ hoặc năm sản xuất không hợp lệ.");
-        if (Transmission is not (null or "Automatic" or "Manual")) throw new ArgumentException("Hộp số không hợp lệ.");
-        if (FuelType is not (null or "Gasoline" or "Diesel" or "Electric" or "Hybrid")) throw new ArgumentException("Nhiên liệu không hợp lệ.");
-        if (StartAtLocal.HasValue != EndAtLocal.HasValue) throw new ArgumentException("Vui lòng chọn đủ thời gian nhận và trả xe.");
-        if (StartAtLocal.HasValue) AvailabilityRules.ValidatePeriod(StartAtLocal.Value, EndAtLocal!.Value, DateTime.UtcNow, requireFutureStart: true);
-        if (HourlyOnly && (RentalMode != "SelfDrive" || !StartAtLocal.HasValue)) throw new ArgumentException("Thuê giờ cần chế độ tự lái và thời gian thuê cụ thể.");
-        if (RentalMode == "WithDriver")
-        {
-            if (RouteType is not ("InnerCity" or "InterCityRoundTrip" or "InterCityOneWay")) throw new ArgumentException("Hành trình không hợp lệ.");
-            if (!CityId.HasValue || !DestinationCityId.HasValue || !StartAtLocal.HasValue) throw new ArgumentException("Chọn điểm đón, điểm đến và thời gian thuê xe có tài xế.");
-            if ((RouteType == "InnerCity") != (CityId == DestinationCityId)) throw new ArgumentException("Nội thành phải cùng thành phố; liên tỉnh phải khác thành phố.");
-        }
-        if (FreePickupInCityOnly && (RentalMode != "WithDriver" || !FreeDeliveryOnly || CityId is null or <= 0))
-            throw new ArgumentException("Miễn phí đưa đón nội thành cần chế độ có tài xế và thành phố đón hợp lệ.");
-        if (DeliveryOnly || (FreeDeliveryOnly && !FreePickupInCityOnly))
-        {
-            if (!CityId.HasValue || !Latitude.HasValue || !Longitude.HasValue || !double.IsFinite(Latitude.Value) || !double.IsFinite(Longitude.Value) || Latitude is < -90 or > 90 || Longitude is < -180 or > 180)
-                throw new ArgumentException("Lọc giao/đón xe cần thành phố và tọa độ hợp lệ của điểm giao/đón.");
-        }
-        if (ExtendedTravelOnly && !DestinationCityId.HasValue) throw new ArgumentException("Chọn thành phố đích để lọc di chuyển mở rộng.");
-        if (RentalMode == "LongTerm")
-        {
-            if (DurationMonths is not (1 or 3 or 6 or 9 or 12)) throw new ArgumentException("Gói dài hạn không hợp lệ.");
-            if (StartAtLocal.HasValue && StartAtLocal.Value.AddMonths(DurationMonths) != EndAtLocal) throw new ArgumentException("Ngày trả phải đúng kỳ hạn thuê dài hạn đã chọn.");
-        }
-    }
-}
-
 public class SearchService
 {
     private readonly Func<CrmsContext> _createContext;
@@ -154,8 +22,8 @@ public class SearchService
         var brands = await query.GroupBy(c => c.Brand).Select(g => new { Name = g.Key, Count = g.Count() }).OrderBy(g => g.Name).ToListAsync();
         var ages = context.RentalMode == "SelfDrive" ? await db.VehicleAmenities.Where(a => a.IsActive && a.Quantity > 0 && a.RentalMode == "SelfDrive" && query.Any(c => c.VehicleId == a.VehicleId))
             .Join(db.Amenities.Where(t => t.IsActive && t.AmenityCode.StartsWith("ChildSeat:")), a => a.AmenityId, t => t.AmenityId, (a, t) => t.AmenityCode).Distinct().ToListAsync() : new List<string>();
-        return new(types.OrderBy(t => t.SeatCount).ThenBy(t => t.CategoryName).Select(t => new VehicleTypeFacet(t.CategoryId,t.SeatCount,t.CategoryName,t.Count)).ToList(),
-            brands.Select(b => new BrandFacet(b.Name,b.Count)).ToList(),ages);
+        return new(types.OrderBy(t => t.SeatCount).ThenBy(t => t.CategoryName).Select(t => new VehicleTypeFacet(t.CategoryId, t.SeatCount, t.CategoryName, t.Count)).ToList(),
+            brands.Select(b => new BrandFacet(b.Name, b.Count)).ToList(), ages);
     }
     public virtual async Task<List<VehicleCategory>> GetCategoriesAsync()
     {
@@ -199,7 +67,7 @@ public class SearchService
             var available = db.SearchAvailableVehicles(start, end, now);
             catalog = catalog.Where(c => available.Any(a => a.VehicleId == c.VehicleId));
         }
-        if (filter.CityId.HasValue && (filter.RentalMode == "LongTerm" || (filter.RentalMode != "WithDriver" && !filter.DeliveryOnly && !filter.FreeDeliveryOnly))) catalog = catalog.Where(c => c.CityId == filter.CityId);
+        if (filter.CityId.HasValue && (filter.RentalMode == "LongTerm" || (filter.RentalMode != "WithDriver" && (filter.DeliveryOnly || !filter.FreeDeliveryOnly)))) catalog = catalog.Where(c => c.CityId == filter.CityId);
         if (filter.RentalMode == "WithDriver") catalog = catalog.Where(c => db.VehicleDriverRoutes.Any(r => r.VehicleId == c.VehicleId && r.IsActive && r.RouteType == filter.RouteType && r.PickupCityId == filter.CityId && r.DestinationCityId == filter.DestinationCityId));
         if (!string.IsNullOrWhiteSpace(filter.Keyword))
         {
@@ -231,21 +99,37 @@ public class SearchService
         var freeCityVehicles = db.VehicleDeliveryAreas.Where(a => a.IsActive && a.CityId == city && a.RentalMode == "WithDriver" && a.ServiceRadiusKm > 0 &&
             (a.FreeWithinKm > 0 || (a.FeeModel == "Flat" && a.FlatFee == 0) || (a.FeeModel == "PerKm" && a.FeePerKm == 0 && a.MinimumFee == 0))).Select(a => a.VehicleId);
         if (filter.FreePickupInCityOnly) catalog = catalog.Where(c => freeCityVehicles.Contains(c.VehicleId));
-        if (filter.DeliveryOnly || (filter.FreeDeliveryOnly && !filter.FreePickupInCityOnly)) catalog = catalog.Where(c => quotes.Any(q => q.VehicleId == c.VehicleId && (!filter.FreeDeliveryOnly || q.DeliveryAndCollectionFee == 0)));
+        // The quick delivery filter uses the region already selected for the search.
+        // A city-level match does not quote an address-specific distance or delivery fee.
+        if (filter.DeliveryOnly) catalog = catalog.Where(c => db.VehicleDeliveryAreas.Any(a =>
+            a.VehicleId == c.VehicleId && a.RentalMode == c.RentalMode && a.CityId == city && a.IsActive && a.ServiceRadiusKm > 0));
+        if (filter.FreeDeliveryOnly && !filter.FreePickupInCityOnly) catalog = catalog.Where(c => quotes.Any(q => q.VehicleId == c.VehicleId && q.DeliveryAndCollectionFee == 0));
         // This reads the unchanged daily-driver fee. Fixed-trip quotes remain explicitly separate.
         var query = catalog.Select(c => new CarSearchItem
         {
-            VehicleId = c.VehicleId, CategoryId = c.CategoryId, Brand = c.Brand, Model = c.Model, CategoryName = c.CategoryName,
-            OwnerRating = c.AverageRating, OwnerReviewCount = c.ReviewCount ?? 0,
-            SupportsInstant = c.SupportsInstantBooking == true, NoCollateral = c.RequiresCollateral == false,
+            VehicleId = c.VehicleId,
+            CategoryId = c.CategoryId,
+            Brand = c.Brand,
+            Model = c.Model,
+            CategoryName = c.CategoryName,
+            OwnerRating = c.AverageRating,
+            OwnerReviewCount = c.ReviewCount ?? 0,
+            SupportsInstant = c.SupportsInstantBooking == true,
+            NoCollateral = c.RequiresCollateral == false,
             SupportsFreeCityPickup = filter.FreePickupInCityOnly && freeCityVehicles.Contains(c.VehicleId),
-            SupportsDelivery = db.VehicleDeliveryAreas.Any(a => a.VehicleId == c.VehicleId && a.RentalMode == c.RentalMode && a.IsActive),
+            SupportsDelivery = db.VehicleDeliveryAreas.Any(a => a.VehicleId == c.VehicleId && a.RentalMode == c.RentalMode && a.IsActive && a.ServiceRadiusKm > 0 && (!filter.CityId.HasValue || a.CityId == city)),
             HasChildSeat = db.VehicleAmenities.Any(a => a.VehicleId == c.VehicleId && a.RentalMode == c.RentalMode && a.IsActive && a.Quantity > 0 && db.Amenities.Any(t => t.AmenityId == a.AmenityId && t.IsActive && (t.AmenityCode == "ChildSeat" || t.AmenityCode.StartsWith("ChildSeat:")))),
-            ManufactureYear = c.ManufactureYear, SeatCount = c.SeatCount, Transmission = c.Transmission, FuelType = c.FuelType,
-            DailyRate = c.DailyRate, CityName = c.CityName,
-            LongTermBaseMonthlyRate = c.BaseMonthlyRate ?? 0m, LongTermMonthlyRate = c.MonthlyRate ?? 0m,
+            ManufactureYear = c.ManufactureYear,
+            SeatCount = c.SeatCount,
+            Transmission = c.Transmission,
+            FuelType = c.FuelType,
+            DailyRate = c.DailyRate,
+            CityName = c.CityName,
+            LongTermBaseMonthlyRate = c.BaseMonthlyRate ?? 0m,
+            LongTermMonthlyRate = c.MonthlyRate ?? 0m,
             LongTermDiscountPercent = c.DiscountPercent ?? 0m,
-            LongTermTotalPrice = (c.MonthlyRate ?? 0m) * filter.DurationMonths, DurationMonths = filter.DurationMonths,
+            LongTermTotalPrice = (c.MonthlyRate ?? 0m) * filter.DurationMonths,
+            DurationMonths = filter.DurationMonths,
             QuotedRate = filter.HourlyOnly ? c.HourlyRate!.Value : filter.RentalMode == "WithDriver"
                 ? (db.VehicleDriverRoutes.Where(r => r.VehicleId == c.VehicleId && r.IsActive && r.RouteType == filter.RouteType && r.PickupCityId == filter.CityId && r.DestinationCityId == filter.DestinationCityId).Select(r => r.TripBasePrice).FirstOrDefault() ?? (c.DailyRate + (db.RentalPolicies.Where(p => p.PolicyId == 1).Select(p => (decimal?)p.DriverDailyFee).FirstOrDefault() ?? 0m)) * days)
                 : c.SearchUnitRate!.Value,

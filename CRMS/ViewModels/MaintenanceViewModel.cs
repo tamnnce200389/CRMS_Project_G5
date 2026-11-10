@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
 using System.Windows.Data;
@@ -306,17 +306,17 @@ public sealed class MaintenanceViewModel : BaseViewModel
         ResetCreateFormDefaults();
 
         NewScheduleCommand = new RelayCommand(_ => SwitchToCreateMode(), _ => !IsLoading);
-        SaveCommand = new RelayCommand(async _ => await SaveAsync(), _ => !IsLoading && IsFormEditable);
-        StartMaintenanceCommand = new RelayCommand(
+        SaveCommand = new AsyncRelayCommand(async _ => await SaveAsync(), _ => !IsLoading && IsFormEditable);
+        StartMaintenanceCommand = new AsyncRelayCommand(
             async _ => await TransitionSelectedAsync("InProgress"),
             _ => !IsLoading && CanStartSelected);
-        CompleteMaintenanceCommand = new RelayCommand(
+        CompleteMaintenanceCommand = new AsyncRelayCommand(
             async _ => await TransitionSelectedAsync("Completed"),
             _ => !IsLoading && ShowLifecycleActions);
-        CancelMaintenanceCommand = new RelayCommand(
+        CancelMaintenanceCommand = new AsyncRelayCommand(
             async _ => await CancelSelectedAsync(),
             _ => !IsLoading && ShowLifecycleActions);
-        RefreshCommand = new RelayCommand(async _ => await LoadRecordsAsync(), _ => !IsLoading);
+        RefreshCommand = new AsyncRelayCommand(async _ => await LoadRecordsAsync(), _ => !IsLoading);
     }
 
     public async Task InitializeAsync()

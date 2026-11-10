@@ -1,27 +1,30 @@
 using System.Globalization;
 using System.Windows;
 using System.Windows.Input;
-using CRMS.Data;
 using CRMS.Helpers;
 using CRMS.Services;
 using CRMS.Services.Payments;
-using Microsoft.EntityFrameworkCore;
 
 namespace CRMS.ViewModels;
 
 public sealed class PaymentWorkspaceViewModel : BaseViewModel
 {
-    private readonly PaymentService _service = new();
+    private readonly IPaymentService _service;
     private readonly string _mode;
+    private readonly IBookingQueryService _queries;
+    private readonly IConfirmationService _dialogs;
     private long? _loadedUser;
     private Guid _requestKey = Guid.NewGuid();
-    public PaymentWorkspaceViewModel(string mode)
+    public PaymentWorkspaceViewModel(string mode) : this(mode, ApplicationServices.CreateBookingQueryService(), ApplicationServices.Confirmation) { }
+    public PaymentWorkspaceViewModel(string mode, IBookingQueryService queries, IConfirmationService dialogs, IPaymentService? service = null)
     {
+        _service = service ?? ApplicationServices.CreatePaymentService();
+        _queries = queries; _dialogs = dialogs;
         _mode = mode;
-        CalculateBalanceCommand = new RelayCommand(async _ => await LoadAsync(), _ => !IsBusy && !string.IsNullOrWhiteSpace(BookingLookup));
-        RecordFinalPaymentCommand = new RelayCommand(async _ => await RecordAsync(false), _ => CanCollect);
-        RecordManualRefundCommand = new RelayCommand(async _ => await RecordAsync(true), _ => CanRefund);
-        CompleteBookingCommand = new RelayCommand(async _ => await CompleteAsync(), _ => CanComplete);
+        CalculateBalanceCommand = new AsyncRelayCommand(async _ => await LoadAsync(), _ => !IsBusy && !string.IsNullOrWhiteSpace(BookingLookup));
+        RecordFinalPaymentCommand = new AsyncRelayCommand(async _ => await RecordAsync(false), _ => CanCollect);
+        RecordManualRefundCommand = new AsyncRelayCommand(async _ => await RecordAsync(true), _ => CanRefund);
+        CompleteBookingCommand = new AsyncRelayCommand(async _ => await CompleteAsync(), _ => CanComplete);
     }
     public string Title => _mode == "Balance" ? "Thu tiền còn lại" : _mode == "Refund" ? "Ghi nhận hoàn tiền" : "Tổng hợp thanh toán";
     public string Description => _mode == "Balance" ? "Đối soát phụ phí và tiền đã thu trước khi hoàn tất đơn. Thanh toán cuối bằng tiền mặt."
@@ -49,18 +52,20 @@ public sealed class PaymentWorkspaceViewModel : BaseViewModel
         private set { _summary = value; OnPropertyChanged(); OnPropertyChanged(nameof(SummaryVisibility)); OnPropertyChanged(nameof(StatusText)); Refresh(); }
     }
     public Visibility SummaryVisibility => Summary is null ? Visibility.Collapsed : Visibility.Visible;
-    public string StatusText => Summary?.Status switch
+    public string StatusText => Summary == null ? "" : BookingStatusRules.Label(Summary.EffectiveStatus);
+    public void RefreshTimeSensitiveState()
     {
-        "PendingDeposit" => "Chờ đặt cọc", "Confirmed" => "Đã xác nhận", "InUse" => "Đang thuê",
-        "Returned" => "Đã trả xe", "Completed" => "Đã hoàn tất", "Cancelled" => "Đã hủy", "Expired" => "Hết hạn", _ => ""
-    };
+        OnPropertyChanged(nameof(Summary));
+        OnPropertyChanged(nameof(StatusText));
+        Refresh();
+    }
     private string _message = "Nhập mã đơn thuê để tra cứu.";
     public string Message { get => _message; private set { _message = value; OnPropertyChanged(); } }
     private bool _isBusy;
     public bool IsBusy { get => _isBusy; private set { _isBusy = value; OnPropertyChanged(); OnPropertyChanged(nameof(CanEdit)); Refresh(); } }
     public bool CanEdit => !IsBusy;
     private bool ValidSession => _loadedUser.HasValue && _loadedUser == CurrentUserService.Instance.UserId;
-    public bool CanCollect => _mode == "Balance" && !IsBusy && ValidSession && Summary is { Status: "Returned", HasReturn: true, OutstandingBalance: > 0 };
+    public bool CanCollect => _mode == "Balance" && !IsBusy && ValidSession && Summary is { IsDemo: false, Status: "Returned", HasReturn: true, OutstandingBalance: > 0 };
     public bool CanComplete => _mode == "Balance" && !IsBusy && ValidSession && Summary?.CanComplete == true;
     public bool CanRefund => _mode == "Refund" && !IsBusy && ValidSession && Summary?.RefundableAmount > 0;
     public ICommand CalculateBalanceCommand { get; }
@@ -81,14 +86,13 @@ public sealed class PaymentWorkspaceViewModel : BaseViewModel
         Summary = null; _loadedUser = null; IsBusy = true;
         try
         {
-            using var db = CrmsContextFactory.Create();
-            var id = await db.Bookings.Where(b => b.BookingCode == lookup).Select(b => (long?)b.BookingId).SingleOrDefaultAsync();
-            if (!id.HasValue) throw new InvalidOperationException("Không tìm thấy mã đơn thuê.");
-            var summary = await _service.GetPaymentSummary(id.Value);
+            var id = await _queries.ResolveBookingAsync(lookup);
+            var summary = await _service.GetPaymentSummary(id);
             if (actor != CurrentUserService.Instance.UserId || lookup != BookingLookup.Trim())
                 throw new InvalidOperationException("Phiên hoặc mã đơn đã thay đổi. Hãy tra cứu lại.");
             _loadedUser = actor; Summary = summary;
-            Message = summary.HasReturn ? "Đã đối soát cả phụ phí trả xe."
+            Message = summary.EffectiveStatus == "Expired" ? "Đơn đã hết hạn đặt cọc. Không chuyển thêm tiền; hãy tạo đơn mới. Nếu đã chuyển, liên hệ Staff để đối soát."
+                : summary.HasReturn ? "Đã đối soát cả phụ phí trả xe."
                 : "Chưa có biên bản trả xe; số dư chưa bao gồm các phụ phí chưa phát sinh.";
         }
         catch (Exception ex) { Message = ex.GetBaseException().Message; }
@@ -108,7 +112,7 @@ public sealed class PaymentWorkspaceViewModel : BaseViewModel
         }
         var prompt = refund ? $"Bạn đã duyệt và thực hoàn {amount:N2} đ cho đơn {summary.BookingCode}?"
             : $"Bạn đã thực nhận {amount:N2} đ tiền mặt cho đơn {summary.BookingCode}? Đơn sẽ được hoàn tất nếu đã đủ tiền.";
-        if (MessageBox.Show(prompt, "Xác nhận giao dịch", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No) != MessageBoxResult.Yes) return;
+        if (!_dialogs.Confirm(prompt, "Xác nhận giao dịch")) return;
         if (!ValidSession) { Summary = null; Message = "Phiên đăng nhập đã thay đổi. Hãy tra cứu lại."; return; }
         IsBusy = true;
         try
@@ -125,8 +129,7 @@ public sealed class PaymentWorkspaceViewModel : BaseViewModel
     private async Task CompleteAsync()
     {
         if (!CanComplete || Summary is not { } summary) return;
-        if (MessageBox.Show($"Hoàn tất đơn {summary.BookingCode} đã trả xe và đủ tiền?", "Hoàn tất đơn", MessageBoxButton.YesNo,
-            MessageBoxImage.Question, MessageBoxResult.No) != MessageBoxResult.Yes) return;
+        if (!_dialogs.Confirm($"Hoàn tất đơn {summary.BookingCode} đã trả xe và đủ tiền?", "Hoàn tất đơn")) return;
         if (!ValidSession) return;
         IsBusy = true;
         try

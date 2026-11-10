@@ -1,7 +1,7 @@
-
+﻿
 using CRMS.Helpers;
 using CRMS.Models;
-using CRMS.Repositories;
+using CRMS.Services;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -12,7 +12,8 @@ namespace CRMS.ViewModels
 {
     public class DriverViewModel : BaseViewModel
     {
-        private readonly DriverRepository _repository;
+        private readonly IDriverService _service;
+        private readonly IUserSession _session;
         private long? _editingDriverId;
 
         public ObservableCollection<Driver> Drivers { get; }
@@ -118,11 +119,12 @@ namespace CRMS.ViewModels
         public int TotalDrivers => Drivers.Count;
         public int ActiveDrivers => Drivers.Count(d => d.IsActive);
 
-        public DriverViewModel()
+        public DriverViewModel() : this(new DriverService(), CurrentUserService.Instance) { }
+        public DriverViewModel(IDriverService service, IUserSession session)
         {
-            _repository = new DriverRepository();
+            _service = service; _session = session;
 
-            RefreshCommand = new RelayCommand(
+            RefreshCommand = new AsyncRelayCommand(
                 async _ => await LoadDriversAsync(),
                 _ => !IsLoading);
 
@@ -130,14 +132,14 @@ namespace CRMS.ViewModels
                 _ => ClearForm(),
                 _ => !IsLoading);
 
-            SaveCommand = new RelayCommand(
+            SaveCommand = new AsyncRelayCommand(
                 async _ => await SaveDriverAsync(),
-                _ => !IsLoading &&
+                _ => _session.Role == "Admin" && !IsLoading &&
                      !string.IsNullOrWhiteSpace(FullName));
 
-            ToggleActiveCommand = new RelayCommand(
+            ToggleActiveCommand = new AsyncRelayCommand(
                 async _ => await ToggleActiveAsync(),
-                _ => !IsLoading && SelectedDriver != null);
+                _ => _session.Role == "Admin" && !IsLoading && SelectedDriver != null);
         }
 
         public async Task LoadDriversAsync()
@@ -149,7 +151,7 @@ namespace CRMS.ViewModels
                 IsLoading = true;
                 StatusMessage = "Đang tải danh sách tài xế...";
 
-                var drivers = await _repository.GetAllAsync();
+                var drivers = await _service.GetAllAsync();
 
                 Drivers.Clear();
 
@@ -194,6 +196,7 @@ namespace CRMS.ViewModels
 
         private async Task SaveDriverAsync()
         {
+            if (_session.Role != "Admin") { StatusMessage = "Chỉ Admin được sửa tài xế."; return; }
             if (IsLoading) return;
 
             if (string.IsNullOrWhiteSpace(FullName))
@@ -229,15 +232,15 @@ namespace CRMS.ViewModels
                 };
 
                 if (isEditing)
-                    await _repository.UpdateAsync(driver);
+                    await _service.UpdateAsync(driver, SelectedDriver ?? throw new InvalidOperationException("Vui lòng chọn lại tài xế."));
                 else
-                    await _repository.AddAsync(driver);
+                    await _service.AddAsync(driver);
 
                 saved = true;
             }
             catch (Exception ex)
             {
-                StatusMessage = "Lưu tài xế thất bại. Hãy kiểm tra dữ liệu.";
+                StatusMessage = "Lưu tài xế thất bại: " + ex.Message;
                 System.Diagnostics.Debug.WriteLine(ex);
             }
             finally
@@ -255,6 +258,7 @@ namespace CRMS.ViewModels
 
         private async Task ToggleActiveAsync()
         {
+            if (_session.Role != "Admin") { StatusMessage = "Chỉ Admin được sửa tài xế."; return; }
             if (IsLoading || SelectedDriver == null)
                 return;
 
@@ -267,8 +271,8 @@ namespace CRMS.ViewModels
                 IsLoading = true;
                 StatusMessage = "Đang cập nhật trạng thái tài xế...";
 
-                updated = await _repository.SetActiveAsync(
-                    driver.DriverId, newState);
+                updated = await _service.SetActiveAsync(
+                    driver.DriverId, newState, driver.IsActive);
 
                 if (!updated)
                 {
@@ -278,7 +282,7 @@ namespace CRMS.ViewModels
             }
             catch (Exception ex)
             {
-                StatusMessage = "Cập nhật trạng thái thất bại.";
+                StatusMessage = "Cập nhật trạng thái thất bại: " + ex.Message;
                 System.Diagnostics.Debug.WriteLine(ex);
             }
             finally

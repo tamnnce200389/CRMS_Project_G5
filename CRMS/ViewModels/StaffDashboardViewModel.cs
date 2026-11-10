@@ -10,6 +10,17 @@ namespace CRMS.ViewModels
     public class StaffDashboardViewModel : BaseViewModel
     {
         private readonly DashboardService _service = new();
+        private int _filterVersion;
+        private const string FilterChangedMessage =
+            "Khoảng ngày đã thay đổi. Nhấn Cập nhật để tải lại.";
+
+        private void InvalidateFilter()
+        {
+            ++_filterVersion;
+            Snapshot = null;
+            StatusMessage = FilterChangedMessage;
+        }
+
 
         private static DateTime TodayVN
         {
@@ -32,6 +43,7 @@ namespace CRMS.ViewModels
             {
                 if (_fromDate == value) return;
                 _fromDate = value;
+                InvalidateFilter();
                 OnPropertyChanged();
             }
         }
@@ -45,6 +57,7 @@ namespace CRMS.ViewModels
             {
                 if (_toDate == value) return;
                 _toDate = value;
+                InvalidateFilter();
                 OnPropertyChanged();
             }
         }
@@ -94,7 +107,7 @@ namespace CRMS.ViewModels
 
         public StaffDashboardViewModel()
         {
-            RefreshCommand = new RelayCommand(
+            RefreshCommand = new AsyncRelayCommand(
                 async _ => await LoadAsync(),
                 _ => !IsBusy);
         }
@@ -129,6 +142,11 @@ namespace CRMS.ViewModels
                 return;
             }
 
+            // Keep the queried dates separate from editable filter properties.
+            DateTime fromDate = FromDate.Value.Date;
+            DateTime toDate = ToDate.Value.Date;
+            int filterVersion = _filterVersion;
+
             long userId = session.UserId.Value;
             string role = session.Role;
 
@@ -141,14 +159,21 @@ namespace CRMS.ViewModels
 
                 StaffDashboardSnapshot result =
                     await _service.GetStaffOverviewAsync(
-                        FromDate.Value,
-                        ToDate.Value);
+                        fromDate,
+                        toDate);
 
                 if (session.UserId != userId ||
                     session.Role != role)
                 {
                     StatusMessage =
                         "Phiên đăng nhập đã thay đổi. Hãy tải lại.";
+                    return;
+                }
+
+                // A response for an edited filter must not populate the current screen.
+                if (filterVersion != _filterVersion)
+                {
+                    StatusMessage = FilterChangedMessage;
                     return;
                 }
 
@@ -160,9 +185,9 @@ namespace CRMS.ViewModels
             catch (Exception ex)
             {
                 Snapshot = null;
-                StatusMessage =
-                    "Lỗi tải Staff Dashboard: " +
-                    ex.GetBaseException().Message;
+                StatusMessage = filterVersion != _filterVersion
+                    ? FilterChangedMessage
+                    : "Lỗi tải Staff Dashboard: " + ex.GetBaseException().Message;
             }
             finally
             {

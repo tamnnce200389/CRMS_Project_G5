@@ -4,8 +4,10 @@ using System.Data;
 using System.Threading.Tasks;
 using CRMS.Data;
 using CRMS.Services.Vehicles;
+using CRMS.Services.Payments;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace CRMS.Services;
 
@@ -14,13 +16,14 @@ public sealed record BookingCreated(
     string BookingCode,
     decimal TotalAmount,
     decimal DepositAmount,
-    DateTime DepositDeadline
-);
+    DateTime DepositDeadline,
+    bool IsDemo = false);
 
 public class CustomerBookingService
 {
     private readonly Func<CrmsContext> _create;
     private readonly Func<long?> _actor;
+    private readonly DemoPaymentOptions? _demoOptions;
 
     public CustomerBookingService()
         : this(
@@ -31,35 +34,32 @@ public class CustomerBookingService
 
     public CustomerBookingService(
         Func<CrmsContext> create,
-        Func<long?> actor)
+        Func<long?> actor,
+        DemoPaymentOptions? demoOptions = null)
     {
         _create = create
             ?? throw new ArgumentNullException(nameof(create));
 
         _actor = actor
             ?? throw new ArgumentNullException(nameof(actor));
+
+        _demoOptions = demoOptions;
     }
 
-    // F21 - Tao don thue xe
     public virtual async Task<BookingCreated> CreateAsync(
         BookingSelection selection,
         Guid requestKey)
     {
-        if (selection == null)
-        {
-            throw new ArgumentNullException(nameof(selection));
-        }
+        ArgumentNullException.ThrowIfNull(selection);
 
         if (_actor() != selection.CustomerId ||
             selection.CustomerId <= 0)
         {
             throw new InvalidOperationException(
-                "Phiên đăng nhập đã thay đổi. " +
-                "Vui lòng mở lại xác nhận thuê xe.");
+                "Phiên đăng nhập đã thay đổi. Vui lòng mở lại xác nhận thuê xe.");
         }
 
-        if (selection.VehicleId <= 0 ||
-            requestKey == Guid.Empty)
+        if (selection.VehicleId <= 0 || requestKey == Guid.Empty)
         {
             throw new ArgumentException(
                 "Thông tin đặt xe không hợp lệ.");
@@ -70,8 +70,7 @@ public class CustomerBookingService
                 selection.StartAt,
                 selection.EndAt,
                 DateTime.UtcNow,
-                true
-            );
+                true);
 
         bool validRentalMode =
             (selection.RentalMode == "SelfDrive" &&
@@ -99,8 +98,7 @@ public class CustomerBookingService
             }
 
             if (selection.StartAt.AddMonths(
-                    selection.DurationMonths.Value)
-                != selection.EndAt)
+                    selection.DurationMonths.Value) != selection.EndAt)
             {
                 throw new ArgumentException(
                     "Khoảng thuê phải đúng số tháng của gói.");
@@ -118,16 +116,44 @@ public class CustomerBookingService
                 "Giá thuê không hợp lệ.");
         }
 
+        if (selection.DepositMethod != "Cash")
+        {
+            throw new ArgumentException(
+                "Phương thức đặt cọc không được hỗ trợ.");
+        }
+
+        var demoOptions = selection.IsDemo
+            ? _demoOptions ?? DemoPaymentOptions.Load()
+            : null;
+
+        demoOptions?.ValidateReceiver();
+
         using var db = _create();
+
+        await using var transaction =
+            await db.Database.BeginTransactionAsync(
+                IsolationLevel.Serializable);
+
+        var existing = await db.Bookings
+            .AsNoTracking()
+            .SingleOrDefaultAsync(
+                b => b.RequestKey == requestKey);
+
+        if (existing != null &&
+            existing.IsDemo != selection.IsDemo)
+        {
+            throw new InvalidOperationException(
+                "Không thể đổi chế độ thanh toán cho yêu cầu đã tạo. " +
+                "Vui lòng mở lại xác nhận thuê xe.");
+        }
 
         var connection =
             (SqlConnection)db.Database.GetDbConnection();
 
-        await connection.OpenAsync();
-
         using var command = new SqlCommand(
             "dbo.usp_CreateBooking",
-            connection)
+            connection,
+            (SqlTransaction)transaction.GetDbTransaction())
         {
             CommandType = CommandType.StoredProcedure
         };
@@ -148,11 +174,13 @@ public class CustomerBookingService
             12
         ).Value = selection.RentalMode;
 
+        // QR demo vẫn sử dụng chính sách giữ chỗ hiện tại.
+        // IsDemo và DemoPayments xác định giao dịch mô phỏng.
         command.Parameters.Add(
             "@DepositMethod",
             SqlDbType.VarChar,
             5
-        ).Value = "Cash";
+        ).Value = selection.DepositMethod;
 
         command.Parameters.Add(
             "@StartAt",
@@ -179,15 +207,13 @@ public class CustomerBookingService
             "@DurationMonths",
             SqlDbType.TinyInt
         ).Value =
-            (object?)selection.DurationMonths
-            ?? DBNull.Value;
+            (object?)selection.DurationMonths ?? DBNull.Value;
 
         if (selection.ExpectedTotal.HasValue)
         {
             var expected = command.Parameters.Add(
                 "@ExpectedTotal",
-                SqlDbType.Decimal
-            );
+                SqlDbType.Decimal);
 
             expected.Precision = 18;
             expected.Scale = 2;
@@ -196,20 +222,30 @@ public class CustomerBookingService
 
         var output = command.Parameters.Add(
             "@NewBookingId",
-            SqlDbType.BigInt
-        );
+            SqlDbType.BigInt);
 
         output.Direction = ParameterDirection.Output;
 
         await command.ExecuteNonQueryAsync();
 
-        long bookingId = Convert.ToInt64(output.Value);
+        var row = await db.Bookings.SingleAsync(
+            b => b.BookingId == Convert.ToInt64(output.Value));
 
-        var row = await db.Bookings
-            .AsNoTracking()
-            .SingleAsync(
-                b => b.BookingId == bookingId
-            );
+        if (selection.IsDemo)
+        {
+            row.IsDemo = true;
+
+            if (!await db.DemoPayments.AnyAsync(
+                    p => p.BookingId == row.BookingId))
+            {
+                db.DemoPayments.Add(
+                    DemoPaymentService.NewPending(
+                        row,
+                        demoOptions!));
+            }
+
+            await db.SaveChangesAsync();
+        }
 
         if (_actor() != selection.CustomerId)
         {
@@ -218,22 +254,23 @@ public class CustomerBookingService
                 "Hãy đăng nhập lại để xem đơn đã tạo.");
         }
 
+        await transaction.CommitAsync();
+
         return new BookingCreated(
             row.BookingId,
             row.BookingCode,
             row.TotalAmount,
             row.DepositAmount,
-            row.DepositDeadline
-        );
+            row.DepositDeadline,
+            row.IsDemo);
     }
 
-    // F21 - Tim lai don da tao theo RequestKey
+    // F21: Tìm lại đơn đã tạo theo RequestKey.
     public virtual async Task<BookingCreated?> FindByRequestKeyAsync(
         long customerId,
         Guid requestKey)
     {
-        if (customerId <= 0 ||
-            requestKey == Guid.Empty)
+        if (customerId <= 0 || requestKey == Guid.Empty)
         {
             throw new ArgumentException(
                 "Thông tin yêu cầu không hợp lệ.");
@@ -251,8 +288,7 @@ public class CustomerBookingService
             .AsNoTracking()
             .SingleOrDefaultAsync(
                 b => b.RequestKey == requestKey &&
-                     b.CustomerId == customerId
-            );
+                     b.CustomerId == customerId);
 
         if (booking == null)
         {
@@ -270,11 +306,11 @@ public class CustomerBookingService
             booking.BookingCode,
             booking.TotalAmount,
             booking.DepositAmount,
-            booking.DepositDeadline
-        );
+            booking.DepositDeadline,
+            booking.IsDemo);
     }
 
-    // Giu tuong thich voi cac chuc nang cu
+    // Giữ tương thích với các chức năng cũ.
     public async Task<(
         long BookingId,
         string BookingCode,
@@ -291,19 +327,16 @@ public class CustomerBookingService
             vehicleId,
             rentalType,
             startAtLocal,
-            endAtLocal
-        );
+            endAtLocal);
 
         var result = await CreateAsync(
             selection,
-            Guid.NewGuid()
-        );
+            Guid.NewGuid());
 
         return (
             result.BookingId,
             result.BookingCode,
             result.TotalAmount,
-            result.DepositAmount
-        );
+            result.DepositAmount);
     }
 }
