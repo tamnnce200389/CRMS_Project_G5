@@ -23,17 +23,18 @@
                     <DockPanel Margin="0,0,0,20"><TextBlock Text="{Binding StatusText}" DockPanel.Dock="Right" Foreground="{StaticResource CustomerInk}" FontWeight="SemiBold"/><TextBlock Text="{Binding Summary.BookingCode}" FontSize="20" FontWeight="SemiBold"/></DockPanel>
                     <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                         <Grid.RowDefinitions><RowDefinition Height="36"/><RowDefinition Height="36"/><RowDefinition Height="36"/><RowDefinition Height="36"/><RowDefinition Height="36"/><RowDefinition Height="36"/><RowDefinition Height="36"/><RowDefinition Height="44"/><RowDefinition Height="36"/></Grid.RowDefinitions>
-                        <TextBlock Text="Tiền thuê sau giảm giá"/><TextBlock Grid.Column="1" Text="{Binding Summary.RentalTotal, StringFormat={}{0:N2} đ}"/>
+                        <TextBlock Text="{Binding Summary.RentalAmountLabel}"/><TextBlock Grid.Column="1" Text="{Binding Summary.RentalTotal, StringFormat={}{0:N2} đ}"/>
                         <TextBlock Grid.Row="1" Text="Giảm giá đã áp dụng (không trừ thêm)" Foreground="{StaticResource MutedReadable}"/><TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Summary.Discount, StringFormat={}{0:N2} đ}"/>
                         <TextBlock Grid.Row="2" Text="Phụ phí theo biên bản trả xe"/><TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Summary.ExtraFees, StringFormat={}{0:N2} đ}"/>
-                        <TextBlock Grid.Row="3" Text="Cọc đã thanh toán"/><TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding Summary.DepositsPaid, StringFormat={}{0:N2} đ}"/>
+                        <TextBlock Grid.Row="3" Text="Tiền cọc thực nhận"/><TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding Summary.DepositsPaid, StringFormat={}{0:N2} đ}"/>
                         <TextBlock Grid.Row="4" Text="Tiền đã thu thêm"/><TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding Summary.BalancesPaid, StringFormat={}{0:N2} đ}"/>
                         <TextBlock Grid.Row="5" Text="Tiền đã hoàn"/><TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding Summary.RefundsPaid, StringFormat={}{0:N2} đ}"/>
                         <TextBlock Grid.Row="6" Text="Thực nhận còn lại" FontWeight="SemiBold"/><TextBlock Grid.Row="6" Grid.Column="1" Text="{Binding Summary.NetPaid, StringFormat={}{0:N2} đ}" FontWeight="SemiBold"/>
-                        <TextBlock Grid.Row="7" Text="Còn phải thu theo tiền thuê và phụ phí" FontWeight="SemiBold" Foreground="{StaticResource CustomerInk}"/><TextBlock Grid.Row="7" Grid.Column="1" Text="{Binding Summary.OutstandingBalance, StringFormat={}{0:N2} đ}" FontSize="21" FontWeight="SemiBold" Foreground="{StaticResource CustomerInk}"/>
+                        <TextBlock Grid.Row="7" Text="{Binding Summary.OutstandingLabel}" TextWrapping="Wrap" Margin="0,0,12,0" FontWeight="SemiBold" Foreground="{StaticResource CustomerInk}"/><TextBlock Grid.Row="7" Grid.Column="1" Text="{Binding Summary.DisplayOutstandingBalance, StringFormat={}{0:N2} đ}" FontSize="21" FontWeight="SemiBold" Foreground="{StaticResource CustomerInk}"/>
                         <TextBlock Grid.Row="8" Text="Có thể hoàn cho đơn hủy / hết hạn"/><TextBlock Grid.Row="8" Grid.Column="1" Text="{Binding Summary.RefundableAmount, StringFormat={}{0:N2} đ}"/>
                     </Grid>
                     <TextBlock Text="Chỉ cộng các giao dịch thành công. Đơn hủy/hết hạn không được thu tiếp số dư." Foreground="{StaticResource MutedReadable}" TextWrapping="Wrap" Margin="0,8,0,0"/>
+                    <TextBlock Text="{Binding Summary.DemoNote}" TextWrapping="Wrap" Foreground="#805B13" FontWeight="SemiBold" Margin="0,8,0,0"/>
                 </StackPanel>
             </Border>
             <StackPanel Visibility="{Binding BalanceVisibility}" Margin="0,20,0,0">

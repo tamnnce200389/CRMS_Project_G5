@@ -4,6 +4,10 @@
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
 # User-specific files
+**/payment-demo.local.json
+**/appsettings.Local.json
+**/appsettings.Development.json
+**/.env
 *.rsuser
 *.suo
 *.user

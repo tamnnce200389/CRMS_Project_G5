@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 if (args.Length >= 2 && args[0] == "--render") { RenderChecks.Run(args[1]); return; }
 if (args.Length >= 2 && args[0] == "--customer-ui") { CustomerUiChecks.Run(args[1]); return; }
+if (args.Contains("--trip-navigation")) { TripNavigationChecks.Run(); return; }
 var passed = 0;
 void Assert(bool ok, string name)
 {
@@ -78,9 +79,11 @@ try
     var marker = "USE [CRMS];";
     var index = schema.IndexOf(marker,StringComparison.Ordinal);
     if(index<0) throw new Exception("Cannot locate schema boundary.");
-    schema=schema[(index+marker.Length)..];
+    schema=schema[(index+marker.Length)..].Replace("DECLARE @IncludeDemoData bit = 0;", "DECLARE @IncludeDemoData bit = 1;");
     if(Regex.IsMatch(schema,@"(?im)^\s*(USE\s|CREATE\s+DATABASE|DROP\s+DATABASE)")) throw new Exception("Unexpected database switching in schema.");
     foreach(var batch in Regex.Split(schema,@"(?im)^\s*GO\s*\r?$").Where(b=>!string.IsNullOrWhiteSpace(b))) await Exec(connectionString,batch);
+    var demoMigration = Path.Combine(Path.GetDirectoryName(sourcePath)!, "database", "20261109_demo_payments.sql");
+    if (File.Exists(demoMigration)) await Exec(connectionString, await File.ReadAllTextAsync(demoMigration));
     long staff, customer, otherCustomer, vehicle;
     using(var db=Create())
     {

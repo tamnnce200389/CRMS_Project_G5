@@ -55,6 +55,9 @@ namespace CRMS.Services
 
     public class DashboardService
     {
+        private readonly Func<CrmsContext> _create;
+        public DashboardService() : this(CrmsContextFactory.Create) { }
+        public DashboardService(Func<CrmsContext> create) => _create = create;
         // =====================================
         // 1. ADMIN DASHBOARD
         // =====================================
@@ -68,7 +71,7 @@ namespace CRMS.Services
             var (fromUtc, endUtcExclusive) =
                 GetUtcRange(fromDateVN, toDateVN);
 
-            using var db = CrmsContextFactory.Create();
+            using var db = _create();
 
             var (actorId, role) =
                 await AuthorizeAsync(
@@ -89,6 +92,7 @@ namespace CRMS.Services
             var paymentTotals = await db.Payments
                 .AsNoTracking()
                 .Where(p =>
+                    !p.Booking.IsDemo &&
                     p.PaymentStatus == "Success" &&
                     p.PaidAt.HasValue &&
                     p.PaidAt.Value >= fromUtc &&
@@ -154,7 +158,7 @@ namespace CRMS.Services
             var (fromUtc, endUtcExclusive) =
                 GetUtcRange(fromDateVN, toDateVN);
 
-            using var db = CrmsContextFactory.Create();
+            using var db = _create();
 
             var (actorId, role) =
                 await AuthorizeAsync(

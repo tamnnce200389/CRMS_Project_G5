@@ -32,6 +32,7 @@ public partial class CrmsContext
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder)
     {
+        ConfigureDemoPayments(modelBuilder);
         modelBuilder.Entity<Booking>(entity =>
         {
             entity.Property(e => e.PriceUnit).HasMaxLength(5).IsUnicode(false).HasDefaultValue("Day");

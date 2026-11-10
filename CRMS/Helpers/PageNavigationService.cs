@@ -51,7 +51,7 @@ public sealed class PageNavigationService : INavigationService
         if (route == "Maintenance") { Current = new MaintenancePage(argument as long?); return; }
         if (route == "PaymentSummary" && argument is string code)
         {
-            var page = new PaymentSummaryPage(); if (page.DataContext is PaymentWorkspaceViewModel vm) { vm.BookingLookup = code; Current = page; vm.CalculateBalanceCommand.Execute(null); }
+            var page = new PaymentSummaryPage(() => Navigate("MyBookings")); if (page.DataContext is PaymentWorkspaceViewModel vm) { vm.BookingLookup = code; Current = page; vm.CalculateBalanceCommand.Execute(null); }
             return;
         }
         if (!_pages.TryGetValue(route, out var pageObject))

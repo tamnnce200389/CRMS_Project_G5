@@ -22,7 +22,8 @@ public sealed class BookingQueryService : IBookingQueryService
     {
         var stamp = SessionStamp.Capture(_session); using var db = _create(); if (await Role(db, stamp, token) != "Customer") throw new InvalidOperationException("Chức năng này dành cho khách hàng.");
         var rows = await db.Bookings.AsNoTracking().Where(b => b.CustomerId == stamp.UserId).OrderByDescending(b => b.CreatedAt)
-            .Select(b => new CustomerTrip(b.BookingCode, b.Vehicle.Brand + " " + b.Vehicle.Model, b.StartAt, b.EndAt, b.TotalAmount, b.BookingStatus, b.RentalType, b.PriceUnit, b.RentalUnits)).ToListAsync(token);
+            .Select(b => new CustomerTrip(b.BookingCode, b.Vehicle.Brand + " " + b.Vehicle.Model, b.StartAt, b.EndAt, b.TotalAmount, b.BookingStatus, b.RentalType, b.PriceUnit, b.RentalUnits,
+                b.BookingId, b.DepositMethod, b.IsDemo, b.DepositDeadline)).ToListAsync(token);
         stamp.Ensure(_session); return rows;
     }
     public async Task<long> ResolveBookingAsync(string lookup, CancellationToken token = default)
