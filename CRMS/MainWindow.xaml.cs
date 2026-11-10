@@ -1,5 +1,8 @@
 ﻿
+using CRMS.Services;
+using CRMS.ViewModels;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace CRMS
 {
@@ -8,6 +11,25 @@ namespace CRMS
         public MainWindow()
         {
             InitializeComponent();
+        }
+
+        private void Account_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not Button button) return;
+            AccountMenu.PlacementTarget = button;
+            AccountMenu.HorizontalOffset = button.ActualWidth - AccountMenu.Width;
+            AccountMenu.IsOpen = true;
+        }
+
+        private void Logout_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            AccountMenu.IsOpen = false;
+            // Xoa phien dang nhap
+            if (DataContext is MainViewModel main) main.LogoutCommand.Execute(null);
+
+
         }
     }
 }

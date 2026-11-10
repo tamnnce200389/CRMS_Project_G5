@@ -32,6 +32,8 @@ public partial class CrmsContext : DbContext
 
     public virtual DbSet<Vehicle> Vehicles { get; set; }
 
+    public virtual DbSet<VehicleLongTermRate> VehicleLongTermRates { get; set; }
+
     public virtual DbSet<VehicleCategory> VehicleCategories { get; set; }
 
     public virtual DbSet<VehicleHandover> VehicleHandovers { get; set; }
@@ -41,6 +43,8 @@ public partial class CrmsContext : DbContext
     public virtual DbSet<VehicleReturn> VehicleReturns { get; set; }
 
     public virtual DbSet<Voucher> Vouchers { get; set; }
+
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -203,13 +207,15 @@ public partial class CrmsContext : DbContext
 
             entity.HasIndex(e => new { e.BookingId, e.CreatedAt }, "IX_Payments_Booking").IsDescending(false, true);
 
-            entity.HasIndex(e => e.GatewayTxnRef, "UX_Payments_GatewayRef").IsUnique();
+            entity.HasIndex(e => e.GatewayTxnRef, "UX_Payments_GatewayRef").IsUnique().HasFilter("[GatewayTxnRef] IS NOT NULL");
 
-            entity.HasIndex(e => e.GatewayTransactionNo, "UX_Payments_GatewayTxnNo").IsUnique();
+            entity.HasIndex(e => e.GatewayTransactionNo, "UX_Payments_GatewayTxnNo").IsUnique().HasFilter("[GatewayTransactionNo] IS NOT NULL");
 
-            entity.HasIndex(e => e.IdempotencyKey, "UX_Payments_Idempotency").IsUnique();
+            entity.HasIndex(e => e.IdempotencyKey, "UX_Payments_Idempotency").IsUnique().HasFilter("[IdempotencyKey] IS NOT NULL");
 
-            entity.HasIndex(e => e.BookingId, "UX_Payments_OneDepositSuccess").IsUnique();
+            entity.HasIndex(e => e.BookingId, "UX_Payments_OneDepositSuccess")
+                .IsUnique()
+                .HasFilter("[PaymentType] = 'Deposit' AND [PaymentStatus] = 'Success'");
 
             entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.CreatedAt).HasPrecision(0);
@@ -237,8 +243,8 @@ public partial class CrmsContext : DbContext
                 .IsRowVersion()
                 .IsConcurrencyToken();
 
-            entity.HasOne(d => d.Booking).WithOne(p => p.Payment)
-                .HasForeignKey<Payment>(d => d.BookingId)
+            entity.HasOne(d => d.Booking).WithMany(p => p.Payments)
+                .HasForeignKey(d => d.BookingId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Payments_Booking");
 
@@ -364,12 +370,13 @@ public partial class CrmsContext : DbContext
 
             entity.HasIndex(e => new { e.VehicleId, e.SortOrder }, "IX_Images_Vehicle");
 
-            entity.HasIndex(e => e.VehicleId, "UX_Images_OnePrimary").IsUnique();
+            entity.HasIndex(e => e.VehicleId, "UX_Images_OnePrimary").IsUnique().HasFilter("([IsPrimary]=(1))");
 
             entity.Property(e => e.ImageUrl).HasMaxLength(1000);
 
-            entity.HasOne(d => d.Vehicle).WithOne(p => p.VehicleImage)
-                .HasForeignKey<VehicleImage>(d => d.VehicleId)
+            entity.HasOne(d => d.Vehicle).WithMany(p => p.VehicleImages)
+                .HasForeignKey(d => d.VehicleId)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK_Images_Vehicle");
         });
 
@@ -415,6 +422,65 @@ public partial class CrmsContext : DbContext
             entity.Property(e => e.StartsAt).HasPrecision(0);
             entity.Property(e => e.VoucherCode).HasMaxLength(40);
         });
+
+
+        // =====================================
+        // BANG GIA THUE XE DAI HAN
+        // =====================================
+
+        modelBuilder.Entity<VehicleLongTermRate>(entity =>
+        {
+            // Ten bang
+            entity.ToTable("VehicleLongTermRates", "dbo");
+
+            // Khoa chinh gom 2 cot
+            entity.HasKey(e => new
+            {
+                e.VehicleId,
+                e.DurationMonths
+            });
+
+            // VehicleId: SQL BIGINT
+            entity.Property(e => e.VehicleId)
+                .HasColumnType("bigint");
+
+            // CRMS_FULL.sql stores DurationMonths as TINYINT; retain the existing int model property.
+            entity.Property(e => e.DurationMonths)
+                .HasConversion<byte>()
+                .HasColumnType("tinyint");
+
+            // Gia thang goc
+            entity.Property(e => e.BaseMonthlyRate)
+                .HasColumnType("decimal(18, 2)");
+
+            // Phan tram giam
+            entity.Property(e => e.DiscountPercent)
+                .HasColumnType("decimal(5, 2)");
+
+            // Gia sau giam duoc SQL tu tinh
+            entity.Property(e => e.MonthlyRate)
+                .HasColumnType("decimal(18, 2)")
+                .ValueGeneratedOnAddOrUpdate();
+
+            // Trang thai
+            entity.Property(e => e.IsActive)
+                .HasDefaultValue(true);
+
+            // Ngay cap nhat
+            entity.Property(e => e.UpdatedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("SYSUTCDATETIME()");
+
+            // Khong map TotalPrice vao SQL
+            entity.Ignore(e => e.TotalPrice);
+
+            // Quan he voi Vehicles
+            entity.HasOne(e => e.Vehicle)
+                .WithMany()
+                .HasForeignKey(e => e.VehicleId)
+                .OnDelete(DeleteBehavior.NoAction);
+        });
+
 
         OnModelCreatingPartial(modelBuilder);
     }

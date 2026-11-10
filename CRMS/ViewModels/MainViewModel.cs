@@ -1,76 +1,53 @@
-﻿
-using CRMS.Helpers;
-using CRMS.Views;
-using System.Windows.Controls;
+﻿using System.ComponentModel;
+using System.Windows;
 using System.Windows.Input;
+using CRMS.Helpers;
+using CRMS.Services;
+namespace CRMS.ViewModels;
 
-namespace CRMS.ViewModels
+public sealed class MainViewModel : BaseViewModel
 {
-    public class MainViewModel : BaseViewModel
+    private readonly INavigationService _navigation;
+    public MainViewModel() : this(ApplicationServices.NavigationFactory?.Invoke() ?? throw new InvalidOperationException("Navigation is not configured.")) { }
+    public MainViewModel(INavigationService navigation)
     {
-        // Tao cac Page mot lan
-        private readonly DashboardPage _dashboardPage = new();
-        private readonly VehiclePage _vehiclePage = new();
-        private readonly BookingPage _bookingPage = new();
-        private readonly DriverPage _driverPage = new();
-        private readonly ReportPage _reportPage = new();
-
-        private Page _currentPage;
-
-        public Page CurrentPage
-        {
-            get => _currentPage;
-            set
-            {
-                if (_currentPage != value)
-                {
-                    _currentPage = value;
-                    OnPropertyChanged();
-                    OnPropertyChanged(nameof(IsDashboard));
-                    OnPropertyChanged(nameof(IsVehicles));
-                    OnPropertyChanged(nameof(IsBookings));
-                    OnPropertyChanged(nameof(IsDrivers));
-                    OnPropertyChanged(nameof(IsReports));
-                }
-            }
-        }
-
-        public ICommand NavigateCommand { get; }
-        public bool IsDashboard => CurrentPage == _dashboardPage;
-        public bool IsVehicles => CurrentPage == _vehiclePage;
-        public bool IsBookings => CurrentPage == _bookingPage;
-        public bool IsDrivers => CurrentPage == _driverPage;
-        public bool IsReports => CurrentPage == _reportPage;
-
-        public MainViewModel()
-        {
-            _currentPage = _dashboardPage;
-
-            NavigateCommand = new RelayCommand(parameter =>
-            {
-                switch (parameter?.ToString())
-                {
-                    case "Dashboard":
-                        CurrentPage = _dashboardPage;
-                        break;
-
-                    case "Vehicles":
-                        CurrentPage = _vehiclePage;
-                        break;
-
-                    case "Bookings":
-                        CurrentPage = _bookingPage;
-                        break;
-
-                    case "Drivers":
-                        CurrentPage = _driverPage;
-                        break;
-
-                    case "Reports":
-                        CurrentPage = _reportPage;
-                        break;
-                }
-            });
-        }
+        _navigation = navigation; _navigation.Changed += RefreshNavigationStates;
+        PropertyChangedEventManager.AddHandler(CurrentUserService.Instance, SessionChanged, nameof(CurrentUserService.SessionVersion));
+        LogoutCommand = new RelayCommand(_ => CurrentUserService.Instance.Logout());
+        NavigateCommand = new RelayCommand(p => _navigation.Navigate(p?.ToString() ?? "Home"));
+        RefreshSession();
+    }
+    private void SessionChanged(object? sender, PropertyChangedEventArgs e) => RefreshSession();
+    public object? CurrentPage { get => _navigation.Current; set => _navigation.Current = value; }
+    public bool IsGuest => CurrentUserService.Instance.IsGuest;
+    public bool IsCustomer => CurrentUserService.Instance.IsCustomer;
+    public bool IsLoggedIn => CurrentUserService.Instance.IsLoggedIn;
+    public bool IsStaff => CurrentUserService.Instance.IsStaff;
+    public bool IsAdmin => CurrentUserService.Instance.IsAdmin;
+    public bool IsManagement => IsStaff || IsAdmin;
+    public bool IsCustomerExplore => _navigation.CurrentRoute is "Home" or "CarSearch" or "CarDetails";
+    public bool IsCustomerBookings => _navigation.CurrentRoute == "MyBookings";
+    public bool IsCustomerPayments => _navigation.CurrentRoute == "PaymentSummary";
+    public bool IsCustomerProfile => _navigation.CurrentRoute == "Profile";
+    public bool IsDashboard => _navigation.CurrentRoute == "Dashboard";
+    public bool IsVehicles => _navigation.CurrentRoute == "Vehicles";
+    public bool IsDrivers => _navigation.CurrentRoute == "Drivers";
+    public bool IsBookings => _navigation.CurrentRoute == "Bookings";
+    public bool IsReports => _navigation.CurrentRoute == "Reports";
+    public bool IsUserManagement => _navigation.CurrentRoute == "UserManagement";
+    public ICommand NavigateCommand { get; }
+    public ICommand LogoutCommand { get; }
+    public void OpenAvailability(long? vehicleId = null) => _navigation.Navigate("Availability", vehicleId);
+    public void OpenMaintenance(long? vehicleId = null) => _navigation.Navigate("Maintenance", vehicleId);
+    public void OpenPayment(string code) => _navigation.Navigate("PaymentSummary", code);
+    public void OpenSearch(SearchNavigationRequest request) => _navigation.Navigate("CarSearch", request);
+    private void RefreshNavigationStates()
+    {
+        foreach (var name in new[] { nameof(CurrentPage), nameof(IsCustomerExplore), nameof(IsCustomerBookings), nameof(IsCustomerPayments), nameof(IsCustomerProfile), nameof(IsDashboard), nameof(IsVehicles), nameof(IsDrivers), nameof(IsBookings), nameof(IsReports), nameof(IsUserManagement) }) OnPropertyChanged(name);
+    }
+    public void RefreshSession()
+    {
+        _navigation.Reset(); foreach (var name in new[] { nameof(IsGuest), nameof(IsCustomer), nameof(IsLoggedIn), nameof(IsStaff), nameof(IsAdmin), nameof(IsManagement) }) OnPropertyChanged(name);
+        _navigation.Navigate(IsManagement ? "Dashboard" : "Home");
     }
 }
