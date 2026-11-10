@@ -22,6 +22,8 @@ public partial class Booking
 
     public string DepositMethod { get; set; } = null!;
 
+    public bool IsDemo { get; set; }
+
     public DateTime StartAt { get; set; }
 
     public DateTime EndAt { get; set; }

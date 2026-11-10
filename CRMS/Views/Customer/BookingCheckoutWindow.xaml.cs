@@ -11,7 +11,10 @@ public partial class BookingCheckoutWindow : Window
         ViewModel = new(selection, vehicleName, service); DataContext = ViewModel;
         ViewModel.Completed += () => Dispatcher.BeginInvoke(new Action(() =>
         {
-            MessageBox.Show(this, ViewModel.Status, "Đã tạo đơn thuê", MessageBoxButton.OK, MessageBoxImage.Information);
+            if (ViewModel.Result is { IsDemo: true } booking)
+                new DemoPaymentWindow(booking.BookingId) { Owner = this }.ShowDialog();
+            else
+                MessageBox.Show(this, ViewModel.Status, "Đã tạo đơn thuê", MessageBoxButton.OK, MessageBoxImage.Information);
             DialogResult = true;
         }));
         Closing += (_, e) => e.Cancel = !ViewModel.CanClose;

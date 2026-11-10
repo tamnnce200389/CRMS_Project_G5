@@ -1,10 +1,13 @@
 ﻿/* CRMS - FULL CORRECTED SQL, 2026-11-05. SQL Server 2019+.
    Target: CRMS. Run in one SSMS query/connection, outside any existing transaction.
-   Default: upgrade schema/procedures, preserve existing data; do NOT insert demo data.
-   For a DEMO database only: change @IncludeDemoData from 0 to 1 below.
+   Default: group development/demo setup, including sample data where missing.
+   Re-running preserves existing rows; installed search/QA fixtures are not recreated.
+   Set @IncludeDemoData=0 only for a schema upgrade without sample data.
    Demo mode includes the original 29 cars + search metadata + synthetic QA financial history.
    The final section assigns the bundled exterior/interior photos to those 29 cars.
-   On a new DEMO database, set @IncludeDemoData=1 to create the matching vehicles.
+   A new database receives the matching vehicles without editing this file.
+   QR schema update 2026-11-10: includes Bookings.IsDemo and DemoPayments for the Staff-verified 1,000 VND flow.
+   This single script installs/upgrades the QR schema; no extra SQL file is required.
    Existing synthetic data is preserved, not automatically removed from reports.
    No login/password changes; no GRANT/db_owner requirement is introduced.
    For existing CRMS, migration identity needs ALTER/CREATE objects, DML and EXECUTE rights.
@@ -22,7 +25,7 @@ USE [CRMS];
 GO
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
-DECLARE @IncludeDemoData bit = 0; -- 0: existing database; 1: DEMO DATA ONLY
+DECLARE @IncludeDemoData bit = 1; -- Default for group demo: seed missing samples; 0: schema upgrade only
 IF @@TRANCOUNT<>0 THROW 53900,'Run this full script outside an existing transaction.',1;
 DECLARE @DemoAlreadyInstalled bit=CASE WHEN EXISTS(
  SELECT 1 FROM sys.extended_properties WHERE name=N'CRMS.QaScenariosVersion'
@@ -448,6 +451,48 @@ EXEC(N'IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID(N''d
 BEGIN
     CREATE UNIQUE INDEX UX_Reviews_Booking ON dbo.Reviews(BookingId);
 END;');
+-- BEGIN QR DEMO SCHEMA (2026-11-10)
+-- Shared QR flow: actual transfer is 1,000 VND; Staff verifies receipt.
+-- Keep existing bookings as non-demo and never post simulated deposits to Payments.
+EXEC(N'IF COL_LENGTH(N''dbo.Bookings'', N''IsDemo'') IS NULL
+        ALTER TABLE dbo.Bookings ADD IsDemo bit NOT NULL CONSTRAINT DF_Bookings_IsDemo DEFAULT(0) WITH VALUES;
+    IF OBJECT_ID(N''dbo.DemoPayments'', N''U'') IS NULL
+    BEGIN
+        CREATE TABLE dbo.DemoPayments
+        (
+            DemoPaymentId bigint IDENTITY(1,1) NOT NULL CONSTRAINT PK_DemoPayments PRIMARY KEY,
+            BookingId bigint NOT NULL REFERENCES dbo.Bookings(BookingId),
+            SimulatedDepositAmount decimal(18,2) NOT NULL CHECK(SimulatedDepositAmount > 0),
+            RequiredTransferAmount decimal(18,2) NOT NULL CONSTRAINT DF_DemoPayments_Required DEFAULT(1000) CHECK(RequiredTransferAmount=1000),
+            ActualAmount decimal(18,2) NOT NULL CONSTRAINT DF_DemoPayments_Actual DEFAULT(0),
+            TransferContent varchar(25) NOT NULL,
+            BankBin varchar(6) NOT NULL,
+            BankName nvarchar(80) NOT NULL,
+            AccountNumber varchar(34) NOT NULL,
+            AccountName nvarchar(120) NOT NULL,
+            PaymentStatus varchar(10) NOT NULL CONSTRAINT DF_DemoPayments_Status DEFAULT(''Pending''),
+            BankTransactionReference nvarchar(100) NULL,
+            ConfirmationRequestKey uniqueidentifier NULL,
+            VerifiedByUserId bigint NULL REFERENCES dbo.Users(UserId),
+            PaidAt datetime2(0) NULL,
+            ConfirmedBooking bit NOT NULL CONSTRAINT DF_DemoPayments_Confirmed DEFAULT(0),
+            CreatedAt datetime2(0) NOT NULL CONSTRAINT DF_DemoPayments_Created DEFAULT SYSUTCDATETIME(),
+            RowVersion rowversion NOT NULL,
+            CONSTRAINT CK_DemoPayments_State CHECK
+            (
+                (PaymentStatus=''Pending'' AND ActualAmount=0 AND PaidAt IS NULL AND VerifiedByUserId IS NULL
+                 AND BankTransactionReference IS NULL AND ConfirmationRequestKey IS NULL AND ConfirmedBooking=0)
+                OR
+                (PaymentStatus=''Success'' AND ActualAmount=1000 AND PaidAt IS NOT NULL AND VerifiedByUserId IS NOT NULL
+                 AND NULLIF(LTRIM(RTRIM(BankTransactionReference)),'''') IS NOT NULL AND ConfirmationRequestKey IS NOT NULL)
+            )
+        );
+        CREATE UNIQUE INDEX UX_DemoPayments_Booking ON dbo.DemoPayments(BookingId);
+        CREATE UNIQUE INDEX UX_DemoPayments_TransferContent ON dbo.DemoPayments(TransferContent);
+        CREATE UNIQUE INDEX UX_DemoPayments_BankReference ON dbo.DemoPayments(BankTransactionReference) WHERE BankTransactionReference IS NOT NULL;
+        CREATE UNIQUE INDEX UX_DemoPayments_RequestKey ON dbo.DemoPayments(ConfirmationRequestKey) WHERE ConfirmationRequestKey IS NOT NULL;
+    END;');
+-- END QR DEMO SCHEMA
 EXEC(N'IF OBJECT_ID(N''dbo.BookingStatusHistory'', N''U'') IS NULL
 BEGIN
     CREATE TABLE dbo.BookingStatusHistory (

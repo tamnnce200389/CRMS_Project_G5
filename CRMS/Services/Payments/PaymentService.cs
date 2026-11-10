@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CRMS.Services.Payments;
 
-public sealed class PaymentService : IPaymentSummaryService, IRefundRecordingService
+public sealed class PaymentService : IPaymentService
 {
     private readonly Func<CrmsContext> _create;
     private readonly Func<long?> _userId;
@@ -56,7 +56,8 @@ public sealed class PaymentService : IPaymentSummaryService, IRefundRecordingSer
     {
         var payments = await db.Payments.AsNoTracking().Where(p => p.BookingId == booking.BookingId).ToListAsync();
         var returned = await db.VehicleReturns.AsNoTracking().SingleOrDefaultAsync(r => r.BookingId == booking.BookingId);
-        return PaymentRules.Summarize(booking, payments, returned);
+        var demo = booking.IsDemo ? await db.DemoPayments.AsNoTracking().SingleOrDefaultAsync(p => p.BookingId == booking.BookingId) : null;
+        return PaymentRules.Summarize(booking, payments, returned, demo);
     }
 
     private static async Task<Payment?> FindReplay(CrmsContext db, long bookingId,
@@ -115,6 +116,7 @@ public sealed class PaymentService : IPaymentSummaryService, IRefundRecordingSer
         await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable);
         var actor = await Authorize(db);
         var booking = await LockBooking(db, bookingId);
+        if (booking.IsDemo) throw new InvalidOperationException("Không thu tiền thuê mô phỏng bằng luồng thu tiền thật.");
         var replay = await FindReplay(db, bookingId, "Balance", "Cash", expectedAmount, requestKey);
         if (replay is not null)
         {
@@ -138,6 +140,7 @@ public sealed class PaymentService : IPaymentSummaryService, IRefundRecordingSer
         await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable);
         var actor = await Authorize(db);
         var booking = await LockBooking(db, bookingId);
+        if (booking.IsDemo) throw new InvalidOperationException("Đơn demo không được hoàn tất bằng luồng thu tiền thật.");
         if (booking.BookingStatus != "Completed")
         {
             if (!(await ReadSummary(db, booking)).CanComplete)

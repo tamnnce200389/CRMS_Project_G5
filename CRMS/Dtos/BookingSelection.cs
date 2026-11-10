@@ -12,7 +12,9 @@ namespace CRMS.Services
         DateTime EndAt,
         string PriceUnit = "Day",
         int? DurationMonths = null,
-        decimal? ExpectedTotal = null
+        decimal? ExpectedTotal = null,
+        string DepositMethod = "Cash",
+        bool IsDemo = false
     );
 
 }

@@ -83,6 +83,9 @@ namespace CRMS.Services
 
     public class ReportService
     {
+        private readonly Func<CrmsContext> _create;
+        public ReportService() : this(CrmsContextFactory.Create) { }
+        public ReportService(Func<CrmsContext> create) => _create = create;
         // =====================================
         // LAY BAO CAO DOANH THU
         // =====================================
@@ -114,7 +117,7 @@ namespace CRMS.Services
 
             long adminId = session.UserId.Value;
 
-            using var db = CrmsContextFactory.Create();
+            using var db = _create();
 
             // =====================================
             // KIEM TRA QUYEN TREN DATABASE
@@ -175,6 +178,7 @@ namespace CRMS.Services
                     on booking.VehicleId equals vehicle.VehicleId
 
                 where
+                    !booking.IsDemo &&
                     payment.PaymentStatus == "Success" &&
                     payment.PaidAt.HasValue &&
                     payment.PaidAt.Value >= fromUtc &&

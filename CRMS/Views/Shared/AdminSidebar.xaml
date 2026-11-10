@@ -286,7 +286,7 @@
 
                             <Button Content="Tổng hợp thanh toán"
                                     Style="{StaticResource NavButton}"
-                                    Command="{Binding NavigateCommand}" CommandParameter="PaymentSummary"/>                            <Button Content="Xác nhận cọc tiền mặt" Style="{StaticResource NavButton}" Command="{Binding NavigateCommand}" CommandParameter="CashDeposit"/>
+                                    Command="{Binding NavigateCommand}" CommandParameter="PaymentSummary"/>                            <Button Content="Xác nhận cọc / QR demo" Style="{StaticResource NavButton}" Command="{Binding NavigateCommand}" CommandParameter="CashDeposit"/>
                             <Button Content="Thu tiền còn lại" Style="{StaticResource NavButton}" Command="{Binding NavigateCommand}" CommandParameter="OutstandingBalance"/>
                             <Button Content="Ghi nhận hoàn tiền" Style="{StaticResource NavButton}" Command="{Binding NavigateCommand}" CommandParameter="ManualRefund"/>
                         </StackPanel>

@@ -7,7 +7,7 @@
         <StackPanel Margin="32,28" MaxWidth="1180">
             <TextBlock Text="HÀNH TRÌNH CỦA BẠN" Foreground="{StaticResource CustomerInk}" FontSize="11" FontWeight="Bold"/>
             <DockPanel Margin="0,8,0,8">
-                <Button DockPanel.Dock="Right" Content="Tìm chuyến đi mới" Style="{StaticResource CustomerButton}" Command="{Binding DataContext.NavigateCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="Home"/>
+                <Button x:Name="NewTripButton" DockPanel.Dock="Right" Content="Tìm chuyến đi mới" Style="{StaticResource CustomerButton}" Click="NewTrip_Click"/>
                 <TextBlock Text="Chuyến thuê của tôi" FontSize="28" FontWeight="Bold" VerticalAlignment="Center"/>
             </DockPanel>
             <TextBlock Text="Theo dõi lịch thuê, trạng thái và chi phí của từng hành trình." Foreground="{StaticResource CustomerMuted}" Margin="0,0,0,26"/>
@@ -32,7 +32,10 @@
                                 <StackPanel><TextBlock Text="Nhận xe" Foreground="{StaticResource CustomerMuted}" FontSize="12"/><TextBlock Text="{Binding StartLocal, StringFormat={}{0:HH:mm · dd/MM/yyyy}}" Margin="0,7,0,0"/></StackPanel>
                                 <StackPanel Grid.Column="1"><TextBlock Text="Trả xe" Foreground="{StaticResource CustomerMuted}" FontSize="12"/><TextBlock Text="{Binding EndLocal, StringFormat={}{0:HH:mm · dd/MM/yyyy}}" Margin="0,7,0,0"/></StackPanel>
                                 <StackPanel Grid.Column="2"><TextBlock Text="Tổng tiền thuê" Foreground="{StaticResource CustomerMuted}" FontSize="12"/><TextBlock Text="{Binding TotalAmount, StringFormat={}{0:N0} đ}" FontWeight="SemiBold" Margin="0,7,0,0"/></StackPanel>
-                                <Button Grid.Column="3" Content="Xem thanh toán" Style="{StaticResource SecondaryButton}" Click="Payment_Click" Tag="{Binding BookingCode}" Margin="16,0,0,0"/>
+                                <StackPanel Grid.Column="3" Orientation="Horizontal" Margin="16,0,0,0">
+                                    <Button Content="{Binding DemoPaymentAction}" Style="{StaticResource CustomerButton}" Click="DemoPayment_Click" Visibility="{Binding IsDemo, Converter={StaticResource VisibleBool}}" Margin="0,0,8,0"/>
+                                    <Button Content="Xem thanh toán" Style="{StaticResource SecondaryButton}" Click="Payment_Click" Tag="{Binding BookingCode}"/>
+                                </StackPanel>
                             </Grid>
                         </StackPanel>
                     </Border>
